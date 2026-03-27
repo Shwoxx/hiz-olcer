@@ -2,13 +2,20 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Hız Ölçer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>VeloTrack</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VeloTrack">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#080c10">
+<meta name="description" content="GPS Hız Ölçer & Hız Limiti Uyarısı">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23080c10'/%3E%3Ccircle cx='96' cy='96' r='70' fill='none' stroke='%2300e5ff' stroke-width='6' stroke-dasharray='180 240'/%3E%3Cline x1='96' y1='96' x2='96' y2='38' stroke='%23ff6b35' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='96' cy='96' r='8' fill='%23ff6b35'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23080c10'/%3E%3Ccircle cx='96' cy='96' r='70' fill='none' stroke='%2300e5ff' stroke-width='6' stroke-dasharray='180 240'/%3E%3Cline x1='96' y1='96' x2='96' y2='38' stroke='%23ff6b35' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='96' cy='96' r='8' fill='%23ff6b35'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #080c10;
-    --surface: #0d1520;
     --card: #111d2e;
     --accent: #00e5ff;
     --accent2: #ff6b35;
@@ -16,364 +23,238 @@
     --text: #e8f4fd;
     --muted: #4a6580;
     --border: rgba(0,229,255,0.15);
-    --glow: rgba(0,229,255,0.3);
+    --warn: #ff3b5c;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { height:-webkit-fill-available; }
   body {
     background: var(--bg);
     color: var(--text);
     font-family: 'Rajdhani', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
+    min-height:100vh; min-height:-webkit-fill-available;
+    display:flex; flex-direction:column; align-items:center;
+    overflow-x:hidden; overscroll-behavior:none;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    transition: background 0.4s;
     background-image:
       radial-gradient(ellipse at 20% 0%, rgba(0,229,255,0.07) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 100%, rgba(255,107,53,0.05) 0%, transparent 50%);
   }
+  body.speeding-alert {
+    background: #1a0008;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(255,59,92,0.25) 0%, transparent 60%);
+    animation: red-pulse 1s ease-in-out infinite;
+  }
+  @keyframes red-pulse {
+    0%,100% { background-color: #1a0008; }
+    50% { background-color: #2a0010; }
+  }
 
-  /* Header */
+  /* HEADER */
   .header {
-    width: 100%;
-    padding: 20px 24px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
+    width:100%; padding:16px 20px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:10;
+    background: rgba(8,12,16,0.95);
+    backdrop-filter: blur(10px);
   }
-
   .header-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    color: var(--accent);
-    text-transform: uppercase;
+    font-family:'Orbitron',monospace; font-size:13px; font-weight:700;
+    letter-spacing:4px; color:var(--accent);
   }
-
   .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-    transition: all 0.3s;
-    box-shadow: 0 0 0 0 transparent;
+    width:8px; height:8px; border-radius:50%;
+    background:var(--muted); transition:all 0.3s;
   }
   .status-dot.active {
-    background: var(--accent3);
-    box-shadow: 0 0 8px var(--accent3), 0 0 16px rgba(57,255,20,0.4);
-    animation: pulse-dot 2s infinite;
+    background:var(--accent3);
+    box-shadow:0 0 8px var(--accent3);
+    animation:pulse-dot 2s infinite;
   }
-  .status-dot.error { background: #ff3b5c; box-shadow: 0 0 8px #ff3b5c; }
+  .status-dot.error { background:var(--warn); box-shadow:0 0 8px var(--warn); }
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  /* Main speedometer */
-  .main-container {
-    flex: 1;
-    width: 100%;
-    max-width: 420px;
-    padding: 24px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .speedometer-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
-
-  .arc-container {
-    position: relative;
-    width: 280px;
-    height: 160px;
-    overflow: visible;
-  }
-
-  .arc-container svg {
-    width: 100%;
-    height: auto;
-    overflow: visible;
-  }
-
-  .speed-display {
-    text-align: center;
-    margin-top: -8px;
-  }
-
-  .speed-number {
-    font-family: 'Orbitron', monospace;
-    font-size: 72px;
-    font-weight: 900;
-    line-height: 1;
-    color: var(--text);
-    letter-spacing: -2px;
-    transition: color 0.4s;
-    text-shadow: 0 0 40px rgba(0,229,255,0.2);
-  }
-
-  .speed-number.fast { color: var(--accent2); text-shadow: 0 0 40px rgba(255,107,53,0.4); }
-  .speed-number.speeding { color: #ff3b5c; text-shadow: 0 0 40px rgba(255,59,92,0.5); }
-
-  .speed-unit {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 3px;
-    margin-top: 4px;
-  }
-
-  .speed-label {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-top: 6px;
-  }
-
-  /* Stats grid */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s;
-  }
-
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0.5;
-  }
-
-  .stat-card.highlight::before {
-    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-    opacity: 0.8;
-  }
-
-  .stat-icon {
-    font-size: 18px;
-    margin-bottom: 8px;
-    display: block;
-  }
-
-  .stat-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-top: 4px;
-  }
-
-  /* Full width stat */
-  .stat-wide {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .stat-wide .stat-label { font-size: 12px; }
-  .stat-wide .stat-value { font-size: 28px; }
-
-  /* Trip bar */
-  .trip-bar {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px 20px;
-  }
-
-  .trip-bar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-
-  .trip-bar-title {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  .trip-time {
-    font-family: 'Orbitron', monospace;
-    font-size: 13px;
-    color: var(--accent);
-  }
-
-  .progress-track {
-    height: 4px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 2px;
-    width: 0%;
-    transition: width 1s linear;
-  }
-
-  /* Speed history mini chart */
-  .history-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px 20px;
-  }
-
-  .history-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .history-title {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  /* Control button */
-  .control-btn {
-    width: 100%;
-    padding: 18px;
-    border-radius: 16px;
-    border: none;
-    font-family: 'Orbitron', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .control-btn.start {
-    background: linear-gradient(135deg, var(--accent), #0088aa);
-    color: var(--bg);
-    box-shadow: 0 4px 24px rgba(0,229,255,0.3);
-  }
-
-  .control-btn.start:hover {
-    box-shadow: 0 4px 32px rgba(0,229,255,0.5);
-    transform: translateY(-1px);
-  }
-
-  .control-btn.stop {
-    background: linear-gradient(135deg, #ff3b5c, #cc2244);
-    color: #fff;
-    box-shadow: 0 4px 24px rgba(255,59,92,0.3);
-  }
-
-  .control-btn:active { transform: scale(0.98); }
-
-  /* Permission message */
-  .permission-msg {
-    text-align: center;
-    padding: 20px;
-    background: var(--card);
-    border: 1px solid rgba(255,107,53,0.3);
-    border-radius: 16px;
-    font-size: 13px;
-    color: var(--accent2);
-    line-height: 1.6;
-    letter-spacing: 0.5px;
-  }
-
-  .permission-msg span {
-    display: block;
-    font-size: 28px;
-    margin-bottom: 8px;
-  }
-
-  /* Accuracy badge */
   .accuracy-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: rgba(0,229,255,0.08);
-    border: 1px solid var(--border);
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
+    display:inline-flex; align-items:center; gap:4px;
+    padding:4px 10px; border-radius:20px;
+    background:rgba(0,229,255,0.08); border:1px solid var(--border);
+    font-size:10px; letter-spacing:2px; color:var(--muted);
+  }
+  .accuracy-badge .dot { width:5px; height:5px; border-radius:50%; background:var(--muted); }
+  .accuracy-badge.good .dot { background:var(--accent3); }
+  .accuracy-badge.medium .dot { background:var(--accent2); }
+
+  /* MAIN */
+  .main-container {
+    flex:1; width:100%; max-width:420px;
+    padding:20px 16px; display:flex; flex-direction:column; gap:16px;
   }
 
-  .accuracy-badge .dot {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: var(--muted);
+  /* SPEED LIMIT BANNER */
+  .limit-banner {
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:16px; padding:14px 18px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .limit-banner.over-limit {
+    border-color: rgba(255,59,92,0.6);
+    background: rgba(255,59,92,0.1);
+    animation: border-flash 1s infinite;
+  }
+  @keyframes border-flash {
+    0%,100% { border-color:rgba(255,59,92,0.6); }
+    50% { border-color:rgba(255,59,92,1); }
+  }
+  .limit-left { display:flex; align-items:center; gap:12px; }
+  .limit-sign {
+    width:52px; height:52px; border-radius:50%;
+    border:4px solid #e8f4fd;
+    background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; position:relative;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .limit-sign::before {
+    content:'';
+    position:absolute; inset:3px; border-radius:50%;
+    border:3px solid #cc0000;
+  }
+  .limit-sign-number {
+    font-family:'Orbitron',monospace; font-size:14px; font-weight:900;
+    color:#cc0000; line-height:1; z-index:1;
+  }
+  .limit-info { display:flex; flex-direction:column; gap:2px; }
+  .limit-label { font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; }
+  .limit-value { font-family:'Orbitron',monospace; font-size:20px; font-weight:700; color:var(--text); }
+  .limit-source { font-size:10px; color:var(--muted); }
+  .limit-diff {
+    font-family:'Orbitron',monospace; font-size:13px; font-weight:700;
+    padding:6px 12px; border-radius:8px;
+    background: rgba(57,255,20,0.1); color:var(--accent3);
+    border:1px solid rgba(57,255,20,0.2);
+    transition: all 0.3s;
+  }
+  .limit-diff.over {
+    background:rgba(255,59,92,0.15); color:var(--warn);
+    border-color:rgba(255,59,92,0.4);
   }
 
-  .accuracy-badge.good .dot { background: var(--accent3); }
-  .accuracy-badge.medium .dot { background: var(--accent2); }
-
-  /* Scan line effect */
-  @keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100vh); }
+  /* SPEEDOMETER */
+  .speedometer-wrap {
+    display:flex; flex-direction:column; align-items:center;
   }
+  .arc-container { position:relative; width:260px; height:148px; overflow:visible; }
+  .arc-container svg { width:100%; height:auto; overflow:visible; }
+  .speed-display { text-align:center; margin-top:-6px; }
+  .speed-number {
+    font-family:'Orbitron',monospace; font-size:68px; font-weight:900;
+    line-height:1; color:var(--text); letter-spacing:-2px;
+    transition:color 0.4s, text-shadow 0.4s;
+    text-shadow:0 0 40px rgba(0,229,255,0.2);
+  }
+  .speed-number.fast { color:var(--accent2); text-shadow:0 0 40px rgba(255,107,53,0.4); }
+  .speed-number.over { color:var(--warn); text-shadow:0 0 40px rgba(255,59,92,0.6); }
+  .speed-unit { font-size:17px; font-weight:600; color:var(--muted); letter-spacing:3px; margin-top:2px; }
+  .speed-label { font-size:10px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-top:4px; }
 
+  /* STATS */
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stat-card {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:14px; position:relative; overflow:hidden;
+  }
+  .stat-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:0.5;
+  }
+  .stat-card.highlight::before { background:linear-gradient(90deg,transparent,var(--accent2),transparent); opacity:0.8; }
+  .stat-icon { font-size:16px; margin-bottom:6px; display:block; }
+  .stat-value { font-family:'Orbitron',monospace; font-size:22px; font-weight:700; color:var(--text); line-height:1; }
+  .stat-label { font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-top:3px; }
+
+  /* TRIP */
+  .trip-bar { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 18px; }
+  .trip-bar-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .trip-bar-title { font-size:10px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; }
+  .trip-time { font-family:'Orbitron',monospace; font-size:13px; color:var(--accent); }
+  .progress-track { height:3px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0%; transition:width 1s linear; }
+
+  /* HISTORY */
+  .history-wrap { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 18px; }
+  .history-title { font-size:10px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
+
+  /* ARKA PLAN uyarısı */
+  .bg-notice {
+    background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2);
+    border-radius:12px; padding:10px 14px;
+    font-size:11px; color:var(--muted); line-height:1.5; text-align:center;
+  }
+  .bg-notice b { color:var(--accent); }
+
+  /* BUTTON */
+  .control-btn {
+    width:100%; padding:18px; border-radius:16px; border:none;
+    font-family:'Orbitron',monospace; font-size:13px; font-weight:700;
+    letter-spacing:3px; cursor:pointer; transition:all 0.3s;
+    -webkit-appearance:none;
+  }
+  .control-btn.start {
+    background:linear-gradient(135deg,var(--accent),#0088aa);
+    color:var(--bg); box-shadow:0 4px 24px rgba(0,229,255,0.3);
+  }
+  .control-btn.stop {
+    background:linear-gradient(135deg,var(--warn),#cc2244);
+    color:#fff; box-shadow:0 4px 24px rgba(255,59,92,0.3);
+  }
+  .control-btn:active { transform:scale(0.98); }
+
+  .permission-msg {
+    text-align:center; padding:18px;
+    background:var(--card); border:1px solid rgba(255,107,53,0.3);
+    border-radius:14px; font-size:13px; color:var(--accent2); line-height:1.6;
+  }
+  .permission-msg span { display:block; font-size:26px; margin-bottom:6px; }
+
+  /* OSM loading */
+  .osm-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:10px; letter-spacing:1px; color:var(--muted);
+  }
+  .osm-spinner {
+    width:8px; height:8px; border-radius:50%;
+    border:1.5px solid var(--muted); border-top-color:var(--accent);
+    animation:spin 0.8s linear infinite; display:none;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
   .scanline {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(transparent, rgba(0,229,255,0.04), transparent);
-    animation: scanline 8s linear infinite;
-    pointer-events: none;
-    z-index: 100;
+    position:fixed; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(transparent,rgba(0,229,255,0.04),transparent);
+    animation:scanline 8s linear infinite; pointer-events:none; z-index:100;
   }
 
-  /* Needle animation */
-  #needle {
-    transform-origin: 140px 140px;
-    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Install banner */
+  .install-banner {
+    display:none; background:linear-gradient(135deg,rgba(0,229,255,0.1),rgba(0,229,255,0.05));
+    border:1px solid rgba(0,229,255,0.3); border-radius:14px;
+    padding:12px 16px; align-items:center; gap:12px;
+  }
+  .install-banner.show { display:flex; }
+  .install-banner-text { flex:1; font-size:12px; color:var(--text); line-height:1.4; }
+  .install-banner-btn {
+    padding:8px 12px; background:var(--accent); color:var(--bg);
+    border:none; border-radius:8px; font-family:'Orbitron',monospace;
+    font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap;
   }
 </style>
 </head>
 <body>
-
 <div class="scanline"></div>
 
 <div class="header">
@@ -387,24 +268,42 @@
 
 <div class="main-container">
 
-  <!-- Speedometer Arc -->
+  <!-- Install banner -->
+  <div class="install-banner" id="installBanner">
+    <div class="install-banner-text">📲 Ana ekrana ekle — tam uygulama gibi kullan!</div>
+    <button class="install-banner-btn" id="installBtn">EKLE</button>
+  </div>
+
+  <!-- Hız Limiti -->
+  <div class="limit-banner" id="limitBanner">
+    <div class="limit-left">
+      <div class="limit-sign">
+        <div class="limit-sign-number" id="limitSignNum">—</div>
+      </div>
+      <div class="limit-info">
+        <div class="limit-label">HIZ LİMİTİ</div>
+        <div class="limit-value" id="limitValue">— km/s</div>
+        <div class="osm-badge">
+          <div class="osm-spinner" id="osmSpinner"></div>
+          <span id="limitSource">Konum bekleniyor</span>
+        </div>
+      </div>
+    </div>
+    <div class="limit-diff" id="limitDiff">—</div>
+  </div>
+
+  <!-- Speedometer -->
   <div class="speedometer-wrap">
     <div class="arc-container">
       <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
-        <!-- Background arc -->
         <path d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="8" stroke-linecap="round"/>
-        <!-- Colored progress arc -->
-        <path id="speedArc" d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="8" stroke-linecap="round"
-          stroke-dasharray="0 377" pathLength="377"/>
-        <!-- Tick marks -->
+        <path id="speedArc" d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="#00e5ff" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 377" pathLength="377"/>
         <g id="ticks"></g>
-        <!-- Needle -->
         <line id="needle" x1="140" y1="140" x2="140" y2="32" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round"/>
         <circle cx="140" cy="140" r="6" fill="var(--accent2)"/>
         <circle cx="140" cy="140" r="3" fill="var(--bg)"/>
       </svg>
     </div>
-
     <div class="speed-display">
       <div class="speed-number" id="currentSpeed">0</div>
       <div class="speed-unit">KM/S</div>
@@ -436,22 +335,18 @@
     </div>
   </div>
 
-  <!-- Trip bar -->
+  <!-- Trip -->
   <div class="trip-bar">
     <div class="trip-bar-header">
       <div class="trip-bar-title">Seyahat Süresi</div>
       <div class="trip-time" id="tripTime">00:00:00</div>
     </div>
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 
-  <!-- Speed history chart -->
+  <!-- History -->
   <div class="history-wrap">
-    <div class="history-header">
-      <div class="history-title">Hız Geçmişi (Son 60 saniye)</div>
-    </div>
+    <div class="history-title">Hız Geçmişi (Son 60s)</div>
     <svg id="historyChart" viewBox="0 0 340 60" style="width:100%;overflow:visible;">
       <defs>
         <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
@@ -461,139 +356,244 @@
       </defs>
       <path id="chartArea" fill="url(#chartGrad)" d="M0 60 L340 60 Z"/>
       <path id="chartLine" fill="none" stroke="var(--accent)" stroke-width="1.5" d="M0 60 L340 60"/>
+      <line id="limitLine" x1="0" y1="60" x2="340" y2="60" stroke="rgba(255,59,92,0.5)" stroke-width="1" stroke-dasharray="4 4"/>
     </svg>
   </div>
 
-  <!-- Permission message (hidden initially) -->
-  <div class="permission-msg" id="permMsg" style="display:none">
-    <span>📡</span>
-    GPS izni gerekiyor. Lütfen konuma erişime izin verin.
+  <!-- Arka plan notu -->
+  <div class="bg-notice" id="bgNotice" style="display:none">
+    ⚡ <b>Arka plan modu aktif</b> — Ekran kapansa bile hız takibi ve uyarılar çalışmaya devam eder.
   </div>
 
-  <!-- Control button -->
-  <button class="control-btn start" id="controlBtn" onclick="toggleTracking()">
-    TAKIBI BAŞLAT
-  </button>
+  <div class="permission-msg" id="permMsg" style="display:none">
+    <span>📡</span>GPS izni gerekiyor. Lütfen konuma erişime izin verin.
+  </div>
+
+  <button class="control-btn start" id="controlBtn" onclick="toggleTracking()">TAKİBİ BAŞLAT</button>
 
 </div>
 
 <script>
-let isTracking = false;
-let watchId = null;
-let startTime = null;
-let timerInterval = null;
-let speedHistory = [];
-let totalReadings = 0;
-let sumSpeed = 0;
-let maxSpeedVal = 0;
-let prevCoords = null;
-let totalDistance = 0;
-let lastUpdateTime = null;
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let isTracking = false, watchId = null, startTime = null, timerInterval = null;
+let speedHistory = [], totalReadings = 0, sumSpeed = 0, maxSpeedVal = 0;
+let prevCoords = null, totalDistance = 0, lastUpdateTime = null;
+let currentLimit = null, limitFetchTimer = null, lastLimitFetch = {lat:null,lon:null};
+let isOverLimit = false, alertCooldown = false;
+let wakeLock = null;
 const MAX_SPEED = 200;
 
-// Build tick marks on SVG arc
-function buildTicks() {
-  const ticks = document.getElementById('ticks');
-  const cx = 140, cy = 140, r = 120;
-  for (let i = 0; i <= 10; i++) {
-    const angle = -180 + (i * 18);
-    const rad = (angle * Math.PI) / 180;
-    const major = i % 2 === 0;
-    const r1 = major ? r - 16 : r - 10;
-    const r2 = r - 4;
-    const x1 = cx + r1 * Math.cos(rad);
-    const y1 = cy + r1 * Math.sin(rad);
-    const x2 = cx + r2 * Math.cos(rad);
-    const y2 = cy + r2 * Math.sin(rad);
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-    line.setAttribute('stroke', major ? 'rgba(0,229,255,0.4)' : 'rgba(0,229,255,0.15)');
-    line.setAttribute('stroke-width', major ? '2' : '1');
-    ticks.appendChild(line);
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playAlert() {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    // Çift bip
+    [0, 0.25].forEach(delay => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + delay + 0.05);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + delay + 0.2);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.25);
+    });
+  } catch(e) {}
+}
 
-    if (major) {
-      const tx = cx + (r - 28) * Math.cos(rad);
-      const ty = cy + (r - 28) * Math.sin(rad);
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', tx); text.setAttribute('y', ty + 4);
-      text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('fill', 'rgba(74,101,128,0.8)');
-      text.setAttribute('font-size', '9');
-      text.setAttribute('font-family', 'Orbitron, monospace');
-      text.textContent = (i * 20).toString();
-      ticks.appendChild(text);
+// ─── WAKE LOCK ────────────────────────────────────────────────────────────────
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      document.getElementById('bgNotice').style.display = 'block';
+      wakeLock.addEventListener('release', () => {
+        // Sayfa gizlenince tekrar iste
+        document.addEventListener('visibilitychange', reacquireWakeLock, {once:true});
+      });
     }
+  } catch(e) {}
+}
+async function reacquireWakeLock() {
+  if (isTracking && document.visibilityState === 'visible') await requestWakeLock();
+}
+
+// ─── SERVICE WORKER (arka plan ping) ─────────────────────────────────────────
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+    // Arka planda fetch isteklerini geçir
+    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response(''))));
+  `;
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
+// ─── OSM HIZ LİMİTİ ───────────────────────────────────────────────────────────
+async function fetchSpeedLimit(lat, lon) {
+  // Eğer son fetch'ten 200m'den az hareket ettiyse tekrar sorma
+  if (lastLimitFetch.lat !== null) {
+    const d = haversine(lastLimitFetch.lat, lastLimitFetch.lon, lat, lon);
+    if (d < 0.15) return; // 150m'den az hareket
+  }
+  lastLimitFetch = {lat, lon};
+  document.getElementById('osmSpinner').style.display = 'inline-block';
+  document.getElementById('limitSource').textContent = 'OSM sorgulanıyor...';
+
+  try {
+    // Overpass API - yakın yolun hız limitini çek
+    const query = `
+      [out:json][timeout:8];
+      way(around:30,${lat},${lon})["highway"]["maxspeed"];
+      out body 5;
+    `;
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    const res = await fetch(url, {signal: AbortSignal.timeout(8000)});
+    const data = await res.json();
+
+    let bestLimit = null;
+    const roadPriority = ['motorway','trunk','primary','secondary','tertiary','residential','living_street'];
+
+    if (data.elements && data.elements.length > 0) {
+      // En yakın yolu bul (önce öncelikli yol tipleri)
+      for (const el of data.elements) {
+        if (el.tags && el.tags.maxspeed) {
+          const raw = el.tags.maxspeed;
+          let limit = null;
+          if (raw === 'TR:urban' || raw === 'TR:living_street') limit = 50;
+          else if (raw === 'TR:rural') limit = 90;
+          else if (raw === 'TR:motorway') limit = 120;
+          else if (raw === 'walk' || raw === 'TR:walk') limit = 7;
+          else { const n = parseInt(raw); if (!isNaN(n)) limit = n; }
+
+          if (limit !== null) { bestLimit = limit; break; }
+        }
+      }
+    }
+
+    if (bestLimit !== null) {
+      currentLimit = bestLimit;
+      updateLimitUI(bestLimit, 'OSM Harita Verisi');
+    } else {
+      // OSM'de veri yoksa, yol tipine göre tahmin et
+      const highwayQuery = `
+        [out:json][timeout:8];
+        way(around:30,${lat},${lon})["highway"];
+        out body 3;
+      `;
+      const url2 = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(highwayQuery)}`;
+      const res2 = await fetch(url2, {signal: AbortSignal.timeout(8000)});
+      const data2 = await res2.json();
+      let guessLimit = 50; // varsayılan şehiriçi
+      let source = 'Varsayılan (şehiriçi)';
+      if (data2.elements && data2.elements.length > 0) {
+        const hw = data2.elements[0].tags && data2.elements[0].tags.highway;
+        if (hw === 'motorway') { guessLimit = 120; source = 'Otoyol (tahmini)'; }
+        else if (hw === 'motorway_link') { guessLimit = 80; source = 'Bağlantı yolu'; }
+        else if (hw === 'trunk' || hw === 'trunk_link') { guessLimit = 90; source = 'Çevreyolu (tahmini)'; }
+        else if (hw === 'primary' || hw === 'secondary') { guessLimit = 90; source = 'Şehirlerarası (tahmini)'; }
+        else if (hw === 'living_street') { guessLimit = 20; source = 'Sakin yol (tahmini)'; }
+        else if (hw === 'residential' || hw === 'unclassified') { guessLimit = 50; source = 'Şehiriçi (tahmini)'; }
+        else if (hw === 'service') { guessLimit = 30; source = 'Servis yolu'; }
+      }
+      currentLimit = guessLimit;
+      updateLimitUI(guessLimit, source);
+    }
+  } catch(e) {
+    document.getElementById('limitSource').textContent = 'Bağlantı hatası';
+    if (currentLimit === null) currentLimit = 50;
+  } finally {
+    document.getElementById('osmSpinner').style.display = 'none';
   }
 }
 
-function updateNeedle(speed) {
-  const pct = Math.min(speed / MAX_SPEED, 1);
-  const angle = -180 + pct * 180;
-  const rad = (angle * Math.PI) / 180;
-  const needle = document.getElementById('needle');
-  const len = 108;
-  const cx = 140, cy = 140;
-  const nx = cx + len * Math.cos(rad);
-  const ny = cy + len * Math.sin(rad);
-  needle.setAttribute('x2', nx);
-  needle.setAttribute('y2', ny);
-
-  // Arc fill
-  const arc = document.getElementById('speedArc');
-  const dashLen = pct * 377;
-  arc.setAttribute('stroke-dasharray', `${dashLen} ${377 - dashLen}`);
-  const clr = speed > 120 ? '#ff3b5c' : speed > 80 ? '#ff6b35' : '#00e5ff';
-  arc.setAttribute('stroke', clr.replace('#', 'rgba(').replace(/^rgba\(/, 'rgba(') + '');
-
-  // Color approach (simple)
-  arc.style.stroke = clr;
+function updateLimitUI(limit, source) {
+  document.getElementById('limitSignNum').textContent = limit;
+  document.getElementById('limitValue').textContent = limit + ' km/s';
+  document.getElementById('limitSource').textContent = source;
 }
 
-function updateChart() {
-  const chart = document.getElementById('historyChart');
-  const w = 340, h = 60;
-  const maxV = Math.max(...speedHistory, 40);
-  const pts = speedHistory.map((v, i) => {
-    const x = (i / (speedHistory.length - 1 || 1)) * w;
-    const y = h - (v / maxV) * (h - 4);
-    return `${x},${y}`;
-  });
+// ─── ALERT ────────────────────────────────────────────────────────────────────
+function checkSpeedAlert(speed) {
+  if (currentLimit === null) return;
+  const over = speed > currentLimit;
+  const banner = document.getElementById('limitBanner');
+  const diff = document.getElementById('limitDiff');
 
-  if (pts.length < 2) return;
-  const linePath = `M${pts.join(' L')}`;
-  const areaPath = `M0,${h} L${pts.join(' L')} L${w},${h} Z`;
+  if (over) {
+    const excess = Math.round(speed - currentLimit);
+    diff.textContent = '+' + excess + ' km/s';
+    diff.className = 'limit-diff over';
+    banner.className = 'limit-banner over-limit';
+    document.body.classList.add('speeding-alert');
 
-  document.getElementById('chartLine').setAttribute('d', linePath);
-  document.getElementById('chartArea').setAttribute('d', areaPath);
+    if (!isOverLimit && !alertCooldown) {
+      playAlert();
+      // Push notification (arka plan)
+      sendNotification(speed, currentLimit);
+      alertCooldown = true;
+      setTimeout(() => { alertCooldown = false; }, 5000); // 5sn cooldown
+    }
+    isOverLimit = true;
+  } else {
+    const remain = currentLimit !== null ? Math.round(currentLimit - speed) : null;
+    diff.textContent = remain !== null ? '-' + remain + ' km/s' : '—';
+    diff.className = 'limit-diff';
+    banner.className = 'limit-banner';
+    document.body.classList.remove('speeding-alert');
+    isOverLimit = false;
+  }
 }
 
+// ─── PUSH BİLDİRİM (arka plan için) ──────────────────────────────────────────
+async function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+function sendNotification(speed, limit) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification('⚠️ Hız Limiti Aşıldı!', {
+        body: `Hızınız: ${Math.round(speed)} km/s | Limit: ${limit} km/s`,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23cc0000"/><text x="32" y="44" text-anchor="middle" font-size="32" font-family="Arial" fill="white">⚠</text></svg>',
+        tag: 'speed-alert',
+        renotify: true,
+        silent: false
+      });
+    } catch(e) {}
+  }
+}
+
+// ─── GPS ──────────────────────────────────────────────────────────────────────
 function onPosition(pos) {
-  const speed = pos.coords.speed != null && pos.coords.speed >= 0
-    ? pos.coords.speed * 3.6  // m/s to km/h
-    : 0;
+  const speed = pos.coords.speed != null && pos.coords.speed >= 0 ? pos.coords.speed * 3.6 : 0;
+  const {latitude:lat, longitude:lon, accuracy, altitude} = pos.coords;
 
-  const accuracy = pos.coords.accuracy;
+  // Accuracy badge
   const badge = document.getElementById('accuracyBadge');
   const accText = document.getElementById('accuracyText');
+  if (accuracy < 15) { badge.className='accuracy-badge good'; accText.textContent='GPS İYİ'; }
+  else if (accuracy < 50) { badge.className='accuracy-badge medium'; accText.textContent='GPS ORTA'; }
+  else { badge.className='accuracy-badge'; accText.textContent='GPS ZAYIF'; }
 
-  if (accuracy < 15) {
-    badge.className = 'accuracy-badge good';
-    accText.textContent = 'GPS İYİ';
-  } else if (accuracy < 50) {
-    badge.className = 'accuracy-badge medium';
-    accText.textContent = 'GPS ORTA';
-  } else {
-    badge.className = 'accuracy-badge';
-    accText.textContent = 'GPS ZAYIF';
-  }
-
-  // Distance calc
+  // Mesafe
   if (prevCoords) {
-    const d = haversine(prevCoords.lat, prevCoords.lon, pos.coords.latitude, pos.coords.longitude);
+    const d = haversine(prevCoords.lat, prevCoords.lon, lat, lon);
     if (d < 0.5) totalDistance += d;
   }
-  prevCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+  prevCoords = {lat, lon};
 
   // Stats
   totalReadings++;
@@ -601,7 +601,7 @@ function onPosition(pos) {
   if (speed > maxSpeedVal) maxSpeedVal = speed;
   const avgSpd = sumSpeed / totalReadings;
 
-  // Update history (1 sample/sec, keep 60)
+  // History
   const now = Date.now();
   if (!lastUpdateTime || now - lastUpdateTime >= 800) {
     speedHistory.push(Math.round(speed));
@@ -609,79 +609,83 @@ function onPosition(pos) {
     lastUpdateTime = now;
   }
 
+  // Hız limiti çek (her 150m'de bir)
+  fetchSpeedLimit(lat, lon);
+
   // DOM
   const spd = Math.round(speed);
   const speedEl = document.getElementById('currentSpeed');
   speedEl.textContent = spd;
-  speedEl.className = 'speed-number' + (spd > 120 ? ' speeding' : spd > 80 ? ' fast' : '');
+  const overLimit = currentLimit !== null && spd > currentLimit;
+  speedEl.className = 'speed-number' + (overLimit ? ' over' : spd > 80 ? ' fast' : '');
 
   document.getElementById('avgSpeed').textContent = Math.round(avgSpd);
   document.getElementById('maxSpeed').textContent = Math.round(maxSpeedVal);
   document.getElementById('distanceVal').textContent = totalDistance.toFixed(1);
-
-  const alt = pos.coords.altitude;
-  document.getElementById('altitudeVal').textContent = alt != null ? Math.round(alt) : '—';
+  document.getElementById('altitudeVal').textContent = altitude != null ? Math.round(altitude) : '—';
 
   updateNeedle(speed);
   updateChart();
-
-  // Progress bar (visual - based on distance or just rolling)
-  const prog = Math.min((totalDistance / 10) * 100, 100);
-  document.getElementById('progressFill').style.width = prog + '%';
+  checkSpeedAlert(speed);
+  document.getElementById('progressFill').style.width = Math.min((totalDistance/10)*100, 100) + '%';
 }
 
-function onError(err) {
+function onError() {
   document.getElementById('permMsg').style.display = 'block';
   document.getElementById('statusDot').className = 'status-dot error';
-  document.getElementById('accuracyBadge').className = 'accuracy-badge';
-  document.getElementById('accuracyText').textContent = 'HATA';
   stopTracking();
 }
 
+// ─── TRACKING ─────────────────────────────────────────────────────────────────
 function startTracking() {
   if (!navigator.geolocation) {
+    document.getElementById('permMsg').innerHTML = '<span>❌</span>GPS desteklenmiyor.';
     document.getElementById('permMsg').style.display = 'block';
-    document.getElementById('permMsg').innerHTML = '<span>❌</span>Bu cihaz GPS desteklemiyor.';
     return;
   }
-
+  requestWakeLock();
+  requestNotificationPermission();
   document.getElementById('permMsg').style.display = 'none';
   document.getElementById('statusDot').className = 'status-dot active';
   document.getElementById('controlBtn').className = 'control-btn stop';
   document.getElementById('controlBtn').textContent = 'DURDUR';
-
   startTime = Date.now();
   timerInterval = setInterval(updateTimer, 1000);
-
   watchId = navigator.geolocation.watchPosition(onPosition, onError, {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 0
+    enableHighAccuracy:true, timeout:10000, maximumAge:0
   });
 }
 
 function stopTracking() {
   if (watchId != null) navigator.geolocation.clearWatch(watchId);
   clearInterval(timerInterval);
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
   document.getElementById('statusDot').className = 'status-dot';
   document.getElementById('controlBtn').className = 'control-btn start';
   document.getElementById('controlBtn').textContent = 'TAKİBİ BAŞLAT';
+  document.body.classList.remove('speeding-alert');
   isTracking = false;
 }
 
 function toggleTracking() {
   if (!isTracking) {
     isTracking = true;
-    // Reset
-    totalReadings = 0; sumSpeed = 0; maxSpeedVal = 0;
-    totalDistance = 0; prevCoords = null; speedHistory = [];
-    lastUpdateTime = null;
-    document.getElementById('currentSpeed').textContent = '0';
-    document.getElementById('avgSpeed').textContent = '0';
-    document.getElementById('maxSpeed').textContent = '0';
-    document.getElementById('distanceVal').textContent = '0.0';
-    document.getElementById('tripTime').textContent = '00:00:00';
-    document.getElementById('progressFill').style.width = '0%';
+    // Ses bağlamını kullanıcı etkileşiminde başlat
+    getAudioCtx();
+    totalReadings=0; sumSpeed=0; maxSpeedVal=0;
+    totalDistance=0; prevCoords=null; speedHistory=[]; lastUpdateTime=null;
+    currentLimit=null; lastLimitFetch={lat:null,lon:null};
+    isOverLimit=false; alertCooldown=false;
+    document.getElementById('currentSpeed').textContent='0';
+    document.getElementById('avgSpeed').textContent='0';
+    document.getElementById('maxSpeed').textContent='0';
+    document.getElementById('distanceVal').textContent='0.0';
+    document.getElementById('tripTime').textContent='00:00:00';
+    document.getElementById('progressFill').style.width='0%';
+    document.getElementById('limitSignNum').textContent='—';
+    document.getElementById('limitValue').textContent='— km/s';
+    document.getElementById('limitDiff').textContent='—';
+    document.getElementById('limitDiff').className='limit-diff';
     updateNeedle(0);
     startTracking();
   } else {
@@ -689,23 +693,96 @@ function toggleTracking() {
   }
 }
 
+// ─── GÖRSEL ───────────────────────────────────────────────────────────────────
+function buildTicks() {
+  const ticks = document.getElementById('ticks');
+  const cx=140, cy=140, r=120;
+  for (let i=0; i<=10; i++) {
+    const angle = -180 + i*18;
+    const rad = angle * Math.PI / 180;
+    const major = i%2===0;
+    const x1=cx+(r-(major?16:10))*Math.cos(rad), y1=cy+(r-(major?16:10))*Math.sin(rad);
+    const x2=cx+(r-4)*Math.cos(rad), y2=cy+(r-4)*Math.sin(rad);
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+    line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+    line.setAttribute('stroke',major?'rgba(0,229,255,0.4)':'rgba(0,229,255,0.15)');
+    line.setAttribute('stroke-width',major?'2':'1');
+    ticks.appendChild(line);
+    if (major) {
+      const tx=cx+(r-28)*Math.cos(rad), ty=cy+(r-28)*Math.sin(rad);
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',tx); txt.setAttribute('y',ty+4);
+      txt.setAttribute('text-anchor','middle');
+      txt.setAttribute('fill','rgba(74,101,128,0.8)');
+      txt.setAttribute('font-size','9');
+      txt.setAttribute('font-family','Orbitron,monospace');
+      txt.textContent=(i*20).toString();
+      ticks.appendChild(txt);
+    }
+  }
+}
+
+function updateNeedle(speed) {
+  const pct = Math.min(speed/MAX_SPEED, 1);
+  const angle = -180 + pct*180;
+  const rad = angle*Math.PI/180;
+  const len=108, cx=140, cy=140;
+  document.getElementById('needle').setAttribute('x2', cx+len*Math.cos(rad));
+  document.getElementById('needle').setAttribute('y2', cy+len*Math.sin(rad));
+  const arc=document.getElementById('speedArc');
+  arc.setAttribute('stroke-dasharray',`${pct*377} ${377-pct*377}`);
+  arc.style.stroke = speed>(currentLimit||200)?'#ff3b5c':speed>80?'#ff6b35':'#00e5ff';
+}
+
+function updateChart() {
+  const w=340, h=60;
+  const maxV=Math.max(...speedHistory,40);
+  const pts=speedHistory.map((v,i)=>{
+    const x=(i/(speedHistory.length-1||1))*w;
+    const y=h-(v/maxV)*(h-4);
+    return `${x},${y}`;
+  });
+  if (pts.length<2) return;
+  document.getElementById('chartLine').setAttribute('d',`M${pts.join(' L')}`);
+  document.getElementById('chartArea').setAttribute('d',`M0,${h} L${pts.join(' L')} L${w},${h} Z`);
+  // Limit çizgisi
+  if (currentLimit !== null) {
+    const ly = h-(currentLimit/maxV)*(h-4);
+    document.getElementById('limitLine').setAttribute('y1',ly);
+    document.getElementById('limitLine').setAttribute('y2',ly);
+  }
+}
+
 function updateTimer() {
   if (!startTime) return;
-  const diff = Math.floor((Date.now() - startTime) / 1000);
-  const h = String(Math.floor(diff / 3600)).padStart(2, '0');
-  const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
-  const s = String(diff % 60).padStart(2, '0');
-  document.getElementById('tripTime').textContent = `${h}:${m}:${s}`;
+  const diff=Math.floor((Date.now()-startTime)/1000);
+  const h=String(Math.floor(diff/3600)).padStart(2,'0');
+  const m=String(Math.floor((diff%3600)/60)).padStart(2,'0');
+  const s=String(diff%60).padStart(2,'0');
+  document.getElementById('tripTime').textContent=`${h}:${m}:${s}`;
 }
 
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+// ─── PWA INSTALL ──────────────────────────────────────────────────────────────
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBtn').addEventListener('click', async()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
+  document.getElementById('installBanner').classList.remove('show');
+});
+window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
+
+// ─── BAŞLAT ───────────────────────────────────────────────────────────────────
+registerSW();
 buildTicks();
 updateNeedle(0);
 </script>
