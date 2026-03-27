@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Hız Ölçer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --surface: #0d1520;
+    --card: #111d2e;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --text: #e8f4fd;
+    --muted: #4a6580;
+    --border: rgba(0,229,255,0.15);
+    --glow: rgba(0,229,255,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(0,229,255,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,107,53,0.05) 0%, transparent 50%);
+  }
+
+  /* Header */
+  .header {
+    width: 100%;
+    padding: 20px 24px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: all 0.3s;
+    box-shadow: 0 0 0 0 transparent;
+  }
+  .status-dot.active {
+    background: var(--accent3);
+    box-shadow: 0 0 8px var(--accent3), 0 0 16px rgba(57,255,20,0.4);
+    animation: pulse-dot 2s infinite;
+  }
+  .status-dot.error { background: #ff3b5c; box-shadow: 0 0 8px #ff3b5c; }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Main speedometer */
+  .main-container {
+    flex: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .speedometer-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .arc-container {
+    position: relative;
+    width: 280px;
+    height: 160px;
+    overflow: visible;
+  }
+
+  .arc-container svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .speed-display {
+    text-align: center;
+    margin-top: -8px;
+  }
+
+  .speed-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: -2px;
+    transition: color 0.4s;
+    text-shadow: 0 0 40px rgba(0,229,255,0.2);
+  }
+
+  .speed-number.fast { color: var(--accent2); text-shadow: 0 0 40px rgba(255,107,53,0.4); }
+  .speed-number.speeding { color: #ff3b5c; text-shadow: 0 0 40px rgba(255,59,92,0.5); }
+
+  .speed-unit {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+
+  .speed-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+
+  .stat-card.highlight::before {
+    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+    opacity: 0.8;
+  }
+
+  .stat-icon {
+    font-size: 18px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Full width stat */
+  .stat-wide {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-wide .stat-label { font-size: 12px; }
+  .stat-wide .stat-value { font-size: 28px; }
+
+  /* Trip bar */
+  .trip-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+  }
+
+  .trip-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .trip-bar-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .trip-time {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  .progress-track {
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1s linear;
+  }
+
+  /* Speed history mini chart */
+  .history-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+  }
+
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .history-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Control button */
+  .control-btn {
+    width: 100%;
+    padding: 18px;
+    border-radius: 16px;
+    border: none;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .control-btn.start {
+    background: linear-gradient(135deg, var(--accent), #0088aa);
+    color: var(--bg);
+    box-shadow: 0 4px 24px rgba(0,229,255,0.3);
+  }
+
+  .control-btn.start:hover {
+    box-shadow: 0 4px 32px rgba(0,229,255,0.5);
+    transform: translateY(-1px);
+  }
+
+  .control-btn.stop {
+    background: linear-gradient(135deg, #ff3b5c, #cc2244);
+    color: #fff;
+    box-shadow: 0 4px 24px rgba(255,59,92,0.3);
+  }
+
+  .control-btn:active { transform: scale(0.98); }
+
+  /* Permission message */
+  .permission-msg {
+    text-align: center;
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 16px;
+    font-size: 13px;
+    color: var(--accent2);
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
+
+  .permission-msg span {
+    display: block;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  /* Accuracy badge */
+  .accuracy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .accuracy-badge .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .accuracy-badge.good .dot { background: var(--accent3); }
+  .accuracy-badge.medium .dot { background: var(--accent2); }
+
+  /* Scan line effect */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+
+  .scanline {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(transparent, rgba(0,229,255,0.04), transparent);
+    animation: scanline 8s linear infinite;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Needle animation */
+  #needle {
+    transform-origin: 140px 140px;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<div class="header">
+  <div class="header-title">VeloTrack</div>
+  <div class="accuracy-badge" id="accuracyBadge">
+    <div class="dot"></div>
+    <span id="accuracyText">HAZIR</span>
+  </div>
+  <div class="status-dot" id="statusDot"></div>
+</div>
+
+<div class="main-container">
+
+  <!-- Speedometer Arc -->
+  <div class="speedometer-wrap">
+    <div class="arc-container">
+      <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background arc -->
+        <path d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="8" stroke-linecap="round"/>
+        <!-- Colored progress arc -->
+        <path id="speedArc" d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="rgba(0,229,255,0.15)" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="0 377" pathLength="377"/>
+        <!-- Tick marks -->
+        <g id="ticks"></g>
+        <!-- Needle -->
+        <line id="needle" x1="140" y1="140" x2="140" y2="32" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="140" cy="140" r="6" fill="var(--accent2)"/>
+        <circle cx="140" cy="140" r="3" fill="var(--bg)"/>
+      </svg>
+    </div>
+
+    <div class="speed-display">
+      <div class="speed-number" id="currentSpeed">0</div>
+      <div class="speed-unit">KM/S</div>
+      <div class="speed-label">ANLÍK HIZ</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card highlight">
+      <span class="stat-icon">📊</span>
+      <div class="stat-value" id="avgSpeed">0</div>
+      <div class="stat-label">ORT. HIZ</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🏎️</span>
+      <div class="stat-value" id="maxSpeed">0</div>
+      <div class="stat-label">MAK. HIZ</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">📍</span>
+      <div class="stat-value" id="distanceVal">0.0</div>
+      <div class="stat-label">KM (MESAFE)</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🛰️</span>
+      <div class="stat-value" id="altitudeVal">—</div>
+      <div class="stat-label">İRTİFA (M)</div>
+    </div>
+  </div>
+
+  <!-- Trip bar -->
+  <div class="trip-bar">
+    <div class="trip-bar-header">
+      <div class="trip-bar-title">Seyahat Süresi</div>
+      <div class="trip-time" id="tripTime">00:00:00</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- Speed history chart -->
+  <div class="history-wrap">
+    <div class="history-header">
+      <div class="history-title">Hız Geçmişi (Son 60 saniye)</div>
+    </div>
+    <svg id="historyChart" viewBox="0 0 340 60" style="width:100%;overflow:visible;">
+      <defs>
+        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(0,229,255,0.4)"/>
+          <stop offset="100%" stop-color="rgba(0,229,255,0)"/>
+        </linearGradient>
+      </defs>
+      <path id="chartArea" fill="url(#chartGrad)" d="M0 60 L340 60 Z"/>
+      <path id="chartLine" fill="none" stroke="var(--accent)" stroke-width="1.5" d="M0 60 L340 60"/>
+    </svg>
+  </div>
+
+  <!-- Permission message (hidden initially) -->
+  <div class="permission-msg" id="permMsg" style="display:none">
+    <span>📡</span>
+    GPS izni gerekiyor. Lütfen konuma erişime izin verin.
+  </div>
+
+  <!-- Control button -->
+  <button class="control-btn start" id="controlBtn" onclick="toggleTracking()">
+    TAKIBI BAŞLAT
+  </button>
+
+</div>
+
+<script>
+let isTracking = false;
+let watchId = null;
+let startTime = null;
+let timerInterval = null;
+let speedHistory = [];
+let totalReadings = 0;
+let sumSpeed = 0;
+let maxSpeedVal = 0;
+let prevCoords = null;
+let totalDistance = 0;
+let lastUpdateTime = null;
+const MAX_SPEED = 200;
+
+// Build tick marks on SVG arc
+function buildTicks() {
+  const ticks = document.getElementById('ticks');
+  const cx = 140, cy = 140, r = 120;
+  for (let i = 0; i <= 10; i++) {
+    const angle = -180 + (i * 18);
+    const rad = (angle * Math.PI) / 180;
+    const major = i % 2 === 0;
+    const r1 = major ? r - 16 : r - 10;
+    const r2 = r - 4;
+    const x1 = cx + r1 * Math.cos(rad);
+    const y1 = cy + r1 * Math.sin(rad);
+    const x2 = cx + r2 * Math.cos(rad);
+    const y2 = cy + r2 * Math.sin(rad);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('stroke', major ? 'rgba(0,229,255,0.4)' : 'rgba(0,229,255,0.15)');
+    line.setAttribute('stroke-width', major ? '2' : '1');
+    ticks.appendChild(line);
+
+    if (major) {
+      const tx = cx + (r - 28) * Math.cos(rad);
+      const ty = cy + (r - 28) * Math.sin(rad);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', tx); text.setAttribute('y', ty + 4);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', 'rgba(74,101,128,0.8)');
+      text.setAttribute('font-size', '9');
+      text.setAttribute('font-family', 'Orbitron, monospace');
+      text.textContent = (i * 20).toString();
+      ticks.appendChild(text);
+    }
+  }
+}
+
+function updateNeedle(speed) {
+  const pct = Math.min(speed / MAX_SPEED, 1);
+  const angle = -180 + pct * 180;
+  const rad = (angle * Math.PI) / 180;
+  const needle = document.getElementById('needle');
+  const len = 108;
+  const cx = 140, cy = 140;
+  const nx = cx + len * Math.cos(rad);
+  const ny = cy + len * Math.sin(rad);
+  needle.setAttribute('x2', nx);
+  needle.setAttribute('y2', ny);
+
+  // Arc fill
+  const arc = document.getElementById('speedArc');
+  const dashLen = pct * 377;
+  arc.setAttribute('stroke-dasharray', `${dashLen} ${377 - dashLen}`);
+  const clr = speed > 120 ? '#ff3b5c' : speed > 80 ? '#ff6b35' : '#00e5ff';
+  arc.setAttribute('stroke', clr.replace('#', 'rgba(').replace(/^rgba\(/, 'rgba(') + '');
+
+  // Color approach (simple)
+  arc.style.stroke = clr;
+}
+
+function updateChart() {
+  const chart = document.getElementById('historyChart');
+  const w = 340, h = 60;
+  const maxV = Math.max(...speedHistory, 40);
+  const pts = speedHistory.map((v, i) => {
+    const x = (i / (speedHistory.length - 1 || 1)) * w;
+    const y = h - (v / maxV) * (h - 4);
+    return `${x},${y}`;
+  });
+
+  if (pts.length < 2) return;
+  const linePath = `M${pts.join(' L')}`;
+  const areaPath = `M0,${h} L${pts.join(' L')} L${w},${h} Z`;
+
+  document.getElementById('chartLine').setAttribute('d', linePath);
+  document.getElementById('chartArea').setAttribute('d', areaPath);
+}
+
+function onPosition(pos) {
+  const speed = pos.coords.speed != null && pos.coords.speed >= 0
+    ? pos.coords.speed * 3.6  // m/s to km/h
+    : 0;
+
+  const accuracy = pos.coords.accuracy;
+  const badge = document.getElementById('accuracyBadge');
+  const accText = document.getElementById('accuracyText');
+
+  if (accuracy < 15) {
+    badge.className = 'accuracy-badge good';
+    accText.textContent = 'GPS İYİ';
+  } else if (accuracy < 50) {
+    badge.className = 'accuracy-badge medium';
+    accText.textContent = 'GPS ORTA';
+  } else {
+    badge.className = 'accuracy-badge';
+    accText.textContent = 'GPS ZAYIF';
+  }
+
+  // Distance calc
+  if (prevCoords) {
+    const d = haversine(prevCoords.lat, prevCoords.lon, pos.coords.latitude, pos.coords.longitude);
+    if (d < 0.5) totalDistance += d;
+  }
+  prevCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+
+  // Stats
+  totalReadings++;
+  sumSpeed += speed;
+  if (speed > maxSpeedVal) maxSpeedVal = speed;
+  const avgSpd = sumSpeed / totalReadings;
+
+  // Update history (1 sample/sec, keep 60)
+  const now = Date.now();
+  if (!lastUpdateTime || now - lastUpdateTime >= 800) {
+    speedHistory.push(Math.round(speed));
+    if (speedHistory.length > 60) speedHistory.shift();
+    lastUpdateTime = now;
+  }
+
+  // DOM
+  const spd = Math.round(speed);
+  const speedEl = document.getElementById('currentSpeed');
+  speedEl.textContent = spd;
+  speedEl.className = 'speed-number' + (spd > 120 ? ' speeding' : spd > 80 ? ' fast' : '');
+
+  document.getElementById('avgSpeed').textContent = Math.round(avgSpd);
+  document.getElementById('maxSpeed').textContent = Math.round(maxSpeedVal);
+  document.getElementById('distanceVal').textContent = totalDistance.toFixed(1);
+
+  const alt = pos.coords.altitude;
+  document.getElementById('altitudeVal').textContent = alt != null ? Math.round(alt) : '—';
+
+  updateNeedle(speed);
+  updateChart();
+
+  // Progress bar (visual - based on distance or just rolling)
+  const prog = Math.min((totalDistance / 10) * 100, 100);
+  document.getElementById('progressFill').style.width = prog + '%';
+}
+
+function onError(err) {
+  document.getElementById('permMsg').style.display = 'block';
+  document.getElementById('statusDot').className = 'status-dot error';
+  document.getElementById('accuracyBadge').className = 'accuracy-badge';
+  document.getElementById('accuracyText').textContent = 'HATA';
+  stopTracking();
+}
+
+function startTracking() {
+  if (!navigator.geolocation) {
+    document.getElementById('permMsg').style.display = 'block';
+    document.getElementById('permMsg').innerHTML = '<span>❌</span>Bu cihaz GPS desteklemiyor.';
+    return;
+  }
+
+  document.getElementById('permMsg').style.display = 'none';
+  document.getElementById('statusDot').className = 'status-dot active';
+  document.getElementById('controlBtn').className = 'control-btn stop';
+  document.getElementById('controlBtn').textContent = 'DURDUR';
+
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+
+  watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  });
+}
+
+function stopTracking() {
+  if (watchId != null) navigator.geolocation.clearWatch(watchId);
+  clearInterval(timerInterval);
+  document.getElementById('statusDot').className = 'status-dot';
+  document.getElementById('controlBtn').className = 'control-btn start';
+  document.getElementById('controlBtn').textContent = 'TAKİBİ BAŞLAT';
+  isTracking = false;
+}
+
+function toggleTracking() {
+  if (!isTracking) {
+    isTracking = true;
+    // Reset
+    totalReadings = 0; sumSpeed = 0; maxSpeedVal = 0;
+    totalDistance = 0; prevCoords = null; speedHistory = [];
+    lastUpdateTime = null;
+    document.getElementById('currentSpeed').textContent = '0';
+    document.getElementById('avgSpeed').textContent = '0';
+    document.getElementById('maxSpeed').textContent = '0';
+    document.getElementById('distanceVal').textContent = '0.0';
+    document.getElementById('tripTime').textContent = '00:00:00';
+    document.getElementById('progressFill').style.width = '0%';
+    updateNeedle(0);
+    startTracking();
+  } else {
+    stopTracking();
+  }
+}
+
+function updateTimer() {
+  if (!startTime) return;
+  const diff = Math.floor((Date.now() - startTime) / 1000);
+  const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+  const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+  const s = String(diff % 60).padStart(2, '0');
+  document.getElementById('tripTime').textContent = `${h}:${m}:${s}`;
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+buildTicks();
+updateNeedle(0);
+</script>
+</body>
+</html>
