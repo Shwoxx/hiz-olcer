@@ -801,6 +801,13 @@ function buyPremium(){
   closeModal('premiumModal');
   alert(lang==='en'?'Welcome to SpeedGuard Pro! 🎉':'SpeedGuard Pro\'ya hoş geldin! 🎉');
 }
+function cancelSubscription(){
+  if(!confirm(lang==='en'?'Cancel your subscription? Premium features will remain active until the end of the current period.':'Aboneliğinizi iptal etmek istiyor musunuz? Premium özellikler mevcut dönem sonuna kadar aktif kalır.')) return;
+  settings.isPremium=false;
+  settings.subscriptionExpiry=null;
+  localStorage.setItem('sg_settings',JSON.stringify(settings));
+  location.reload();
+}
 function restorePurchase(){
   // Gerçek restore: Google Play Billing queryPurchasesAsync / StoreKit restore
   const stored=JSON.parse(localStorage.getItem('sg_settings')||'{}');
@@ -875,8 +882,7 @@ async function fetchEdsCamera(lat,lon){
   lastEdsFetch={lat,lon};
   try{
     const q=`[out:json][timeout:8];node(around:500,${lat},${lon})["highway"="speed_camera"];out body 10;`;
-    const res=await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`,{signal:AbortSignal.timeout(8000)});
-    const data=await res.json();
+    const data=await overpassFetch(q,9000);
     nearbyEds=data.elements||[];
   }catch(e){nearbyEds=[];}
 }
@@ -906,15 +912,22 @@ function checkEdsProximity(lat,lon){
   } else {
     document.getElementById('edsBanner').classList.remove('show');
     document.getElementById('hudEds').classList.remove('show');
-    if(closest) closest._alerted=false;
+    // Tüm kameraların alert bayrağını sıfırla (uzaklaşınca)
+    nearbyEds.forEach(cam=>{cam._alerted=false;});
   }
 }
 
 // ══════════════════════════════════════════════════════
 // ROTA HARİTASI (Canvas)
 // ══════════════════════════════════════════════════════
-let routePoints=[];
+let routePoints=[], _routeDrawPending=false;
 function drawRouteMap(){
+  // Her frame'de bir kez çiz (throttle)
+  if(_routeDrawPending) return;
+  _routeDrawPending=true;
+  requestAnimationFrame(()=>{ _routeDrawPending=false; _drawRoute(); });
+}
+function _drawRoute(){
   const canvas=document.getElementById('routeMap');
   const ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height;
@@ -1014,6 +1027,34 @@ function sendNotif(speed,limit){
 // OSM HIZ LİMİTİ
 // ══════════════════════════════════════════════════════
 let currentLimit=null,lastLimitFetch={lat:null,lon:null},osmFetching=false;
+// Overpass mirror listesi — biri çalışmazsa diğeri denenir
+const OVERPASS_MIRRORS=[
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+];
+async function overpassFetch(query,timeoutMs=9000){
+  let lastErr=null;
+  for(const mirror of OVERPASS_MIRRORS){
+    try{
+      const r=await fetch(`${mirror}?data=${encodeURIComponent(query)}`,{signal:AbortSignal.timeout(timeoutMs)});
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      const json=await r.json();
+      return json;
+    }catch(e){lastErr=e;}
+  }
+  throw lastErr||new Error('All mirrors failed');
+}
+function parseMaxspeed(raw){
+  if(!raw) return null;
+  const upper=raw.trim().toUpperCase();
+  if(upper==='TR:URBAN'||upper==='TR:LIVING_STREET') return 50;
+  if(upper==='TR:RURAL') return 90;
+  if(upper==='TR:MOTORWAY') return 120;
+  if(upper==='WALK'||upper==='TR:WALK') return 7;
+  const n=parseInt(raw);
+  return isNaN(n)?null:n;
+}
 async function fetchSpeedLimit(lat,lon){
   if(!settings.osm||osmFetching)return;
   if(lastLimitFetch.lat!==null&&haversine(lastLimitFetch.lat,lastLimitFetch.lon,lat,lon)<0.12)return;
@@ -1021,45 +1062,45 @@ async function fetchSpeedLimit(lat,lon){
   document.getElementById('osmLoadingSpinner').style.display='inline';
   document.getElementById('limitSource').textContent=t('limitQuerying');
   try{
-    const q=`[out:json][timeout:8];way(around:25,${lat},${lon})["highway"]["maxspeed"];out body 5;`;
-    const r=await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`,{signal:AbortSignal.timeout(8000)});
-    const d=await r.json();
-    let best=null;
+    // Birleşik sorgu — tek ağ isteğiyle hem maxspeed hem highway al
+    const q=`[out:json][timeout:10];way(around:30,${lat},${lon})["highway"];out body 8;`;
+    const d=await overpassFetch(q,10000);
+    let best=null,bestHw=null;
     if(d.elements?.length>0){
       for(const el of d.elements){
-        if(el.tags?.maxspeed){
-          const raw=el.tags.maxspeed;let lim=null;
-          if(raw==='TR:urban'||raw==='TR:living_street')lim=50;
-          else if(raw==='TR:rural')lim=90;
-          else if(raw==='TR:motorway')lim=120;
-          else if(raw==='walk'||raw==='TR:walk')lim=7;
-          else{const n=parseInt(raw);if(!isNaN(n))lim=n;}
-          if(lim!==null){best=lim;break;}
-        }
+        const lim=parseMaxspeed(el.tags?.maxspeed);
+        if(lim!==null&&best===null){best=lim;}
+        if(bestHw===null&&el.tags?.highway) bestHw=el.tags.highway;
       }
     }
-    if(best!==null){currentLimit=best;updateLimitUI(best,lang==='en'?'OSM Map Data':'OSM Harita Verisi');return;}
-    const q2=`[out:json][timeout:8];way(around:25,${lat},${lon})["highway"];out body 3;`;
-    const r2=await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q2)}`,{signal:AbortSignal.timeout(8000)});
-    const d2=await r2.json();
+    if(best!==null){
+      currentLimit=best;
+      updateLimitUI(best,lang==='en'?'OSM Map Data':'OSM Harita Verisi');
+      return;
+    }
+    // maxspeed yoksa yol tipinden tahmin et
+    const names={en:{motorway:'Motorway',trunk:'Trunk',primary:'Highway',living_street:'Living street',residential:'Urban',service:'Service'},
+                 tr:{motorway:'Otoyol',trunk:'Çevreyolu',primary:'Şehirlerarası',living_street:'Sakin yol',residential:'Şehiriçi',service:'Servis'}};
     let guess=settings.defaultLimit,src=lang==='en'?'Default':'Varsayılan';
-    if(d2.elements?.length>0){
-      const hw=d2.elements[0].tags?.highway;
-      const names={en:{motorway:'Motorway',trunk:'Trunk',primary:'Highway',living_street:'Living street',residential:'Urban',service:'Service'},
-                   tr:{motorway:'Otoyol',trunk:'Çevreyolu',primary:'Şehirlerarası',living_street:'Sakin yol',residential:'Şehiriçi',service:'Servis'}};
-      if(hw==='motorway'){guess=120;}else if(hw==='motorway_link'){guess=80;}
-      else if(hw==='trunk'||hw==='trunk_link'){guess=90;}
-      else if(hw==='primary'||hw==='secondary'){guess=90;}
-      else if(hw==='living_street'){guess=20;}
-      else if(hw==='residential'||hw==='unclassified'){guess=50;}
-      else if(hw==='service'){guess=30;}
-      src=(names[lang]?.[hw]||src)+(lang==='en'?' (est.)':' (tahmini)');
+    if(bestHw){
+      if(bestHw==='motorway'){guess=120;}
+      else if(bestHw==='motorway_link'){guess=80;}
+      else if(bestHw==='trunk'||bestHw==='trunk_link'){guess=90;}
+      else if(bestHw==='primary'||bestHw==='secondary'){guess=90;}
+      else if(bestHw==='living_street'){guess=20;}
+      else if(bestHw==='residential'||bestHw==='unclassified'){guess=50;}
+      else if(bestHw==='service'){guess=30;}
+      src=(names[lang]?.[bestHw]||src)+(lang==='en'?' (est.)':' (tahmini)');
     }
     currentLimit=guess;updateLimitUI(guess,src);
   }catch(e){
+    console.warn('OSM fetch error:',e);
     document.getElementById('limitSource').textContent=t('limitError');
-    if(currentLimit===null)currentLimit=settings.defaultLimit;
-  }finally{osmFetching=false;document.getElementById('osmLoadingSpinner').style.display='none';}
+    if(currentLimit===null) currentLimit=settings.defaultLimit;
+  }finally{
+    osmFetching=false;
+    document.getElementById('osmLoadingSpinner').style.display='none';
+  }
 }
 function updateLimitUI(limit,source){
   document.getElementById('limitSignNum').textContent=limit;
