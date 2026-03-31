@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>SpeedGuard</title>
+<title>RadarGo</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SpeedGuard">
+<meta name="apple-mobile-web-app-title" content="RadarGo">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#080c10">
 <meta name="description" content="GPS Speed Limit Alert & HUD">
@@ -25,7 +25,6 @@ body.light{
   --bg:#f0f4f8;--bg2:#e2e8f0;--card:#ffffff;--card2:#f7fafc;
   --text:#1a2332;--text2:#4a5568;--muted:#a0aec0;
   --border:rgba(0,100,180,0.15);--shadow:rgba(0,0,0,0.1);
-  background-image:radial-gradient(ellipse at 20% 0%,rgba(0,180,255,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(255,107,53,0.04) 0%,transparent 50%);
 }
 
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -38,7 +37,13 @@ body{
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
   transition:background 0.4s,color 0.4s;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:radial-gradient(ellipse at 20% 0%,rgba(0,229,255,0.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(255,107,53,0.05) 0%,transparent 50%);
+}
+body.light::before{
+  background-image:radial-gradient(ellipse at 20% 0%,rgba(0,180,255,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(255,107,53,0.04) 0%,transparent 50%);
 }
 body.speeding-alert{background:#1a0008!important;animation:red-pulse 1.2s ease-in-out infinite;}
 @keyframes red-pulse{0%,100%{background-color:#1a0008;}50%{background-color:#260010;}}
@@ -77,60 +82,6 @@ body.speeding-alert{background:#1a0008!important;animation:red-pulse 1.2s ease-i
   font-size:10px;letter-spacing:2px;color:#f6d365;
 }
 
-/* ══ SPLASH / INTERSTITIAL ══ */
-.splash-ad{
-  display:none;position:fixed;inset:0;z-index:1900;
-  background:#000;flex-direction:column;align-items:center;justify-content:center;
-}
-.splash-ad.show{display:flex;}
-.splash-ad-inner{
-  width:100%;max-width:380px;margin:0 auto;
-  background:#1a1a2e;border-radius:20px;overflow:hidden;
-  border:1px solid rgba(255,255,255,0.1);
-}
-.splash-ad-label{
-  padding:8px 16px;background:rgba(255,255,255,0.05);
-  font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;
-  display:flex;justify-content:space-between;align-items:center;
-}
-.splash-ad-content{
-  height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
-  padding:24px;text-align:center;
-}
-.splash-ad-skip{
-  padding:14px;text-align:center;
-  font-family:'Orbitron',monospace;font-size:11px;color:rgba(255,255,255,0.5);
-  cursor:pointer;letter-spacing:2px;
-}
-.skip-timer{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:28px;height:28px;border-radius:50%;
-  border:2px solid rgba(255,255,255,0.3);
-  font-family:'Orbitron',monospace;font-size:11px;font-weight:700;
-  color:#fff;margin-right:6px;
-}
-
-/* ══ BANNER AD ══ */
-.banner-ad{
-  width:100%;max-width:420px;
-  background:var(--card2);border-top:1px solid var(--border);
-  padding:8px 12px;
-  display:flex;align-items:center;gap:10px;
-  position:sticky;bottom:0;z-index:50;
-}
-.banner-ad.hidden{display:none;}
-.banner-ad-label{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;flex-shrink:0;}
-.banner-ad-content{
-  flex:1;height:50px;border-radius:8px;overflow:hidden;
-  background:linear-gradient(135deg,#1a1a3e,#0f3460);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-}
-.banner-ad-close{
-  font-size:16px;color:var(--muted);cursor:pointer;flex-shrink:0;
-  padding:4px;
-}
 
 /* ══ HEADER ══ */
 .header{
@@ -210,9 +161,40 @@ body.light .tabs{background:rgba(240,244,248,0.95);}
 .hud-controls{position:absolute;bottom:24px;left:0;right:0;display:flex;justify-content:center;gap:12px;}
 .hud-btn-ctrl{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;padding:10px 18px;border-radius:24px;cursor:pointer;}
 
+/* ══ MİNİ HUD (köşe widget) ══ */
+.mini-hud{
+  display:none;position:fixed;z-index:1500;
+  background:rgba(0,0,0,0.88);border:1px solid rgba(0,229,255,0.3);
+  border-radius:16px;padding:10px 14px;
+  flex-direction:column;align-items:center;gap:2px;
+  backdrop-filter:blur(8px);cursor:grab;
+  box-shadow:0 4px 24px rgba(0,0,0,0.6);
+  min-width:80px;
+  user-select:none;
+}
+.mini-hud.active{display:flex;}
+.mini-hud.over-limit{border-color:rgba(255,59,92,0.8);box-shadow:0 4px 24px rgba(255,59,92,0.3);}
+.mini-hud-speed{font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:#fff;line-height:1;}
+.mini-hud-unit{font-family:'Orbitron',monospace;font-size:8px;color:rgba(255,255,255,0.4);letter-spacing:2px;}
+.mini-hud-limit{font-family:'Orbitron',monospace;font-size:11px;color:#39ff14;margin-top:2px;}
+.mini-hud-limit.over{color:#ff3b5c;}
+.mini-hud-close{position:absolute;top:4px;right:6px;font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;line-height:1;}
+
 /* ══ PAGES ══ */
 .page{display:none;width:100%;max-width:420px;padding:14px;flex-direction:column;gap:12px;padding-bottom:80px;}
 .page.active{display:flex;}
+
+/* ══ KILAVUZ ══ */
+.guide-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:14px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.guide-icon{font-size:28px;flex-shrink:0;margin-top:2px;}
+.guide-content{flex:1;}
+.guide-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--text);letter-spacing:1px;margin-bottom:6px;}
+.guide-body{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:6px;}
+.guide-penalty{font-size:11px;color:var(--accent2);font-weight:600;}
 
 /* ══ EDS ALERT BANNER ══ */
 .eds-banner{
@@ -285,7 +267,7 @@ body.light .tabs{background:rgba(240,244,248,0.95);}
 .map-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
 .map-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
 .map-title{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
-#routeMap{width:100%;height:200px;background:#0d1a0d;}
+
 
 /* ══ HUD BUTTON ══ */
 .hud-open-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
@@ -351,25 +333,7 @@ body.light .scanline{display:none;}
 <body>
 <div class="scanline"></div>
 
-<!-- ══ SPLASH AD (Başlangıç reklamı) ══ -->
-<div class="splash-ad" id="splashAd">
-  <div class="splash-ad-inner">
-    <div class="splash-ad-label">
-      <span>REKLAM</span>
-      <span id="splashSkipArea" style="cursor:pointer;opacity:0.4;" onclick="closeSplash()">Atla</span>
-    </div>
-    <div class="splash-ad-content">
-      <!-- Test reklam alanı — AdMob ile değiştirilecek -->
-      <div style="font-size:48px;margin-bottom:12px;">🚗</div>
-      <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#fff;letter-spacing:2px;margin-bottom:6px;">TEST REKLAМИ</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:14px;">AdMob ile gerçek reklam burada gösterilecek</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.3);">ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX</div>
-    </div>
-    <div class="splash-ad-skip" id="splashSkipBtn" onclick="closeSplash()">
-      <span class="skip-timer" id="skipTimer">5</span> <span id="skipLabel">saniye sonra atla</span>
-    </div>
-  </div>
-</div>
+
 
 <!-- ══ MODALS ══ -->
 <!-- Premium Modal -->
@@ -377,7 +341,8 @@ body.light .scanline{display:none;}
   <div class="modal">
     <button class="modal-close" onclick="closeModal('premiumModal')">✕</button>
     <div class="modal-icon">⭐</div>
-    <div class="modal-title">SPEEDGUARD PRO</div>
+    <div class="modal-title">RADARIGO PRO</div>
+    <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:-6px;margin-bottom:4px;">RadarGo Pro</div>
     <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#39ff14;letter-spacing:1px;margin-bottom:10px;" id="trial-badge">🎁 <span id="trial-txt">7 GÜN ÜCRETSİZ DENE</span></div><div class="modal-sub" id="pm-sub">Reklamları kaldır, tüm özelliklerin kilidini aç</div>
     <div style="margin:14px 0;display:flex;flex-direction:column;gap:8px;text-align:left;">
       <div class="premium-feature"><span class="premium-feature-icon">🚫</span><span id="pm-f1">Reklam yok</span></div>
@@ -398,7 +363,7 @@ body.light .scanline{display:none;}
     <button class="modal-close" onclick="closeModal('rateModal')">✕</button>
     <div class="modal-icon">⭐</div>
     <div class="modal-title" id="rate-title">UYGULAMAYI BEĞENDİN Mİ?</div>
-    <div class="modal-sub" id="rate-sub">SpeedGuard'ı değerlendirmen bize çok yardımcı olur!</div>
+    <div class="modal-sub" id="rate-sub">RadarGo'ı değerlendirmen bize çok yardımcı olur!</div>
     <button class="modal-btn primary" onclick="openStore()" id="rate-yes">⭐ Değerlendir</button>
     <button class="modal-btn secondary" onclick="closeModal('rateModal')" id="rate-later">Daha Sonra</button>
     <button class="modal-btn secondary" onclick="neverRate()" id="rate-no" style="margin-top:-4px;">Hayır, Teşekkürler</button>
@@ -430,7 +395,7 @@ body.light .scanline{display:none;}
 <!-- ══ HEADER ══ -->
 <div class="header">
   <div class="header-left">
-    <div class="header-logo">SpeedGuard</div>
+    <div class="header-logo">RadarGo</div>
     <div class="premium-badge" id="premiumBadgeHeader" style="display:none">PRO</div>
   </div>
   <div class="header-right">
@@ -445,6 +410,7 @@ body.light .scanline{display:none;}
 <div class="tabs">
   <div class="tab active" id="tab-main" onclick="switchTab('main')"><span id="t-speed">🏎 HIZ</span></div>
   <div class="tab" id="tab-history" onclick="switchTab('history')"><span id="t-hist">📋 GEÇMİŞ</span></div>
+  <div class="tab" id="tab-guide" onclick="switchTab('guide')"><span id="t-guide">📖 KILAVUZ</span></div>
   <div class="tab" id="tab-settings" onclick="switchTab('settings')"><span id="t-sett">⚙️ AYARLAR</span></div>
 </div>
 
@@ -514,14 +480,7 @@ body.light .scanline{display:none;}
     <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 
-  <!-- Rota Haritası -->
-  <div class="map-wrap">
-    <div class="map-header">
-      <div class="map-title" id="t-routemap">ROTA HARİTASI</div>
-      <div class="premium-badge" id="mapPremiumBadge" style="font-size:9px;">PRO</div>
-    </div>
-    <canvas id="routeMap" width="420" height="200"></canvas>
-  </div>
+
 
   <div class="history-wrap">
     <div class="history-title" id="t-speedhist">HIZ GEÇMİŞİ (SON 60S)</div>
@@ -539,6 +498,7 @@ body.light .scanline{display:none;}
   </div>
 
   <button class="hud-open-btn" onclick="toggleHUD()">🖥️ <span id="t-hudopen">HUD MODU — ÖN CAMA YANSITIN</span></button>
+  <button class="hud-open-btn" onclick="toggleMiniHud()" style="background:rgba(0,229,255,0.06);border-color:rgba(0,229,255,0.2);margin-top:-4px;">📌 <span>MİNİ HUD — KÖŞEDE GÖSTER</span></button>
   <div class="permission-msg" id="permMsg" style="display:none"><span>📡</span><span id="t-gpserr">GPS izni gerekiyor.</span></div>
   <button class="control-btn start" id="controlBtn" onclick="toggleTracking()"><span id="t-startbtn">TAKİBİ BAŞLAT</span></button>
 </div>
@@ -559,7 +519,7 @@ body.light .scanline{display:none;}
   <!-- Premium Card -->
   <div class="premium-card" id="premiumCardSettings">
     <div class="premium-card-icon">⭐</div>
-    <div class="premium-card-title">SPEEDGUARD PRO</div>
+    <div class="premium-card-title">RadarGo Pro</div>
     <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#39ff14;letter-spacing:1px;margin-bottom:4px;" id="trial-badge2">🎁 <span id="trial-txt2">7 GÜN ÜCRETSİZ DENE</span></div>
     <div class="premium-card-features">
       <div class="premium-feature"><span class="premium-feature-icon">🚫</span><span id="pc-f1">Reklam yok</span></div>
@@ -609,21 +569,100 @@ body.light .scanline{display:none;}
 
   <div class="settings-section">
     <div class="settings-title">APP</div>
-    <div class="settings-row"><div><div class="settings-row-label">SpeedGuard</div></div><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);">v3.0.0</div></div>
+    <div class="settings-row"><div><div class="settings-row-label">RadarGo</div></div><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);">v3.0.0</div></div>
     <div class="settings-row"><div><div class="settings-row-label" id="t-datasrc-lbl">Veri</div></div><div style="font-size:11px;color:var(--muted);">OpenStreetMap</div></div>
   </div>
 </div>
 
-<!-- ══ BANNER AD ══ -->
-<div class="banner-ad" id="bannerAd">
-  <div class="banner-ad-label">REKLAM</div>
-  <div class="banner-ad-content" onclick="showModal('premiumModal')">
-    <!-- Test banner — AdMob banner birimi buraya -->
-    <div style="font-family:'Orbitron',monospace;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-align:center;">
-      📢 TEST BANNER REKLAM<br><span style="font-size:9px;opacity:0.4;">ca-app-pub-3940256099942544/6300978111</span>
+
+<!-- ══ KILAVUZ ══ -->
+<div class="page" id="page-guide">
+  <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--accent);padding-bottom:4px;">SÜRÜCÜ KILAVUZU</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Trafik cezası almamak için dikkat etmen gerekenler</div>
+
+  <div class="guide-card">
+    <div class="guide-icon">🚗</div>
+    <div class="guide-content">
+      <div class="guide-title">Hız Limiti İhlali</div>
+      <div class="guide-body">Şehir içi 50 km/s, şehirlerarası yollarda 90 km/s, otoyollarda 120 km/s limitine uyulmalıdır. EDS kameralarında anlık hız ölçülür. Aşım miktarına göre ceza kademeli olarak artar, yüksek aşımlarda ehliyete el konulur.</div>
+      <div class="guide-penalty">⚠️ 2.000 TL – 30.000 TL (aşım miktarına göre)</div>
     </div>
   </div>
-  <div class="banner-ad-close" onclick="closeBanner()">✕</div>
+
+  <div class="guide-card">
+    <div class="guide-icon">📱</div>
+    <div class="guide-content">
+      <div class="guide-title">Seyir Halinde Telefon Kullanımı</div>
+      <div class="guide-body">Araç kullanırken elde telefon tutmak, mesaj atmak veya sosyal medya kullanmak yasaktır. Hands-free ve araç içi Bluetooth serbesttir. Kırmızı ışıkta da elde telefon tutmak ceza gerektirir.</div>
+      <div class="guide-penalty">⚠️ 2.719 TL ceza (2026)</div>
+    </div>
+  </div>
+
+  <div class="guide-card">
+    <div class="guide-icon">🔴</div>
+    <div class="guide-content">
+      <div class="guide-title">Kırmızı Işık & Stop İhlali</div>
+      <div class="guide-body">Kırmızı ışıkta geçmek ve dur işaretine uymamak en tehlikeli ihlallerden biridir. Kırmızı ışık ihlali nedeniyle kazaya sebebiyet verilirse ehliyet 60 gün geri alınır. Sarı ışıkta durmak için frene basılmalıdır.</div>
+      <div class="guide-penalty">⚠️ 2.719 TL + 20 ceza puanı. Kazaya neden olunursa 60 gün ehliyet iptali</div>
+    </div>
+  </div>
+
+  <div class="guide-card">
+    <div class="guide-icon">🍺</div>
+    <div class="guide-content">
+      <div class="guide-title">Alkollü Araç Kullanımı</div>
+      <div class="guide-body">0.50 promil üstü alkollü araç kullanmak yasaktır. Profesyonel sürücüler için limit 0.20 promildir. Tekrarlayan ihlallerde ceza katlanır. Alkol testi yaptırmayı reddetmek 150.000 TL ceza ve 5 yıl ehliyet iptali gerektirir.</div>
+      <div class="guide-penalty">⚠️ İlk ihlal: 25.000 TL | İkinci: 50.000 TL | Üçüncü: 150.000 TL + ehliyet iptali</div>
+    </div>
+  </div>
+
+  <div class="guide-card">
+    <div class="guide-icon">🪑</div>
+    <div class="guide-content">
+      <div class="guide-title">Emniyet Kemeri</div>
+      <div class="guide-body">Tüm koltuk yolcuları emniyet kemeri takmak zorundadır. Sürücü yolcuların kemerini taktığından sorumludur. 150 cm altındaki çocuklar için onaylı çocuk koltuğu zorunludur. Her yolcu için ayrı ceza kesilir.</div>
+      <div class="guide-penalty">⚠️ Her kişi için 1.246 TL ceza (2026)</div>
+    </div>
+  </div>
+
+  <div class="guide-card">
+    <div class="guide-icon">🚦</div>
+    <div class="guide-content">
+      <div class="guide-title">Makas & Tehlikeli Sürüş</div>
+      <div class="guide-body">Kesik çizgide sollama yapılabilir, düz çizgide kesinlikle yasaktır. Makas atmak ve drift yapmak 2026'da çok ağır yaptırımlara bağlandı. Tek ya da çift düz çizgide sollama, tepe ve viraj öncesi sollama yasaktır.</div>
+      <div class="guide-penalty">⚠️ Makas/drift: 90.000 TL + 60 gün ehliyet iptali + 30 gün araç men</div>
+    </div>
+  </div>
+
+  <div class="guide-card">
+    <div class="guide-icon">🅿️</div>
+    <div class="guide-content">
+      <div class="guide-title">Park & Duraklama İhlalleri</div>
+      <div class="guide-body">Sarı şerit boyunca, engelli önü, itfaiye kapısı, hastane girişi, köprü ve tünelde park yasaktır. Acil servislere (ambulans, itfaiye) yol vermemek ayrıca cezalandırılır.</div>
+      <div class="guide-penalty">⚠️ Park ihlali: 1.246 TL | Ambulans/itfaiyeye yol vermeme: 46.000 TL + 30 gün ehliyet</div>
+    </div>
+  </div>
+
+  <div class="guide-card">
+    <div class="guide-icon">🪪</div>
+    <div class="guide-content">
+      <div class="guide-title">Ehliyetsiz Araç Kullanımı</div>
+      <div class="guide-body">Ehliyetsiz araç kullanmak yasaktır. Ehliyeti geçici olarak alınmış olmasına rağmen araç kullananlar çok daha ağır cezayla karşılaşır. Ehliyetsiz sürücüye araç kullandıran işletme sahipleri de cezalandırılır.</div>
+      <div class="guide-penalty">⚠️ Ehliyetsiz: 40.000 TL | Ehliyeti iptal edilmişken: 200.000 TL</div>
+    </div>
+  </div>
+
+  <div style="font-size:10px;color:var(--muted);text-align:center;padding:8px 0 4px;line-height:1.6;">
+    📌 Cezalar 27 Şubat 2026 tarihli 7574 sayılı Kanun ile güncellendi.<br>Güncel bilgi için trafik.gov.tr adresini ziyaret edin.
+  </div>
+</div>
+
+<!-- ══ MİNİ HUD ══ -->
+<div class="mini-hud" id="miniHud">
+  <span class="mini-hud-close" onclick="closeMiniHud()">✕</span>
+  <div class="mini-hud-speed" id="miniHudSpeed">0</div>
+  <div class="mini-hud-unit" id="miniHudUnit">KM/S</div>
+  <div class="mini-hud-limit" id="miniHudLimit">— km/s</div>
 </div>
 
 <script>
@@ -633,7 +672,7 @@ body.light .scanline{display:none;}
 const STRINGS={
   tr:{
     'accuracyReady':'HAZIR','accuracyGood':'GPS İYİ','accuracyMedium':'GPS ORTA','accuracyWeak':'GPS ZAYIF','accuracyError':'HATA',
-    't-speed':'🏎 HIZ','t-hist':'📋 GEÇMİŞ','t-sett':'⚙️ AYARLAR',
+    't-speed':'🏎 HIZ','t-hist':'📋 GEÇMİŞ','t-sett':'⚙️ AYARLAR','t-guide':'📖 KILAVUZ',
     't-install':'📲 Ana ekrana ekle!','t-speedlimit':'HIZ LİMİTİ',
     't-curspeed':'ANLÍK HIZ','t-avg':'ORT. HIZ','t-max':'MAK. HIZ',
     't-dist':'MESAFE (KM)','t-alt':'İRTİFA (M)','t-triptime':'SEYAHAT SÜRESİ',
@@ -671,7 +710,7 @@ const STRINGS={
   },
   en:{
     'accuracyReady':'READY','accuracyGood':'GPS GOOD','accuracyMedium':'GPS FAIR','accuracyWeak':'GPS WEAK','accuracyError':'ERROR',
-    't-speed':'🏎 SPEED','t-hist':'📋 HISTORY','t-sett':'⚙️ SETTINGS',
+    't-speed':'🏎 SPEED','t-hist':'📋 HISTORY','t-sett':'⚙️ SETTINGS','t-guide':'📖 GUIDE',
     't-install':'📲 Add to home screen!','t-speedlimit':'SPEED LIMIT',
     't-curspeed':'CURRENT SPEED','t-avg':'AVG SPEED','t-max':'MAX SPEED',
     't-dist':'DISTANCE (KM)','t-alt':'ALTITUDE (M)','t-triptime':'TRIP DURATION',
@@ -702,7 +741,7 @@ const STRINGS={
     'pm-f1':'No ads','pm-f2':'Unlimited camera alerts','pm-f3':'Detailed route map','pm-f4':'All themes','pm-f5':'Unlimited history',
     'pm-price':'$2.49 / Month — SUBSCRIBE','pm-restore':'Restore subscription','trial-txt':'7-DAY FREE TRIAL','trial-txt2':'7-DAY FREE TRIAL','sub-note-modal':'Cancel anytime. Auto-renews monthly.','sub-note-card':'Cancel anytime. Subscription auto-renews monthly.',
     'pc-f1':'No ads','pc-f2':'Unlimited camera alerts','pc-f3':'Detailed route map','pc-f4':'Unlimited history',
-    'rate-title':'ENJOYING SPEEDGUARD?','rate-sub':'Your rating helps us a lot!',
+    'rate-title':'ENJOYING RADARIGO?','rate-sub':'Your rating helps us a lot!',
     'rate-yes':'⭐ Rate Now','rate-later':'Later','rate-no':'No Thanks',
     'skipLabel':'seconds to skip',
     'unitLabel':'KM/H',
@@ -713,15 +752,16 @@ function t(k){return(STRINGS[lang]||STRINGS.tr)[k]||k;}
 function applyLang(){
   document.documentElement.lang=lang;
   Object.keys(STRINGS[lang]).forEach(k=>{const el=document.getElementById(k);if(el)el.textContent=t(k);});
-  document.getElementById('accuracyText').textContent=t('accuracyReady');
-  document.getElementById('limitSource').textContent=t('limitWaiting');
-  document.getElementById('speedUnitLabel').textContent=getUnitLabel();
-  document.getElementById('hudUnit').textContent=getUnitLabel();
-  document.getElementById('hudLimitLabel').textContent=t('hudLimitLabel');
-  document.getElementById('hudFlipBtn').textContent=t('flipBtn');
-  document.getElementById('hudCloseBtn').textContent=t('closeBtn');
-  document.getElementById('skipLabel').textContent=t('skipLabel');
-  if(!isTracking) document.getElementById('t-startbtn').textContent=t('t-startbtn');
+  const _s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  _s('accuracyText',t('accuracyReady'));
+  _s('limitSource',t('limitWaiting'));
+  _s('speedUnitLabel',getUnitLabel());
+  _s('hudUnit',getUnitLabel());
+  _s('hudLimitLabel',t('hudLimitLabel'));
+  _s('hudFlipBtn',t('flipBtn'));
+  _s('hudCloseBtn',t('closeBtn'));
+  _s('skipLabel',t('skipLabel'));
+  if(!isTracking) _s('t-startbtn',t('t-startbtn'));
   renderHistory();
 }
 function changeLang(l){lang=l;settings.lang=l;saveSettings();applyLang();}
@@ -733,7 +773,7 @@ function detectLang(){if(settings.lang)return settings.lang;const n=(navigator.l
 const settings={sound:true,visual:true,notif:true,osm:true,save:true,eds:true,alertDelay:3000,speedUnit:'kmh',defaultLimit:50,lang:null,theme:'dark',isPremium:false,launchCount:0,neverRate:false};
 function loadSettings(){
   try{
-    const s=JSON.parse(localStorage.getItem('sg_settings')||'{}');
+    const s=JSON.parse(localStorage.getItem('rg_settings')||'{}');
     Object.assign(settings,s);
     ['sound','visual','notif','osm','save','eds'].forEach(k=>{const el=document.getElementById('toggle-'+k);if(el)el.className='toggle'+(settings[k]?' on':'');});
     document.getElementById('alertDelay').value=settings.alertDelay;
@@ -750,7 +790,7 @@ function saveSettings(){
   settings.speedUnit=document.getElementById('speedUnit').value;
   settings.defaultLimit=parseInt(document.getElementById('defaultLimit').value);
   settings.lang=lang;
-  localStorage.setItem('sg_settings',JSON.stringify(settings));
+  localStorage.setItem('rg_settings',JSON.stringify(settings));
   document.getElementById('speedUnitLabel').textContent=getUnitLabel();
   document.getElementById('hudUnit').textContent=getUnitLabel();
 }
@@ -772,10 +812,8 @@ function toggleTheme(){
 // PREMIUM
 // ══════════════════════════════════════════════════════
 function applyPremiumUI(){
-  document.getElementById('bannerAd').classList.add('hidden');
   document.getElementById('premiumHeaderBtn').style.display='none';
   document.getElementById('premiumBadgeHeader').style.display='inline-flex';
-  document.getElementById('mapPremiumBadge').style.display='none';
   // Premium card yerine abonelik yönetim paneli göster
   const card=document.getElementById('premiumCardSettings');
   if(card){
@@ -784,7 +822,7 @@ function applyPremiumUI(){
     card.innerHTML=`
       <div style="text-align:center;padding:16px 0 8px;">
         <div style="font-size:32px;margin-bottom:6px;">⭐</div>
-        <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#f6d365;letter-spacing:2px;">SPEEDGUARD PRO</div>
+        <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#f6d365;letter-spacing:2px;">RadarGo Pro</div>
         <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.2);border-radius:20px;padding:4px 12px;font-size:10px;color:#39ff14;letter-spacing:1px;margin-top:8px;">✓ ${lang==='en'?'Active Subscription':'Aktif Abonelik'}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;">${renewTxt}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px;">${lang==='en'?'49,90 ₺ / month':'49,90 ₺ / ay'}</div>
@@ -792,29 +830,59 @@ function applyPremiumUI(){
       </div>`;
   }
 }
+function checkSubscriptionStatus(){
+  try{
+    const s=JSON.parse(localStorage.getItem('rg_settings')||'{}');
+    // isPremium true VE geçerli bir subscriptionExpiry varsa ve süresi dolmamışsa aktif
+    const valid = s.isPremium && s.subscriptionExpiry && Date.now() < s.subscriptionExpiry;
+    if(valid){
+      settings.isPremium=true;
+      applyPremiumUI();
+    } else {
+      // İptal edilmiş veya süresi dolmuş — her iki durumda da premium kapat
+      settings.isPremium=false;
+      settings.subscriptionExpiry=null;
+      if(s.isPremium){ // localStorage'da eski kayıt varsa temizle
+        s.isPremium=false;
+        s.subscriptionExpiry=null;
+        localStorage.setItem('rg_settings',JSON.stringify(s));
+      }
+    }
+  }catch(e){}
+}
 function buyPremium(){
   // Gerçek in-app purchase burada entegre edilir (Google Play Billing / Apple StoreKit)
-  // Şimdilik demo olarak aktive ediyoruz
+  // Şimdilik demo olarak aktive ediyoruz (30 günlük expiry set ediyoruz)
   settings.isPremium=true;
-  localStorage.setItem('sg_settings',JSON.stringify(settings));
+  settings.subscriptionExpiry=Date.now()+(30*24*60*60*1000); // 30 gün
+  localStorage.setItem('rg_settings',JSON.stringify(settings));
   applyPremiumUI();
   closeModal('premiumModal');
-  alert(lang==='en'?'Welcome to SpeedGuard Pro! 🎉':'SpeedGuard Pro\'ya hoş geldin! 🎉');
+  alert(lang==='en'?'Welcome to RadarGo Pro! 🎉':'RadarGo Pro\'ya hoş geldin! 🎉');
 }
 function cancelSubscription(){
   if(!confirm(lang==='en'?'Cancel your subscription? Premium features will remain active until the end of the current period.':'Aboneliğinizi iptal etmek istiyor musunuz? Premium özellikler mevcut dönem sonuna kadar aktif kalır.')) return;
+  // settings nesnesini güncelle
   settings.isPremium=false;
   settings.subscriptionExpiry=null;
-  localStorage.setItem('sg_settings',JSON.stringify(settings));
+  // localStorage'daki mevcut kaydı da doğrudan güncelle (checkSubscriptionStatus tekrar aktifleştirmesin)
+  try{
+    const stored=JSON.parse(localStorage.getItem('rg_settings')||'{}');
+    stored.isPremium=false;
+    stored.subscriptionExpiry=null;
+    localStorage.setItem('rg_settings',JSON.stringify(stored));
+  }catch(e){
+    localStorage.setItem('rg_settings',JSON.stringify(settings));
+  }
   location.reload();
 }
 function restorePurchase(){
   // Gerçek restore: Google Play Billing queryPurchasesAsync / StoreKit restore
-  const stored=JSON.parse(localStorage.getItem('sg_settings')||'{}');
+  const stored=JSON.parse(localStorage.getItem('rg_settings')||'{}');
   if(stored.isPremium && stored.subscriptionExpiry && Date.now()<stored.subscriptionExpiry){
     settings.isPremium=true;
     settings.subscriptionExpiry=stored.subscriptionExpiry;
-    localStorage.setItem('sg_settings',JSON.stringify(settings));
+    localStorage.setItem('rg_settings',JSON.stringify(settings));
     applyPremiumUI();
     alert(lang==='en'?'Subscription restored! ✅':'Abonelik geri yüklendi! ✅');
   }else{
@@ -825,23 +893,7 @@ function restorePurchase(){
 // ══════════════════════════════════════════════════════
 // REKLAM
 // ══════════════════════════════════════════════════════
-let splashTimer=null,splashCount=5;
-function showSplashAd(){
-  if(settings.isPremium) return;
-  document.getElementById('splashAd').classList.add('show');
-  splashCount=5;
-  document.getElementById('skipTimer').textContent=splashCount;
-  splashTimer=setInterval(()=>{
-    splashCount--;
-    document.getElementById('skipTimer').textContent=splashCount;
-    if(splashCount<=0){closeSplash();}
-  },1000);
-}
-function closeSplash(){
-  clearInterval(splashTimer);
-  document.getElementById('splashAd').classList.remove('show');
-}
-function closeBanner(){document.getElementById('bannerAd').classList.add('hidden');}
+
 
 // ══════════════════════════════════════════════════════
 // PUAN İSTE (3. açılışta)
@@ -855,7 +907,7 @@ function checkRatePrompt(){
   }
 }
 function openStore(){
-  window.open('https://play.google.com/store/apps/details?id=com.speedguard','_blank');
+  window.open('https://play.google.com/store/apps/details?id=com.radarigo','_blank');
   closeModal('rateModal');
 }
 function neverRate(){settings.neverRate=true;saveSettings();closeModal('rateModal');}
@@ -893,84 +945,33 @@ function checkEdsProximity(lat,lon){
     document.getElementById('hudEds').classList.remove('show');
     return;
   }
+  // Sadece yaklaşılan (mesafesi azalan) kameraları göster
+  // Her kameranın önceki mesafesini takip et
   let closest=null,closestDist=Infinity;
   nearbyEds.forEach(cam=>{
-    const d=haversine(lat,lon,cam.lat,cam.lon)*1000; // metre
-    if(d<closestDist){closestDist=d;closest=cam;}
+    const d=haversine(lat,lon,cam.lat,cam.lon)*1000;
+    // Önceki mesafeyi kaydet
+    const prev=cam._prevDist??d;
+    cam._prevDist=d;
+    // Kameraya yaklaşıyorsak (mesafe azalıyorsa) veya zaten çok yakınsa göster
+    const approaching=d<prev+5; // 5m tolerans
+    if(approaching&&d<closestDist){closestDist=d;closest=cam;}
   });
   if(closest&&closestDist<400){
     const dist=Math.round(closestDist);
-    const banner=document.getElementById('edsBanner');
-    banner.classList.add('show');
+    document.getElementById('edsBanner').classList.add('show');
     document.getElementById('edsTitle').textContent=t('edsTitle');
     document.getElementById('edsDist').textContent=`${dist}m ${lang==='en'?'ahead':'ileride'}`;
-    // HUD'da da göster
     document.getElementById('hudEds').classList.add('show');
     document.getElementById('hudEdsTxt').textContent=`📸 ${dist}m`;
-    // İlk kez yaklaşınca ses
     if(!closest._alerted){closest._alerted=true;playEdsAlert();}
   } else {
     document.getElementById('edsBanner').classList.remove('show');
     document.getElementById('hudEds').classList.remove('show');
-    // Tüm kameraların alert bayrağını sıfırla (uzaklaşınca)
     nearbyEds.forEach(cam=>{cam._alerted=false;});
   }
 }
 
-// ══════════════════════════════════════════════════════
-// ROTA HARİTASI (Canvas)
-// ══════════════════════════════════════════════════════
-let routePoints=[], _routeDrawPending=false;
-function drawRouteMap(){
-  // Her frame'de bir kez çiz (throttle)
-  if(_routeDrawPending) return;
-  _routeDrawPending=true;
-  requestAnimationFrame(()=>{ _routeDrawPending=false; _drawRoute(); });
-}
-function _drawRoute(){
-  const canvas=document.getElementById('routeMap');
-  const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
-  ctx.clearRect(0,0,W,H);
-  // Arka plan
-  ctx.fillStyle=settings.theme==='light'?'#e8f4f8':'#0a1628';
-  ctx.fillRect(0,0,W,H);
-  if(routePoints.length<2){
-    ctx.fillStyle=settings.theme==='light'?'#a0aec0':'#4a6580';
-    ctx.font='13px Rajdhani,sans-serif';ctx.textAlign='center';
-    ctx.fillText(lang==='en'?'Route will appear when tracking starts':'Takip başlayınca rota görünür',W/2,H/2);
-    return;
-  }
-  // Normalize
-  const lats=routePoints.map(p=>p.lat),lons=routePoints.map(p=>p.lon);
-  const minLat=Math.min(...lats),maxLat=Math.max(...lats);
-  const minLon=Math.min(...lons),maxLon=Math.max(...lons);
-  const pad=20;
-  const scaleX=(W-pad*2)/(maxLon-minLon||0.001);
-  const scaleY=(H-pad*2)/(maxLat-minLat||0.001);
-  const scale=Math.min(scaleX,scaleY);
-  const toX=lon=>pad+(lon-minLon)*scale+(W-pad*2-(maxLon-minLon)*scale)/2;
-  const toY=lat=>H-pad-(lat-minLat)*scale-(H-pad*2-(maxLat-minLat)*scale)/2;
-  // Rota çiz
-  ctx.beginPath();ctx.strokeStyle='rgba(0,229,255,0.8)';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
-  routePoints.forEach((p,i)=>{i===0?ctx.moveTo(toX(p.lon),toY(p.lat)):ctx.lineTo(toX(p.lon),toY(p.lat));});
-  ctx.stroke();
-  // Hız renkli overlay
-  for(let i=1;i<routePoints.length;i++){
-    const p=routePoints[i],prev=routePoints[i-1];
-    const spd=p.speed||0;
-    const lim=currentLimit||50;
-    ctx.beginPath();
-    ctx.strokeStyle=spd>lim*1.1?'rgba(255,59,92,0.7)':spd>lim*0.85?'rgba(255,107,53,0.6)':'rgba(57,255,20,0.4)';
-    ctx.lineWidth=3;ctx.moveTo(toX(prev.lon),toY(prev.lat));ctx.lineTo(toX(p.lon),toY(p.lat));ctx.stroke();
-  }
-  // Başlangıç & bitiş
-  if(routePoints.length>0){
-    const first=routePoints[0],last=routePoints[routePoints.length-1];
-    ctx.fillStyle='#39ff14';ctx.beginPath();ctx.arc(toX(first.lon),toY(first.lat),5,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#ff3b5c';ctx.beginPath();ctx.arc(toX(last.lon),toY(last.lat),5,0,Math.PI*2);ctx.fill();
-  }
-}
 
 // ══════════════════════════════════════════════════════
 // SES
@@ -1019,7 +1020,7 @@ async function requestNotifPermission(){if('Notification' in window&&Notificatio
 function sendNotif(speed,limit){
   if(!settings.notif)return;
   if('Notification' in window&&Notification.permission==='granted'){
-    try{new Notification('⚠️ SpeedGuard',{body:`${lang==='en'?'Speed':'Hız'}: ${Math.round(speed)} | ${lang==='en'?'Limit':'Limit'}: ${limit}`,tag:'speed-alert',renotify:true});}catch(e){}
+    try{new Notification('⚠️ RadarGo',{body:`${lang==='en'?'Speed':'Hız'}: ${Math.round(speed)} | ${lang==='en'?'Limit':'Limit'}: ${limit}`,tag:'speed-alert',renotify:true});}catch(e){}
   }
 }
 
@@ -1060,7 +1061,7 @@ async function fetchSpeedLimit(lat,lon){
   if(lastLimitFetch.lat!==null&&haversine(lastLimitFetch.lat,lastLimitFetch.lon,lat,lon)<0.12)return;
   lastLimitFetch={lat,lon};osmFetching=true;
   document.getElementById('osmLoadingSpinner').style.display='inline';
-  document.getElementById('limitSource').textContent=t('limitQuerying');
+  document.getElementById('limitSource').textContent='';
   try{
     // Birleşik sorgu — tek ağ isteğiyle hem maxspeed hem highway al
     const q=`[out:json][timeout:10];way(around:30,${lat},${lon})["highway"];out body 8;`;
@@ -1161,10 +1162,6 @@ function onPosition(pos){
   if(speed>maxSpeedVal)maxSpeedVal=speed;
   const now=Date.now();
   if(!lastUpdateTime||now-lastUpdateTime>=800){speedHistory.push(Math.round(speed));if(speedHistory.length>60)speedHistory.shift();lastUpdateTime=now;}
-  // Rota noktası ekle
-  routePoints.push({lat,lon,speed:rawMs*3.6});
-  if(routePoints.length>500)routePoints.shift(); // bellek yönetimi
-  drawRouteMap();
   fetchSpeedLimit(lat,lon);
   fetchEdsCamera(lat,lon);
   checkEdsProximity(lat,lon);
@@ -1179,6 +1176,7 @@ function onPosition(pos){
   document.getElementById('altitudeVal').textContent=altitude!=null?Math.round(altitude):'—';
   document.getElementById('hudSpeed').textContent=spd;
   updateNeedle(kmh);updateChart(kmh);checkAlert(rawMs);
+  updateMiniHud(spd,kmh);
   document.getElementById('progressFill').style.width=Math.min((totalDistance/10)*100,100)+'%';
 }
 function onError(){document.getElementById('permMsg').style.display='block';document.getElementById('statusDot').className='status-dot error';stopTracking();}
@@ -1208,7 +1206,7 @@ function toggleTracking(){
   if(!isTracking){
     isTracking=true;
     speedReadings=[];totalDistance=0;maxSpeedVal=0;prevCoords=null;
-    speedHistory=[];lastUpdateTime=null;routePoints=[];
+    speedHistory=[];lastUpdateTime=null;
     currentLimit=null;lastLimitFetch={lat:null,lon:null};
     nearbyEds=[];lastEdsFetch={lat:null,lon:null};
     isOverLimit=false;alertFired=false;alertTimer=null;
@@ -1220,9 +1218,7 @@ function toggleTracking(){
     document.getElementById('limitValue').textContent='—';
     document.getElementById('limitSource').textContent=t('limitWaiting');
     document.getElementById('limitDiff').textContent='—';document.getElementById('limitDiff').className='limit-diff';
-    drawRouteMap();updateNeedle(0);startTracking();
-    // Splash reklam göster
-    showSplashAd();
+    updateNeedle(0);startTracking();
   }else{stopTracking();}
 }
 
@@ -1231,19 +1227,19 @@ function toggleTracking(){
 // ══════════════════════════════════════════════════════
 function saveTrip(){
   try{
-    const trips=JSON.parse(localStorage.getItem('sg_trips')||'[]');
+    const trips=JSON.parse(localStorage.getItem('rg_trips')||'[]');
     const elapsed=Math.floor((Date.now()-startTime)/1000);
     const avg=speedReadings.length>0?Math.round(speedReadings.reduce((a,b)=>a+b,0)/speedReadings.length):0;
     trips.unshift({date:new Date().toLocaleDateString(lang==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),distance:totalDistance.toFixed(1),maxSpeed:Math.round(maxSpeedVal),avgSpeed:avg,duration:formatTime(elapsed)});
-    const maxTrips=settings.isPremium?200:20;
+    const maxTrips=settings.isPremium?50:5;
     if(trips.length>maxTrips)trips.pop();
-    localStorage.setItem('sg_trips',JSON.stringify(trips));
+    localStorage.setItem('rg_trips',JSON.stringify(trips));
     renderHistory();
   }catch(e){}
 }
 function renderHistory(){
   try{
-    const trips=JSON.parse(localStorage.getItem('sg_trips')||'[]');
+    const trips=JSON.parse(localStorage.getItem('rg_trips')||'[]');
     const list=document.getElementById('historyList');
     if(trips.length===0){list.innerHTML=`<div class="empty-state"><span>🗺️</span>${t('emptyHistory').replace('\n','<br>')}</div>`;return;}
     list.innerHTML=trips.map((tr,i)=>`
@@ -1261,8 +1257,8 @@ function renderHistory(){
       </div>`).join('');
   }catch(e){}
 }
-function deleteTrip(i){try{const t2=JSON.parse(localStorage.getItem('sg_trips')||'[]');t2.splice(i,1);localStorage.setItem('sg_trips',JSON.stringify(t2));renderHistory();}catch(e){}}
-function clearHistory(){if(confirm(t('deleteConfirm'))){localStorage.removeItem('sg_trips');renderHistory();}}
+function deleteTrip(i){try{const t2=JSON.parse(localStorage.getItem('rg_trips')||'[]');t2.splice(i,1);localStorage.setItem('rg_trips',JSON.stringify(t2));renderHistory();}catch(e){}}
+function clearHistory(){if(confirm(t('deleteConfirm'))){localStorage.removeItem('rg_trips');renderHistory();}}
 function formatTime(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h>0?`${h}h ${m}m`:`${m}m ${sc}s`;}
 
 // ══════════════════════════════════════════════════════
@@ -1330,14 +1326,71 @@ function toggleHudFlip(){
   document.getElementById('hudOverlay').style.transform=hudFlipped?'rotate(180deg)':'';
 }
 
+// Mini HUD
+let miniHudActive=false;
+const miniHud=document.getElementById('miniHud');
+// Başlangıç konumu — sağ alt köşe
+miniHud.style.right='16px';miniHud.style.bottom='80px';
+
+function toggleMiniHud(){
+  miniHudActive=!miniHudActive;
+  miniHud.classList.toggle('active',miniHudActive);
+}
+function closeMiniHud(){
+  miniHudActive=false;
+  miniHud.classList.remove('active');
+}
+function updateMiniHud(spd,kmh){
+  if(!miniHudActive)return;
+  document.getElementById('miniHudSpeed').textContent=spd;
+  document.getElementById('miniHudUnit').textContent=getUnitLabel();
+  const lim=currentLimit;
+  const limitEl=document.getElementById('miniHudLimit');
+  if(lim!==null){
+    const over=kmh>lim;
+    limitEl.textContent=(over?'+':'')+Math.round(kmh-lim)+' / '+lim;
+    limitEl.className='mini-hud-limit'+(over?' over':'');
+    miniHud.classList.toggle('over-limit',over);
+  }else{
+    limitEl.textContent='— km/s';
+    limitEl.className='mini-hud-limit';
+    miniHud.classList.remove('over-limit');
+  }
+}
+
+// Mini HUD sürükleme
+(function(){
+  let dragging=false,ox=0,oy=0,startX=0,startY=0;
+  miniHud.addEventListener('pointerdown',e=>{
+    if(e.target.classList.contains('mini-hud-close'))return;
+    dragging=true;
+    const r=miniHud.getBoundingClientRect();
+    ox=e.clientX-r.left;oy=e.clientY-r.top;
+    startX=e.clientX;startY=e.clientY;
+    miniHud.setPointerCapture(e.pointerId);
+    miniHud.style.cursor='grabbing';
+  });
+  miniHud.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    const x=e.clientX-ox,y=e.clientY-oy;
+    miniHud.style.left=Math.max(0,Math.min(window.innerWidth-miniHud.offsetWidth,x))+'px';
+    miniHud.style.top=Math.max(0,Math.min(window.innerHeight-miniHud.offsetHeight,y))+'px';
+    miniHud.style.right='auto';miniHud.style.bottom='auto';
+  });
+  miniHud.addEventListener('pointerup',e=>{
+    dragging=false;miniHud.style.cursor='grab';
+    // Çok az hareket ettiyse tıklama sayma
+  });
+})();
+
 // ══════════════════════════════════════════════════════
 // TABS & NAV
 // ══════════════════════════════════════════════════════
 function switchTab(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  ['main','history','settings'].forEach((n,i)=>document.querySelectorAll('.tab')[i].classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.querySelectorAll('.tab')[['main','history','settings'].indexOf(name)].classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const pg=document.getElementById('page-'+name);if(pg)pg.classList.add('active');
+  const tb=document.getElementById('tab-'+name);if(tb)tb.classList.add('active');
   if(name==='history')renderHistory();
 }
 
@@ -1358,7 +1411,6 @@ checkSubscriptionStatus();
 applyLang();
 buildTicks();
 updateNeedle(0);
-drawRouteMap();
 renderHistory();
 checkRatePrompt();
 </script>
