@@ -180,6 +180,21 @@ body.light .tabs{background:rgba(240,244,248,0.95);}
 .mini-hud-limit.over{color:#ff3b5c;}
 .mini-hud-close{position:absolute;top:4px;right:6px;font-size:10px;color:rgba(255,255,255,0.3);cursor:pointer;line-height:1;}
 
+/* ══ PiP BUTTON ══ */
+.pip-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  padding:13px;border-radius:14px;border:1px solid rgba(0,229,255,0.3);
+  background:rgba(0,229,255,0.06);color:var(--accent);
+  font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;
+  transition:all 0.2s;margin-bottom:-2px;
+}
+.pip-btn:active{transform:scale(0.98);}
+.pip-btn.pip-active{background:rgba(0,229,255,0.15);border-color:rgba(0,229,255,0.6);}
+.pip-btn.pip-unsupported{opacity:0.4;cursor:not-allowed;border-color:var(--border);color:var(--muted);}
+
+/* ══ PiP CANVAS (gizli, PiP için kaynak) ══ */
+#pipCanvas{display:none;}
+
 /* ══ PAGES ══ */
 .page{display:none;width:100%;max-width:420px;padding:14px;flex-direction:column;gap:12px;padding-bottom:80px;}
 .page.active{display:flex;}
@@ -499,6 +514,8 @@ body.light .scanline{display:none;}
 
   <button class="hud-open-btn" onclick="toggleHUD()">🖥️ <span id="t-hudopen">HUD MODU — ÖN CAMA YANSITIN</span></button>
   <button class="hud-open-btn" onclick="toggleMiniHud()" style="background:rgba(0,229,255,0.06);border-color:rgba(0,229,255,0.2);margin-top:-4px;">📌 <span>MİNİ HUD — KÖŞEDE GÖSTER</span></button>
+  <button class="pip-btn" id="pipBtn" onclick="togglePiP()">📺 <span id="pipBtnLabel">UYGULAMA DIŞI HIZ PENCERESİ</span></button>
+  <canvas id="pipCanvas" width="320" height="180"></canvas>
   <div class="permission-msg" id="permMsg" style="display:none"><span>📡</span><span id="t-gpserr">GPS izni gerekiyor.</span></div>
   <button class="control-btn start" id="controlBtn" onclick="toggleTracking()"><span id="t-startbtn">TAKİBİ BAŞLAT</span></button>
 </div>
@@ -1165,6 +1182,7 @@ function onPosition(pos){
   document.getElementById('hudSpeed').textContent=spd;
   updateNeedle(kmh);updateChart(kmh);checkAlert(rawMs);
   updateMiniHud(spd,kmh);
+  updatePiP(spd,kmh);
   document.getElementById('progressFill').style.width=Math.min((totalDistance/10)*100,100)+'%';
 }
 function onError(){document.getElementById('permMsg').style.display='block';document.getElementById('statusDot').className='status-dot error';stopTracking();}
@@ -1184,6 +1202,7 @@ function stopTracking(){
   if(alertTimer){clearTimeout(alertTimer);alertTimer=null;}
   if(wakeLock){wakeLock.release();wakeLock=null;}
   if(settings.save&&totalDistance>0.05)saveTrip();
+  if(pipActive) stopPiP();
   document.getElementById('statusDot').className='status-dot';
   document.getElementById('controlBtn').className='control-btn start';
   document.getElementById('t-startbtn').textContent=t('t-startbtn');
@@ -1372,6 +1391,166 @@ function updateMiniHud(spd,kmh){
     // Çok az hareket ettiyse tıklama sayma
   });
 })();
+
+// ══════════════════════════════════════════════════════
+// PICTURE-IN-PICTURE (Uygulama dışı hız penceresi)
+// ══════════════════════════════════════════════════════
+let pipActive=false,pipVideo=null,pipStream=null,pipAnimFrame=null;
+const pipCanvas=document.getElementById('pipCanvas');
+const pipCtx=pipCanvas.getContext('2d');
+
+// PiP destekli mi?
+const PIP_SUPPORTED='pictureInPictureEnabled' in document && document.pictureInPictureEnabled;
+
+(function initPipBtn(){
+  const btn=document.getElementById('pipBtn');
+  if(!PIP_SUPPORTED){
+    btn.classList.add('pip-unsupported');
+    document.getElementById('pipBtnLabel').textContent='UYGULAMA DIŞI HIZ (DESTEKLENM.)';
+  }
+})();
+
+function drawPipFrame(speedVal, limitVal, kmh){
+  const W=pipCanvas.width, H=pipCanvas.height;
+  const over = limitVal!==null && kmh>limitVal;
+  const fast = kmh>80;
+
+  // Arkaplan
+  pipCtx.fillStyle='#080c10';
+  pipCtx.fillRect(0,0,W,H);
+
+  // Subtle gradient overlay
+  const grad=pipCtx.createRadialGradient(W/2,H/2,10,W/2,H/2,H);
+  grad.addColorStop(0, over?'rgba(255,30,60,0.12)':'rgba(0,229,255,0.06)');
+  grad.addColorStop(1,'transparent');
+  pipCtx.fillStyle=grad;
+  pipCtx.fillRect(0,0,W,H);
+
+  // Border
+  pipCtx.strokeStyle= over?'rgba(255,59,92,0.7)':'rgba(0,229,255,0.35)';
+  pipCtx.lineWidth=3;
+  pipCtx.beginPath();
+  pipCtx.roundRect(4,4,W-8,H-8,16);
+  pipCtx.stroke();
+
+  // RADARIGO label
+  pipCtx.fillStyle='rgba(0,229,255,0.4)';
+  pipCtx.font='bold 11px Orbitron, monospace';
+  pipCtx.textAlign='center';
+  pipCtx.letterSpacing='4px';
+  pipCtx.fillText('RADARIGO', W/2, 24);
+
+  // Ana hız sayısı
+  const speedColor = over ? '#ff3b5c' : fast ? '#ff6b35' : '#ffffff';
+  pipCtx.fillStyle=speedColor;
+  pipCtx.font='900 96px Orbitron, monospace';
+  pipCtx.textAlign='center';
+  pipCtx.fillText(String(speedVal), W/2, H/2+32);
+
+  // Birim
+  pipCtx.fillStyle='rgba(255,255,255,0.3)';
+  pipCtx.font='600 14px Orbitron, monospace';
+  pipCtx.fillText(getUnitLabel(), W/2, H/2+56);
+
+  // Limit kutusu
+  if(limitVal!==null){
+    const diff=Math.round(kmh-limitVal);
+    const diffTxt=(diff>0?'+':'')+diff;
+    const boxColor= over?'rgba(255,59,92,0.2)':'rgba(57,255,20,0.1)';
+    const textColor= over?'#ff3b5c':'#39ff14';
+
+    // Limit kutu arka plan
+    pipCtx.fillStyle=boxColor;
+    pipCtx.beginPath();
+    pipCtx.roundRect(W/2-80, H-48, 160, 34, 10);
+    pipCtx.fill();
+    pipCtx.strokeStyle=over?'rgba(255,59,92,0.5)':'rgba(57,255,20,0.25)';
+    pipCtx.lineWidth=1;
+    pipCtx.stroke();
+
+    pipCtx.fillStyle='rgba(255,255,255,0.4)';
+    pipCtx.font='10px Rajdhani, sans-serif';
+    pipCtx.fillText(lang==='en'?'LIMIT':'LİMİT', W/2-36, H-28);
+
+    pipCtx.fillStyle='rgba(255,255,255,0.9)';
+    pipCtx.font='bold 14px Orbitron, monospace';
+    pipCtx.fillText(limitVal, W/2, H-28);
+
+    pipCtx.fillStyle=textColor;
+    pipCtx.font='bold 13px Orbitron, monospace';
+    pipCtx.fillText(diffTxt, W/2+40, H-28);
+  }else{
+    pipCtx.fillStyle='rgba(255,255,255,0.2)';
+    pipCtx.font='11px Orbitron, monospace';
+    pipCtx.fillText(lang==='en'?'NO LIMIT DATA':'LİMİT YOK', W/2, H-28);
+  }
+}
+
+async function togglePiP(){
+  if(!PIP_SUPPORTED) return;
+  if(pipActive){
+    await stopPiP();
+  } else {
+    await startPiP();
+  }
+}
+
+async function startPiP(){
+  try{
+    // Canvas'ı video stream'e çevir
+    pipStream = pipCanvas.captureStream(15); // 15 fps yeterli
+    pipVideo = document.createElement('video');
+    pipVideo.srcObject = pipStream;
+    pipVideo.muted = true;
+    await pipVideo.play();
+
+    pipVideo.addEventListener('leavepictureinpicture',()=>{
+      pipActive=false;
+      cancelAnimationFrame(pipAnimFrame);
+      updatePipBtn(false);
+    });
+
+    await pipVideo.requestPictureInPicture();
+    pipActive=true;
+    updatePipBtn(true);
+
+    // İlk frame çiz
+    drawPipFrame(0, currentLimit, 0);
+    // Döngü — her frame güncelle (zaten onPosition içinde updatePiP çağrılacak)
+  }catch(e){
+    console.warn('PiP error:',e);
+    pipActive=false;
+    updatePipBtn(false);
+  }
+}
+
+async function stopPiP(){
+  try{
+    if(document.pictureInPictureElement) await document.exitPictureInPicture();
+  }catch(e){}
+  if(pipStream) pipStream.getTracks().forEach(t=>t.stop());
+  pipStream=null; pipVideo=null; pipActive=false;
+  cancelAnimationFrame(pipAnimFrame);
+  updatePipBtn(false);
+}
+
+function updatePipBtn(active){
+  const btn=document.getElementById('pipBtn');
+  const lbl=document.getElementById('pipBtnLabel');
+  if(active){
+    btn.classList.add('pip-active');
+    lbl.textContent=lang==='en'?'CLOSE FLOAT WINDOW':'PENCEREYI KAPAT';
+  }else{
+    btn.classList.remove('pip-active');
+    lbl.textContent=lang==='en'?'SPEED FLOAT WINDOW':'UYGULAMA DIŞI HIZ PENCERESİ';
+  }
+}
+
+// PiP güncelleme — onPosition içinden çağrılır
+function updatePiP(spd, kmh){
+  if(!pipActive) return;
+  drawPipFrame(spd, currentLimit, kmh);
+}
 
 // ══════════════════════════════════════════════════════
 // TABS & NAV
