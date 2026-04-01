@@ -138,7 +138,6 @@ body.light .tabs{background:rgba(240,244,248,0.95);}
 .hud-overlay{
   display:none;position:fixed;inset:0;z-index:1000;
   background:#000;flex-direction:column;align-items:center;justify-content:center;
-  touch-action:none;overscroll-behavior:none;
 }
 .hud-overlay.active{display:flex;}
 .hud-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:20px;}
@@ -171,7 +170,7 @@ body.light .tabs{background:rgba(240,244,248,0.95);}
   backdrop-filter:blur(8px);cursor:grab;
   box-shadow:0 4px 24px rgba(0,0,0,0.6);
   min-width:80px;
-  user-select:none;touch-action:none;
+  user-select:none;
 }
 .mini-hud.active{display:flex;}
 .mini-hud.over-limit{border-color:rgba(255,59,92,0.8);box-shadow:0 4px 24px rgba(255,59,92,0.3);}
@@ -368,17 +367,6 @@ body.light .scanline{display:none;}
     <button class="modal-btn primary" onclick="openStore()" id="rate-yes">⭐ Değerlendir</button>
     <button class="modal-btn secondary" onclick="closeModal('rateModal')" id="rate-later">Daha Sonra</button>
     <button class="modal-btn secondary" onclick="neverRate()" id="rate-no" style="margin-top:-4px;">Hayır, Teşekkürler</button>
-  </div>
-</div>
-
-<!-- Confirm Modal -->
-<div class="modal-bg" id="confirmCancelModal">
-  <div class="modal">
-    <div class="modal-icon">⚠️</div>
-    <div class="modal-title" id="confirmCancelTitle">ABONELİĞİ İPTAL ET</div>
-    <div class="modal-sub" id="confirmCancelSub">Aboneliğinizi iptal etmek istiyor musunuz?</div>
-    <button class="modal-btn primary" onclick="doConfirmCancel()">✅ Evet, İptal Et</button>
-    <button class="modal-btn secondary" onclick="closeModal('confirmCancelModal')">Geri Dön</button>
   </div>
 </div>
 
@@ -581,7 +569,7 @@ body.light .scanline{display:none;}
 
   <div class="settings-section">
     <div class="settings-title">APP</div>
-    <div class="settings-row"><div><div class="settings-row-label">RadarGo</div></div><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);">v1.0.0</div></div>
+    <div class="settings-row"><div><div class="settings-row-label">RadarGo</div></div><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);">v3.0.0</div></div>
     <div class="settings-row"><div><div class="settings-row-label" id="t-datasrc-lbl">Veri</div></div><div style="font-size:11px;color:var(--muted);">OpenStreetMap</div></div>
   </div>
 </div>
@@ -591,19 +579,6 @@ body.light .scanline{display:none;}
 <div class="page" id="page-guide">
   <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--accent);padding-bottom:4px;">SÜRÜCÜ KILAVUZU</div>
   <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Trafik cezası almamak için dikkat etmen gerekenler</div>
-
-  <!-- Uygulama Tanıtım Kartı -->
-  <div style="background:linear-gradient(135deg,rgba(0,229,255,0.08),rgba(255,107,53,0.05));border:1px solid rgba(0,229,255,0.2);border-radius:16px;padding:18px 16px;display:flex;gap:14px;align-items:flex-start;">
-    <div style="font-size:32px;flex-shrink:0;">🛡️</div>
-    <div>
-      <div style="font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:6px;">RadarGo Nedir?</div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.7;">
-        RadarGo, sürücüleri trafik cezalarından korumak için tasarlanmış akıllı bir hız asistanıdır.
-        Anlık hızını takip eder, bulunduğun yolun limitini otomatik tespit eder ve EDS kameralarına
-        yaklaşınca seni önceden uyarır. Amacımız tek: <span style="color:var(--accent);font-weight:600;">sürüşünü güvende tut, cezalardan koru.</span>
-      </div>
-    </div>
-  </div>
 
   <div class="guide-card">
     <div class="guide-icon">🚗</div>
@@ -777,16 +752,16 @@ function t(k){return(STRINGS[lang]||STRINGS.tr)[k]||k;}
 function applyLang(){
   document.documentElement.lang=lang;
   Object.keys(STRINGS[lang]).forEach(k=>{const el=document.getElementById(k);if(el)el.textContent=t(k);});
-  const _s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  _s('accuracyText',t('accuracyReady'));
-  _s('limitSource',t('limitWaiting'));
-  _s('speedUnitLabel',getUnitLabel());
-  _s('hudUnit',getUnitLabel());
-  _s('hudLimitLabel',t('hudLimitLabel'));
-  _s('hudFlipBtn',t('flipBtn'));
-  _s('hudCloseBtn',t('closeBtn'));
-  _s('skipLabel',t('skipLabel'));
-  if(!isTracking) _s('t-startbtn',t('t-startbtn'));
+  const safe=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  safe('accuracyText',t('accuracyReady'));
+  safe('limitSource',t('limitWaiting'));
+  safe('speedUnitLabel',getUnitLabel());
+  safe('hudUnit',getUnitLabel());
+  safe('hudLimitLabel',t('hudLimitLabel'));
+  safe('hudFlipBtn',t('flipBtn'));
+  safe('hudCloseBtn',t('closeBtn'));
+  safe('miniHudUnit',getUnitLabel());
+  if(!isTracking) safe('t-startbtn',t('t-startbtn'));
   renderHistory();
 }
 function changeLang(l){lang=l;settings.lang=l;saveSettings();applyLang();}
@@ -837,6 +812,7 @@ function toggleTheme(){
 // PREMIUM
 // ══════════════════════════════════════════════════════
 function applyPremiumUI(){
+  hideBanner();
   document.getElementById('premiumHeaderBtn').style.display='none';
   document.getElementById('premiumBadgeHeader').style.display='inline-flex';
   // Premium card yerine abonelik yönetim paneli göster
@@ -858,74 +834,35 @@ function applyPremiumUI(){
 function checkSubscriptionStatus(){
   try{
     const s=JSON.parse(localStorage.getItem('rg_settings')||'{}');
-    // isPremium true VE geçerli bir subscriptionExpiry varsa ve süresi dolmamışsa aktif
-    const valid = s.isPremium && s.subscriptionExpiry && Date.now() < s.subscriptionExpiry;
-    if(valid){
+    if(s.isPremium){
+      // Abonelik süresi varsa kontrol et
+      if(s.subscriptionExpiry&&Date.now()>s.subscriptionExpiry){
+        // Süre dolmuş — premium'u kaldır
+        settings.isPremium=false;
+        settings.subscriptionExpiry=null;
+        localStorage.setItem('rg_settings',JSON.stringify(settings));
+        return;
+      }
       settings.isPremium=true;
       applyPremiumUI();
-    } else {
-      // İptal edilmiş veya süresi dolmuş — her iki durumda da premium kapat
-      settings.isPremium=false;
-      settings.subscriptionExpiry=null;
-      if(s.isPremium){ // localStorage'da eski kayıt varsa temizle
-        s.isPremium=false;
-        s.subscriptionExpiry=null;
-        localStorage.setItem('rg_settings',JSON.stringify(s));
-      }
     }
   }catch(e){}
 }
 function buyPremium(){
   // Gerçek in-app purchase burada entegre edilir (Google Play Billing / Apple StoreKit)
-  // Şimdilik demo olarak aktive ediyoruz (30 günlük expiry set ediyoruz)
+  // Şimdilik demo olarak aktive ediyoruz
   settings.isPremium=true;
-  settings.subscriptionExpiry=Date.now()+(30*24*60*60*1000); // 30 gün
   localStorage.setItem('rg_settings',JSON.stringify(settings));
   applyPremiumUI();
   closeModal('premiumModal');
   alert(lang==='en'?'Welcome to RadarGo Pro! 🎉':'RadarGo Pro\'ya hoş geldin! 🎉');
 }
 function cancelSubscription(){
-  // confirm() yerine custom modal kullan (file:// protokolünde confirm bloklanabiliyor)
-  const title = document.getElementById('confirmCancelTitle');
-  const sub = document.getElementById('confirmCancelSub');
-  if(title) title.textContent = lang==='en'?'CANCEL SUBSCRIPTION':'ABONELİĞİ İPTAL ET';
-  if(sub) sub.textContent = lang==='en'?'Cancel your subscription?':'Aboneliğinizi iptal etmek istiyor musunuz?';
-  showModal('confirmCancelModal');
-}
-function doConfirmCancel(){
-  closeModal('confirmCancelModal');
+  if(!confirm(lang==='en'?'Cancel your subscription? Premium features will remain active until the end of the current period.':'Aboneliğinizi iptal etmek istiyor musunuz? Premium özellikler mevcut dönem sonuna kadar aktif kalır.')) return;
   settings.isPremium=false;
   settings.subscriptionExpiry=null;
-  try{
-    const stored=JSON.parse(localStorage.getItem('rg_settings')||'{}');
-    stored.isPremium=false;
-    stored.subscriptionExpiry=null;
-    localStorage.setItem('rg_settings',JSON.stringify(stored));
-  }catch(e){
-    localStorage.setItem('rg_settings',JSON.stringify(settings));
-  }
-  // UI'ı direkt güncelle, reload olmadan
-  document.getElementById('premiumHeaderBtn').style.display='';
-  document.getElementById('premiumBadgeHeader').style.display='none';
-  // Premium card'ı eski haline döndür
-  const card=document.getElementById('premiumCardSettings');
-  if(card){
-    card.innerHTML=`
-      <div class="premium-card-icon">⭐</div>
-      <div class="premium-card-title">RadarGo Pro</div>
-      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#39ff14;letter-spacing:1px;margin-bottom:4px;" id="trial-badge2">🎁 <span id="trial-txt2">${t('trial-txt2')}</span></div>
-      <div class="premium-card-features">
-        <div class="premium-feature"><span class="premium-feature-icon">🚫</span><span>${t('pc-f1')}</span></div>
-        <div class="premium-feature"><span class="premium-feature-icon">🚨</span><span>${t('pc-f2')}</span></div>
-        <div class="premium-feature"><span class="premium-feature-icon">🗺️</span><span>${t('pc-f3')}</span></div>
-        <div class="premium-feature"><span class="premium-feature-icon">📊</span><span>${t('pc-f4')}</span></div>
-      </div>
-      <button class="premium-buy-btn" onclick="buyPremium()">💳 ${t('pm-price')}</button>
-      <div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5;" id="sub-note-card">${t('sub-note-card')}</div>
-      <div class="premium-restore" onclick="restorePurchase()">${t('t-restore')}</div>`;
-  }
-  alert(lang==='en'?'Subscription cancelled.':'Abonelik iptal edildi.');
+  localStorage.setItem('rg_settings',JSON.stringify(settings));
+  location.reload();
 }
 function restorePurchase(){
   // Gerçek restore: Google Play Billing queryPurchasesAsync / StoreKit restore
@@ -1270,6 +1207,8 @@ function toggleTracking(){
     document.getElementById('limitSource').textContent=t('limitWaiting');
     document.getElementById('limitDiff').textContent='—';document.getElementById('limitDiff').className='limit-diff';
     updateNeedle(0);startTracking();
+    // Takip başlayınca interstitial göster
+    showInterstitial();
   }else{stopTracking();}
 }
 
@@ -1369,14 +1308,8 @@ let hudFlipped=false;
 function toggleHUD(){
   const ov=document.getElementById('hudOverlay');
   const active=ov.classList.toggle('active');
-  if(active){
-    try{screen.orientation?.lock('landscape').catch(()=>{});}catch(e){}
-    document.body.style.overflow='hidden'; // HUD açıkken arkaplan scroll'u kapat
-  } else {
-    try{screen.orientation?.unlock?.();}catch(e){}
-    hudFlipped=false;ov.style.transform='';
-    document.body.style.overflow=''; // HUD kapanınca scroll'u geri aç
-  }
+  if(active){try{screen.orientation?.lock('landscape').catch(()=>{});}catch(e){}}
+  else{try{screen.orientation?.unlock?.();}catch(e){}hudFlipped=false;ov.style.transform='';}
 }
 function toggleHudFlip(){
   hudFlipped=!hudFlipped;
@@ -1429,12 +1362,11 @@ function updateMiniHud(spd,kmh){
   });
   miniHud.addEventListener('pointermove',e=>{
     if(!dragging)return;
-    e.preventDefault();
     const x=e.clientX-ox,y=e.clientY-oy;
     miniHud.style.left=Math.max(0,Math.min(window.innerWidth-miniHud.offsetWidth,x))+'px';
     miniHud.style.top=Math.max(0,Math.min(window.innerHeight-miniHud.offsetHeight,y))+'px';
     miniHud.style.right='auto';miniHud.style.bottom='auto';
-  },{passive:false});
+  });
   miniHud.addEventListener('pointerup',e=>{
     dragging=false;miniHud.style.cursor='grab';
     // Çok az hareket ettiyse tıklama sayma
@@ -1447,11 +1379,9 @@ function updateMiniHud(spd,kmh){
 function switchTab(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  const pg=document.getElementById('page-'+name);if(pg)pg.classList.add('active');
-  const tb=document.getElementById('tab-'+name);if(tb)tb.classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
   if(name==='history')renderHistory();
-  // Mini HUD tab değişince kaybolmasın — active state'ini koru
-  if(miniHudActive) miniHud.classList.add('active');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1461,6 +1391,63 @@ let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show');});
 document.getElementById('installBtn').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;}document.getElementById('installBanner').classList.remove('show');});
 window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
+
+
+// ══════════════════════════════════════════════════════
+// ADMOB
+// ══════════════════════════════════════════════════════
+const ADMOB_BANNER_ID='ca-app-pub-1676586057560000/8492542221';
+const ADMOB_INTERSTITIAL_ID='ca-app-pub-1676586057560000/1415997985';
+let adMobReady=false,interstitialReady=false,AdMobPlugin=null;
+
+async function initAdMob(){
+  try{
+    // Sadece Capacitor native ortamında çalış
+    if(!window.Capacitor||!window.Capacitor.isNativePlatform())return;
+    AdMobPlugin=window.Capacitor.Plugins.AdMob;
+    if(!AdMobPlugin)return;
+    await AdMobPlugin.initialize({requestTrackingAuthorization:false});
+    adMobReady=true;
+    if(!settings.isPremium){
+      showBanner();
+      prepareInterstitial();
+    }
+  }catch(e){console.warn('AdMob init failed:',e);}
+}
+
+async function showBanner(){
+  if(!adMobReady||!AdMobPlugin||settings.isPremium)return;
+  try{
+    await AdMobPlugin.showBanner({
+      adId:ADMOB_BANNER_ID,
+      adSize:'ADAPTIVE_BANNER',
+      position:'BOTTOM_CENTER',
+      isTesting:false
+    });
+  }catch(e){}
+}
+
+async function hideBanner(){
+  if(!adMobReady||!AdMobPlugin)return;
+  try{await AdMobPlugin.hideBanner();}catch(e){}
+}
+
+async function prepareInterstitial(){
+  if(!adMobReady||!AdMobPlugin||settings.isPremium)return;
+  try{
+    await AdMobPlugin.prepareInterstitial({adId:ADMOB_INTERSTITIAL_ID,isTesting:false});
+    interstitialReady=true;
+  }catch(e){}
+}
+
+async function showInterstitial(){
+  if(!adMobReady||!interstitialReady||!AdMobPlugin||settings.isPremium)return;
+  try{
+    await AdMobPlugin.showInterstitial();
+    interstitialReady=false;
+    setTimeout(prepareInterstitial,3000);
+  }catch(e){}
+}
 
 // ══════════════════════════════════════════════════════
 // BAŞLAT
@@ -1473,6 +1460,7 @@ buildTicks();
 updateNeedle(0);
 renderHistory();
 checkRatePrompt();
+initAdMob();
 </script>
 </body>
 </html>
