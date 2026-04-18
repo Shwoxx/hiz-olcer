@@ -130,11 +130,14 @@ body.speeding-alert{background:#1a0008!important;animation:red-pulse 1.2s ease-i
 
 /* ══ HEADER ══ */
 .header{
-  width:100%;max-width:480px;padding:12px 18px 10px;
+  width:100%;max-width:480px;
+  padding:12px 18px 10px;
+  padding-top:calc(env(safe-area-inset-top, 0px) + 12px);
   display:flex;align-items:center;justify-content:space-between;
   border-bottom:1px solid var(--border);
   background:rgba(8,12,16,0.95);backdrop-filter:blur(12px);
   position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:10;
+  box-sizing:border-box;
 }
 body.light .header{background:rgba(240,244,248,0.95);}
 .header-left{display:flex;align-items:center;gap:8px;}
@@ -168,7 +171,7 @@ body.light .header{background:rgba(240,244,248,0.95);}
 .tabs{
   display:flex;width:100%;max-width:480px;border-bottom:1px solid var(--border);
   background:rgba(8,12,16,0.95);backdrop-filter:blur(10px);
-  position:fixed;top:53px;left:50%;transform:translateX(-50%);z-index:9;
+  position:fixed;top:calc(env(safe-area-inset-top,0px) + 53px);left:50%;transform:translateX(-50%);z-index:9;
 }
 body.light .tabs{background:rgba(240,244,248,0.95);}
 .tab{
@@ -210,7 +213,7 @@ body.light .tabs{background:rgba(240,244,248,0.95);}
 
 
 /* ══ PAGES ══ */
-.page{display:none;width:100%;padding:14px;padding-top:97px;flex-direction:column;gap:12px;padding-bottom:100px;box-sizing:border-box;}
+.page{display:none;width:100%;padding:14px;padding-top:calc(env(safe-area-inset-top,0px) + 97px);flex-direction:column;gap:12px;padding-bottom:100px;box-sizing:border-box;}
 .page.active{display:flex;}
 
 /* ══ KILAVUZ ══ */
@@ -531,6 +534,13 @@ body.light .scanline{display:none;}
 
   </div>
 
+  <!-- GPS uyarı notu -->
+  <div id="speedo-note" style="display:flex;align-items:center;gap:6px;background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.18);border-radius:8px;padding:7px 11px;">
+    <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
+    <span id="speedo-note-txt" style="font-size:11px;color:var(--text2);line-height:1.5;flex:1;">GPS gerçek hızı gösterir. Araç göstergesi yasal zorunluluk gereği <strong style="color:var(--text);">%2–10 daha yüksek</strong> gösterebilir.</span>
+    <button onclick="document.getElementById('speedo-note').style.display='none';sessionStorage.setItem('rg_hidenote','1');" style="background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;flex-shrink:0;padding:0 0 0 4px;line-height:1;">✕</button>
+  </div>
+
   <!-- 4 stat kart -->
   <div class="stats-grid">
     <div class="stat-card highlight"><span class="stat-icon">📊</span><div class="stat-value" id="avgSpeed">0</div><div class="stat-label" id="t-avg">ORT. HIZ</div></div>
@@ -598,13 +608,6 @@ body.light .scanline{display:none;}
     <div class="progress-track" style="background:rgba(255,107,53,0.08);">
       <div style="height:100%;background:linear-gradient(90deg,var(--accent2),#ff3b5c);width:0%;transition:width 0.5s linear;border-radius:2px;" id="progressFillB"></div>
     </div>
-  </div>
-
-  <!-- Hız uyuşmazlığı notu -->
-  <div id="speedo-note" style="display:flex;align-items:center;gap:8px;background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:9px 13px;">
-    <span style="font-size:16px;flex-shrink:0;">ℹ️</span>
-    <span id="speedo-note-txt" style="font-size:12px;color:var(--text2);line-height:1.5;flex:1;">GPS gerçek hızı gösterir. Araç göstergesi yasal zorunluluk gereği <strong style="color:var(--text);">%2–10 daha yüksek</strong> gösterebilir.</span>
-    <button onclick="document.getElementById('speedo-note').style.display='none';localStorage.setItem('rg_hidenote','1');" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;flex-shrink:0;padding:0 0 0 4px;line-height:1;">✕</button>
   </div>
 
   <!-- HUD ve başlat -->
@@ -1121,7 +1124,7 @@ function applyLang(){
   // Hız göstergesi uyarı notu
   const noteEl=document.getElementById('speedo-note');
   if(noteEl){
-    const span=noteEl.querySelector('span:last-child');
+    const span=noteEl.querySelector('#speedo-note-txt');
     if(span) span.innerHTML=lang==='en'
       ?'GPS shows real speed. Car speedometer may read <strong style="color:var(--text);">2–10% higher</strong> by law.'
       :'GPS gerçek hızı gösterir. Araç göstergesi yasal zorunluluk gereği <strong style="color:var(--text);">%2–10 daha yüksek</strong> gösterebilir.';
@@ -1141,6 +1144,8 @@ const THEME_CLASSES=['theme-night','theme-forest','theme-neon','theme-sunset','t
 function applyTheme(themeName){
   THEME_CLASSES.forEach(c=>document.body.classList.remove(c));
   document.body.classList.add(themeName);
+  // CSS'deki body.light kuralları için de senkronize et
+  if(themeName==='theme-light'){document.body.classList.add('light');}
   if(themeName==='theme-light'){
     document.getElementById('themeBtn').textContent='☀️';
   } else {
@@ -1182,7 +1187,7 @@ function loadSettings(){
     // Font uygula
     applyFont(settings.fontUi||'Rajdhani');
     if(settings.isPremium) applyPremiumUI();
-    if(localStorage.getItem('rg_hidenote')==='1'){const n=document.getElementById('speedo-note');if(n)n.style.display='none';}
+    if(sessionStorage.getItem('rg_hidenote')==='1'){const n=document.getElementById('speedo-note');if(n)n.style.display='none';}
   }catch(e){}
 }
 function saveSettings(){
@@ -1265,7 +1270,7 @@ function cancelSubscription(){
 function restorePurchase(){
   // Gerçek restore: Google Play Billing queryPurchasesAsync / StoreKit restore
   const stored=JSON.parse(localStorage.getItem('rg_settings')||'{}');
-  if(stored.isPremium && stored.subscriptionExpiry && Date.now()<stored.subscriptionExpiry){
+  if(stored.isPremium && (!stored.subscriptionExpiry || Date.now()<stored.subscriptionExpiry)){
     settings.isPremium=true;
     settings.subscriptionExpiry=stored.subscriptionExpiry;
     localStorage.setItem('rg_settings',JSON.stringify(settings));
@@ -1340,7 +1345,7 @@ function checkEdsProximity(lat,lon){
     const prev=cam._prevDist??d;
     cam._prevDist=d;
     // Kameraya yaklaşıyorsak (mesafe azalıyorsa) veya zaten çok yakınsa göster
-    const approaching=d<prev+5; // 5m tolerans
+    const approaching=d<prev||d<alertDistMeters*0.3; // yaklaşıyor veya çok yakın
     if(approaching&&d<closestDist){closestDist=d;closest=cam;}
   });
   if(closest&&closestDist<alertDistMeters){
@@ -1494,7 +1499,7 @@ async function fetchSpeedLimit(lat,lon){
 }
 function updateLimitUI(limit,source){
   document.getElementById('limitSignNum').textContent=limit;
-  document.getElementById('limitValue').textContent=limit+' '+(lang==='en'?'km/h':'km/s');
+  document.getElementById('limitValue').textContent=limit+' '+(settings.speedUnit==='mph'?'mph':settings.speedUnit==='ms'?'m/s':(lang==='en'?'km/h':'km/s'));
   document.getElementById('limitSource').textContent=source;
   document.getElementById('hudLimitVal').textContent=limit;
 }
@@ -1508,7 +1513,7 @@ function checkAlert(rawMs){
   const kmh=rawMs*3.6,over=kmh>currentLimit;
   const diff=document.getElementById('limitDiff'),excess=Math.round(kmh-currentLimit),remain=Math.round(currentLimit-kmh);
   if(over){
-    diff.textContent='+'+excess+' km/s';diff.className='limit-diff over';
+    diff.textContent='+'+excess+' '+getUnitLabel();diff.className='limit-diff over';
     document.getElementById('limitBanner').className='limit-banner over-limit';
     if(settings.visual)document.body.classList.add('speeding-alert');
     document.getElementById('hudLimitVal').className='hud-box-val over';
@@ -1520,7 +1525,7 @@ function checkAlert(rawMs){
       }
     }
   }else{
-    diff.textContent=remain>0?'-'+remain+' km/s':'✓';diff.className='limit-diff';
+    diff.textContent=remain>0?'-'+remain+' '+getUnitLabel():'✓';diff.className='limit-diff';
     document.getElementById('limitBanner').className='limit-banner';
     document.body.classList.remove('speeding-alert');
     document.getElementById('hudLimitVal').className='hud-box-val';
@@ -1572,7 +1577,8 @@ function onPosition(pos){
   if(currentLimit!==null&&rawMs*3.6>currentLimit){scoreData.speedingPenalty=Math.min(40,scoreData.speedingPenalty+0.05);}
   else if(rawMs>2){scoreData.smoothBonus=Math.min(15,scoreData.smoothBonus+0.01);}
   scoreData.samples++;
-  if(!lastUpdateTime||now-lastUpdateTime>=800){speedHistory.push(Math.round(speed));if(speedHistory.length>60)speedHistory.shift();
+  if(!lastUpdateTime||now-lastUpdateTime>=800){
+    speedHistory.push(Math.round(speed));if(speedHistory.length>60)speedHistory.shift();
     updateDrivingScore(); // Anlık skor güncelle
   }
   lastUpdateTime=now;
@@ -1619,7 +1625,7 @@ function startTracking(){
   },onError,{enableHighAccuracy:true,timeout:10000,maximumAge:0});
 }
 function stopTracking(){
-  if(watchId!=null)navigator.geolocation.clearWatch(watchId);
+  if(watchId!=null){navigator.geolocation.clearWatch(watchId);watchId=null;}
   clearInterval(timerInterval);
   clearInterval(tripBTimerInterval);
   // Butonları sıfırla
@@ -1674,7 +1680,10 @@ function saveTrip(){
     const elapsed=Math.floor((Date.now()-startTime)/1000);
     const avg=speedReadings.length>0?Math.round(speedReadings.reduce((a,b)=>a+b,0)/speedReadings.length):0;
   const currentScore=scoreData.samples>5?Math.max(0,Math.min(100,Math.round(100-scoreData.speedingPenalty-scoreData.harshPenalty+scoreData.smoothBonus))):null;
-    trips.unshift({date:new Date().toLocaleDateString(lang==='en'?'en-GB':'tr-TR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),distance:totalDistance.toFixed(1),maxSpeed:Math.round(maxSpeedVal),avgSpeed:avg,duration:formatTime(elapsed),score:currentScore});
+    const now=new Date();
+    const pad=n=>String(n).padStart(2,'0');
+    const dateStr=`${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    trips.unshift({date:dateStr,distance:totalDistance.toFixed(1),maxSpeed:Math.round(maxSpeedVal),avgSpeed:avg,duration:formatTime(elapsed),score:currentScore});
     const maxTrips=settings.isPremium?50:5;
     if(trips.length>maxTrips)trips.pop();
     localStorage.setItem('rg_trips',JSON.stringify(trips));
@@ -1737,9 +1746,9 @@ function updateNeedle(kmh){
   arc.style.stroke=(currentLimit&&kmh>currentLimit)?'#ff3b5c':kmh>80?'#ff6b35':'#00e5ff';
 }
 function updateChart(kmh){
+  if(speedHistory.length<2)return;
   const w=340,h=60,maxV=Math.max(...speedHistory,40);
-  const pts=speedHistory.map((v,i)=>`${(i/(speedHistory.length-1||1))*w},${h-(v/maxV)*(h-4)}`);
-  if(pts.length<2)return;
+  const pts=speedHistory.map((v,i)=>`${(i/(speedHistory.length-1))*w},${h-(v/maxV)*(h-4)}`);
   document.getElementById('chartLine').setAttribute('d',`M${pts.join(' L')}`);
   document.getElementById('chartArea').setAttribute('d',`M0,${h} L${pts.join(' L')} L${w},${h} Z`);
   if(currentLimit!==null){const ly=Math.max(0,h-(currentLimit/maxV)*(h-4));document.getElementById('limitLine').setAttribute('y1',ly);document.getElementById('limitLine').setAttribute('y2',ly);}
@@ -1871,7 +1880,7 @@ const HARSH_BRAKE_THRESH=-4.0; // m/s²
 const HARSH_ACCEL_THRESH=3.5;  // m/s²
 
 function detectHarshEvents(rawMs,dt){
-  if(prevSpeedMs===null||dt<=0){prevSpeedMs=rawMs;return;}
+  if(prevSpeedMs===null||dt<0.3){prevSpeedMs=rawMs;return;} // dt çok küçükse atla
   const accel=(rawMs-prevSpeedMs)/dt;
   prevSpeedMs=rawMs;
   if(accel<HARSH_BRAKE_THRESH){
@@ -1997,7 +2006,7 @@ function renderReport(){
   const now=Date.now();
   const cutoff=reportPeriod==='week'?7*24*3600*1000:30*24*3600*1000;
   const filtered=trips.filter(t=>{
-    try{const d=new Date(t.date.split(' ')[0].split('.').reverse().join('-'));return(now-d.getTime())<cutoff;}catch(e){return false;}
+    try{const d=new Date(t.date.split(' ')[0].replace(/\./g,'-').split('-').reverse().join('-'));return(now-d.getTime())<cutoff;}catch(e){return false;}
   });
   document.getElementById('report-trips').textContent=filtered.length;
   const totalKm=filtered.reduce((a,t)=>a+parseFloat(t.distance||0),0);
@@ -2011,7 +2020,7 @@ function renderReport(){
   bars.innerHTML='';
   const buckets=Array(days).fill(0);
   filtered.forEach(t=>{
-    try{const d=new Date(t.date.split(' ')[0].split('.').reverse().join('-'));const daysAgo=Math.floor((now-d.getTime())/(24*3600*1000));if(daysAgo<days)buckets[days-1-daysAgo]+=parseFloat(t.distance||0);}catch(e){}
+    try{const d=new Date(t.date.split(' ')[0].replace(/\./g,'-').split('-').reverse().join('-'));const daysAgo=Math.floor((now-d.getTime())/(24*3600*1000));if(daysAgo<days)buckets[days-1-daysAgo]+=parseFloat(t.distance||0);}catch(e){}
   });
   const maxVal=Math.max(...buckets,1);
   buckets.forEach((v,i)=>{
