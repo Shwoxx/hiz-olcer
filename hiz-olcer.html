@@ -571,7 +571,7 @@ body.light .scanline{display:none;}
       <div style="display:flex;align-items:center;gap:8px;">
         <div class="trip-dot" id="tripA-dot" style="background:var(--accent);box-shadow:0 0 6px var(--accent);"></div>
         <span class="trip-name">Yolculuk 1</span>
-        <span class="trip-tag">genel</span>
+        <span class="trip-tag" id="trip1-tag">genel</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="trip-timer" id="tripTime" style="color:var(--accent);">00:00:00</span>
@@ -579,8 +579,8 @@ body.light .scanline{display:none;}
       </div>
     </div>
     <div class="trip-stats">
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-avg">0</div><div class="trip-stat-lbl">ORT KM/S</div></div>
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-max">0</div><div class="trip-stat-lbl">MAK KM/S</div></div>
+      <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-avg">0</div><div class="trip-stat-lbl" id="lbl-tripA-avg">ORT KM/S</div></div>
+      <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-max">0</div><div class="trip-stat-lbl" id="lbl-tripA-max">MAK KM/S</div></div>
       <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-dist">0.0</div><div class="trip-stat-lbl">KM</div></div>
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -592,7 +592,7 @@ body.light .scanline{display:none;}
       <div style="display:flex;align-items:center;gap:8px;">
         <div class="trip-dot" id="tripB-dot" style="background:var(--accent2);box-shadow:0 0 6px var(--accent2);"></div>
         <span class="trip-name">Yolculuk 2</span>
-        <span class="trip-tag">bölüm</span>
+        <span class="trip-tag" id="trip2-tag">bölüm</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span class="trip-timer" id="tripTimeB" style="color:var(--accent2);">00:00:00</span>
@@ -601,8 +601,8 @@ body.light .scanline{display:none;}
       </div>
     </div>
     <div class="trip-stats">
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-avg">0</div><div class="trip-stat-lbl">ORT KM/S</div></div>
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-max">0</div><div class="trip-stat-lbl">MAK KM/S</div></div>
+      <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-avg">0</div><div class="trip-stat-lbl" id="lbl-tripB-avg">ORT KM/S</div></div>
+      <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-max">0</div><div class="trip-stat-lbl" id="lbl-tripB-max">MAK KM/S</div></div>
       <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-dist">0.0</div><div class="trip-stat-lbl">KM</div></div>
     </div>
     <div class="progress-track" style="background:rgba(255,107,53,0.08);">
@@ -629,7 +629,7 @@ body.light .scanline{display:none;}
     <!-- Sürüş Skoru -->
     <div class="trip-bar" style="padding:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent);">🏆 SÜRÜŞ SKORU</div>
+        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent);" id="lbl-driving-score-title">🏆 SÜRÜŞ SKORU</div>
         <div style="font-size:10px;color:var(--muted);" id="score-session-label">Bu sürüş</div>
       </div>
       <div style="display:flex;align-items:center;gap:16px;">
@@ -645,15 +645,15 @@ body.light .scanline{display:none;}
         </div>
         <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:var(--text2);">Hız ihlali</span>
+            <span style="font-size:11px;color:var(--text2);" id="score-lbl-speeding">Hız ihlali</span>
             <span style="font-family:var(--font-num);font-size:12px;font-weight:700;" id="score-speeding">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:var(--text2);">Ani fren/gaz</span>
+            <span style="font-size:11px;color:var(--text2);" id="score-lbl-harsh">Ani fren/gaz</span>
             <span style="font-family:var(--font-num);font-size:12px;font-weight:700;" id="score-harshevents">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:var(--text2);">Sabit sürüş</span>
+            <span style="font-size:11px;color:var(--text2);" id="score-lbl-smooth">Sabit sürüş</span>
             <span style="font-family:var(--font-num);font-size:12px;font-weight:700;" id="score-smooth">—</span>
           </div>
         </div>
@@ -663,28 +663,28 @@ body.light .scanline{display:none;}
 
     <!-- Ani Fren / Hızlanma -->
     <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;">⚡ ANİ HAREKET ALGILAMA</div>
+      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;" id="lbl-harsh-title">⚡ ANİ HAREKET ALGILAMA</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="background:rgba(255,59,92,0.07);border:1px solid rgba(255,59,92,0.2);border-radius:12px;padding:12px;text-align:center;">
           <div style="font-size:22px;margin-bottom:4px;">🛑</div>
           <div style="font-family:var(--font-num);font-size:28px;font-weight:700;color:#ff3b5c;line-height:1;" id="harsh-brake">0</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;">ANİ FREN</div>
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;" id="lbl-harsh-brake">ANİ FREN</div>
         </div>
         <div style="background:rgba(255,107,53,0.07);border:1px solid rgba(255,107,53,0.2);border-radius:12px;padding:12px;text-align:center;">
           <div style="font-size:22px;margin-bottom:4px;">🚀</div>
           <div style="font-family:var(--font-num);font-size:28px;font-weight:700;color:var(--accent2);line-height:1;" id="harsh-accel">0</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;">ANİ HIZLANMA</div>
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;" id="lbl-harsh-accel">ANİ HIZLANMA</div>
         </div>
       </div>
       <div style="margin-top:10px;background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 12px;">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">SON OLAY</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;" id="lbl-last-event">SON OLAY</div>
         <div style="font-size:12px;color:var(--text2);" id="harsh-last">Henüz olay yok</div>
       </div>
     </div>
 
     <!-- Okul / Hastane Bölgesi -->
     <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:#ffd166;margin-bottom:12px;">🏫 ÖZEL BÖLGE UYARILARI</div>
+      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:#ffd166;margin-bottom:12px;" id="lbl-zone-title">🏫 ÖZEL BÖLGE UYARILARI</div>
       <div id="zone-active-banner" style="display:none;align-items:center;gap:8px;background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.4);border-radius:12px;padding:12px;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="font-size:24px;" id="zone-icon">🏫</div>
@@ -695,7 +695,7 @@ body.light .scanline{display:none;}
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px;color:var(--text2);">Bu sürüşte geçilen bölge</span>
+        <span style="font-size:12px;color:var(--text2);" id="lbl-zone-passed">Bu sürüşte geçilen bölge</span>
         <span style="font-family:var(--font-num);font-size:16px;font-weight:700;color:var(--text);" id="zone-count">0</span>
       </div>
       <div style="margin-top:8px;font-size:11px;color:var(--muted);" id="zone-status">GPS aktif değil</div>
@@ -703,10 +703,10 @@ body.light .scanline{display:none;}
 
     <!-- Yakıt / Elektrik Tahmini -->
     <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent3);margin-bottom:12px;">⛽ TÜKETİM TAHMİNİ</div>
+      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent3);margin-bottom:12px;" id="lbl-fuel-title">⛽ TÜKETİM TAHMİNİ</div>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button id="fuel-tab-petrol" onclick="setFuelMode('petrol')" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--accent3);background:rgba(57,255,20,0.1);color:var(--accent3);font-family:var(--font-display);font-size:9px;letter-spacing:1px;cursor:pointer;">⛽ YAKIT</button>
-        <button id="fuel-tab-electric" onclick="setFuelMode('electric')" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:9px;letter-spacing:1px;cursor:pointer;">⚡ ELEKTRİK</button>
+        <button id="fuel-tab-petrol" onclick="setFuelMode('petrol')" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--accent3);background:rgba(57,255,20,0.1);color:var(--accent3);font-family:var(--font-display);font-size:9px;letter-spacing:1px;cursor:pointer;"><span id="lbl-fuel-petrol">⛽ YAKIT</span></button>
+        <button id="fuel-tab-electric" onclick="setFuelMode('electric')" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:9px;letter-spacing:1px;cursor:pointer;"><span id="lbl-fuel-electric">⚡ ELEKTRİK</span></button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;text-align:center;">
@@ -715,11 +715,11 @@ body.light .scanline{display:none;}
         </div>
         <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;text-align:center;">
           <div style="font-family:var(--font-num);font-size:24px;font-weight:700;color:var(--text);" id="fuel-cost">—</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;">TAHMİNİ MALİYET</div>
+          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;" id="lbl-fuel-cost">TAHMİNİ MALİYET</div>
         </div>
       </div>
       <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:11px;color:var(--muted);">Fiyat (₺/L veya ₺/kWh):</span>
+        <span style="font-size:11px;color:var(--muted);" id="lbl-fuel-price">Fiyat (₺/L veya ₺/kWh):</span>
         <input id="fuel-price-input" type="number" value="42" min="1" max="999" step="0.5" oninput="calcFuel()" style="width:70px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:8px;font-family:var(--font-num);font-size:13px;text-align:center;">
       </div>
     </div>
@@ -727,24 +727,24 @@ body.light .scanline{display:none;}
     <!-- Haftalık/Aylık Rapor -->
     <div class="trip-bar" style="padding:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent);">📈 SÜRÜŞ RAPORU</div>
+        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent);" id="lbl-driving-report">📈 SÜRÜŞ RAPORU</div>
         <div style="display:flex;gap:4px;">
-          <button onclick="setReportPeriod('week')" id="report-week-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--accent);background:rgba(0,229,255,0.1);color:var(--accent);font-family:var(--font-display);font-size:8px;cursor:pointer;">HAFTA</button>
-          <button onclick="setReportPeriod('month')" id="report-month-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:8px;cursor:pointer;">AY</button>
+          <button onclick="setReportPeriod('week')" id="report-week-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--accent);background:rgba(0,229,255,0.1);color:var(--accent);font-family:var(--font-display);font-size:8px;cursor:pointer;"><span id="lbl-report-week">HAFTA</span></button>
+          <button onclick="setReportPeriod('month')" id="report-month-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:8px;cursor:pointer;"><span id="lbl-report-month">AY</span></button>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
         <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 6px;text-align:center;">
           <div style="font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--text);" id="report-trips">0</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:2px;">YOLCULUK</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-report-trips">YOLCULUK</div>
         </div>
         <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 6px;text-align:center;">
           <div style="font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--text);" id="report-km">0</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:2px;">TOPLAM KM</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-report-km">TOPLAM KM</div>
         </div>
         <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 6px;text-align:center;">
           <div style="font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--text);" id="report-avg-score">—</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:2px;">ORT SKOR</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-report-score">ORT SKOR</div>
         </div>
       </div>
       <!-- Basit bar grafik -->
@@ -754,8 +754,8 @@ body.light .scanline{display:none;}
 
     <!-- Özelleştirilebilir Uyarı Mesafesi -->
     <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;">📡 UYARI MESAFESİ</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">EDS kameralarına kaç metre kala uyarı alacaksın?</div>
+      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;" id="lbl-alert-dist-title">📡 UYARI MESAFESİ</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;" id="lbl-alert-dist-sub">EDS kameralarına kaç metre kala uyarı alacaksın?</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="dist-btn active" data-dist="300" onclick="setAlertDist(300)">300 m</button>
         <button class="dist-btn" data-dist="500" onclick="setAlertDist(500)">500 m</button>
@@ -763,13 +763,13 @@ body.light .scanline{display:none;}
         <button class="dist-btn" data-dist="1000" onclick="setAlertDist(1000)">1 km</button>
         <button class="dist-btn" data-dist="1500" onclick="setAlertDist(1500)">1.5 km</button>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);">Seçili: <span style="color:var(--accent);" id="alert-dist-label">300 m</span></div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);"><span id="lbl-selected">Seçili</span>: <span style="color:var(--accent);" id="alert-dist-label">300 m</span></div>
     </div>
 
     <!-- Canlı Trafik -->
     <div class="trip-bar" style="padding:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:#ff3b5c;">🚦 CANLI TRAFİK</div>
+        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:#ff3b5c;" id="lbl-traffic-title">🚦 CANLI TRAFİK</div>
         <div style="font-size:9px;color:var(--muted);">Waze verisi</div>
       </div>
       <div id="traffic-loading" style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">GPS aktif değil</div>
@@ -784,11 +784,11 @@ body.light .scanline{display:none;}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;">
             <div style="font-family:var(--font-num);font-size:18px;font-weight:700;color:var(--text);" id="traffic-delay">0</div>
-            <div style="font-size:9px;color:var(--muted);margin-top:2px;">DAKİKA GECİKME</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-traffic-delay">DAKİKA GECİKME</div>
           </div>
           <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;">
             <div style="font-family:var(--font-num);font-size:18px;font-weight:700;color:var(--text);" id="traffic-level">1/5</div>
-            <div style="font-size:9px;color:var(--muted);margin-top:2px;">YOĞUNLUK SEVİYESİ</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-traffic-level">YOĞUNLUK SEVİYESİ</div>
           </div>
         </div>
       </div>
@@ -869,44 +869,44 @@ body.light .scanline{display:none;}
 
   <!-- TEMA SEÇİCİ -->
   <div class="settings-section">
-    <div class="settings-title">🎨 TEMA</div>
+    <div class="settings-title">🎨 <span id="lbl-theme-title">TEMA</span></div>
     <div style="padding:14px 16px;">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
         <button class="theme-swatch" data-theme="theme-night" onclick="applyTheme('theme-night')" style="--sw-bg:#080c10;--sw-accent:#00e5ff;">
           <div class="swatch-preview" style="background:#080c10;border-color:rgba(0,229,255,0.4);">
             <div style="width:10px;height:10px;border-radius:50%;background:#00e5ff;margin:auto;margin-top:8px;box-shadow:0 0 6px #00e5ff;"></div>
           </div>
-          <div class="swatch-label">Gece</div>
+          <div class="swatch-label" id="lbl-theme-night">Gece</div>
         </button>
         <button class="theme-swatch" data-theme="theme-forest" onclick="applyTheme('theme-forest')" style="">
           <div class="swatch-preview" style="background:#060f08;border-color:rgba(0,255,136,0.4);">
             <div style="width:10px;height:10px;border-radius:50%;background:#00ff88;margin:auto;margin-top:8px;box-shadow:0 0 6px #00ff88;"></div>
           </div>
-          <div class="swatch-label">Orman</div>
+          <div class="swatch-label" id="lbl-theme-forest">Orman</div>
         </button>
         <button class="theme-swatch" data-theme="theme-neon" onclick="applyTheme('theme-neon')">
           <div class="swatch-preview" style="background:#0a0510;border-color:rgba(191,95,255,0.4);">
             <div style="width:10px;height:10px;border-radius:50%;background:#bf5fff;margin:auto;margin-top:8px;box-shadow:0 0 6px #bf5fff;"></div>
           </div>
-          <div class="swatch-label">Neon</div>
+          <div class="swatch-label" id="lbl-theme-neon">Neon</div>
         </button>
         <button class="theme-swatch" data-theme="theme-sunset" onclick="applyTheme('theme-sunset')">
           <div class="swatch-preview" style="background:#0f080a;border-color:rgba(255,107,107,0.4);">
             <div style="width:10px;height:10px;border-radius:50%;background:#ff6b6b;margin:auto;margin-top:8px;box-shadow:0 0 6px #ff6b6b;"></div>
           </div>
-          <div class="swatch-label">Gün Batımı</div>
+          <div class="swatch-label" id="lbl-theme-sunset">Gün Batımı</div>
         </button>
         <button class="theme-swatch" data-theme="theme-steel" onclick="applyTheme('theme-steel')">
           <div class="swatch-preview" style="background:#0d0d0f;border-color:rgba(200,208,224,0.3);">
             <div style="width:10px;height:10px;border-radius:50%;background:#c8d0e0;margin:auto;margin-top:8px;box-shadow:0 0 4px #c8d0e0;"></div>
           </div>
-          <div class="swatch-label">Çelik</div>
+          <div class="swatch-label" id="lbl-theme-steel">Çelik</div>
         </button>
         <button class="theme-swatch" data-theme="theme-light" onclick="applyTheme('theme-light')">
           <div class="swatch-preview" style="background:#f0f4f8;border-color:rgba(0,119,204,0.4);">
             <div style="width:10px;height:10px;border-radius:50%;background:#0077cc;margin:auto;margin-top:8px;box-shadow:0 0 4px rgba(0,119,204,0.5);"></div>
           </div>
-          <div class="swatch-label" style="color:#555;">Açık</div>
+          <div class="swatch-label" id="lbl-theme-light" style="color:#555;">Açık</div>
         </button>
       </div>
     </div>
@@ -914,27 +914,27 @@ body.light .scanline{display:none;}
 
   <!-- YAZI FONTU SEÇİCİ -->
   <div class="settings-section">
-    <div class="settings-title">🔤 YAZI FONTU</div>
+    <div class="settings-title">🔤 <span id="lbl-font-title">YAZI FONTU</span></div>
     <div style="padding:10px 16px;display:flex;flex-direction:column;gap:6px;">
       <button class="font-choice" data-font="Rajdhani" onclick="applyFont('Rajdhani')">
         <span style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;">Rajdhani</span>
-        <span class="font-sub">Varsayılan · Teknik</span>
+        <span class="font-sub" id="lbl-font-rajdhani">Varsayılan · Teknik</span>
       </button>
       <button class="font-choice" data-font="Inter" onclick="applyFont('Inter')">
         <span style="font-family:'Inter',sans-serif;font-size:16px;font-weight:600;">Inter</span>
-        <span class="font-sub">Modern · Okunaklı</span>
+        <span class="font-sub" id="lbl-font-inter">Modern · Okunaklı</span>
       </button>
       <button class="font-choice" data-font="Space Grotesk" onclick="applyFont('Space Grotesk')">
         <span style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;">Space Grotesk</span>
-        <span class="font-sub">Geometrik · Şık</span>
+        <span class="font-sub" id="lbl-font-space">Geometrik · Şık</span>
       </button>
       <button class="font-choice" data-font="DM Sans" onclick="applyFont('DM Sans')">
         <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;">DM Sans</span>
-        <span class="font-sub">Yuvarlak · Yumuşak</span>
+        <span class="font-sub" id="lbl-font-dm">Yuvarlak · Yumuşak</span>
       </button>
       <button class="font-choice" data-font="Outfit" onclick="applyFont('Outfit')">
         <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;">Outfit</span>
-        <span class="font-sub">Temiz · Minimal</span>
+        <span class="font-sub" id="lbl-font-outfit">Temiz · Minimal</span>
       </button>
     </div>
   </div>
@@ -943,82 +943,10 @@ body.light .scanline{display:none;}
 
 <!-- ══ KILAVUZ ══ -->
 <div class="page" id="page-guide">
-  <div style="font-family:var(--font-display);font-size:11px;letter-spacing:3px;color:var(--accent);padding-bottom:4px;">SÜRÜCÜ KILAVUZU</div>
-  <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Trafik cezası almamak için dikkat etmen gerekenler</div>
-
-  <div class="guide-card">
-    <div class="guide-icon">🚗</div>
-    <div class="guide-content">
-      <div class="guide-title">Hız Limiti İhlali</div>
-      <div class="guide-body">Şehir içi 50 km/s, şehirlerarası yollarda 90 km/s, otoyollarda 120 km/s limitine uyulmalıdır. EDS kameralarında anlık hız ölçülür. Aşım miktarına göre ceza kademeli olarak artar, yüksek aşımlarda ehliyete el konulur.</div>
-      <div class="guide-penalty">⚠️ 2.000 TL – 30.000 TL (aşım miktarına göre)</div>
-    </div>
-  </div>
-
-  <div class="guide-card">
-    <div class="guide-icon">📱</div>
-    <div class="guide-content">
-      <div class="guide-title">Seyir Halinde Telefon Kullanımı</div>
-      <div class="guide-body">Araç kullanırken elde telefon tutmak, mesaj atmak veya sosyal medya kullanmak yasaktır. Hands-free ve araç içi Bluetooth serbesttir. Kırmızı ışıkta da elde telefon tutmak ceza gerektirir.</div>
-      <div class="guide-penalty">⚠️ 2.719 TL ceza (2026)</div>
-    </div>
-  </div>
-
-  <div class="guide-card">
-    <div class="guide-icon">🔴</div>
-    <div class="guide-content">
-      <div class="guide-title">Kırmızı Işık & Stop İhlali</div>
-      <div class="guide-body">Kırmızı ışıkta geçmek ve dur işaretine uymamak en tehlikeli ihlallerden biridir. Kırmızı ışık ihlali nedeniyle kazaya sebebiyet verilirse ehliyet 60 gün geri alınır. Sarı ışıkta durmak için frene basılmalıdır.</div>
-      <div class="guide-penalty">⚠️ 2.719 TL + 20 ceza puanı. Kazaya neden olunursa 60 gün ehliyet iptali</div>
-    </div>
-  </div>
-
-  <div class="guide-card">
-    <div class="guide-icon">🍺</div>
-    <div class="guide-content">
-      <div class="guide-title">Alkollü Araç Kullanımı</div>
-      <div class="guide-body">0.50 promil üstü alkollü araç kullanmak yasaktır. Profesyonel sürücüler için limit 0.20 promildir. Tekrarlayan ihlallerde ceza katlanır. Alkol testi yaptırmayı reddetmek 150.000 TL ceza ve 5 yıl ehliyet iptali gerektirir.</div>
-      <div class="guide-penalty">⚠️ İlk ihlal: 25.000 TL | İkinci: 50.000 TL | Üçüncü: 150.000 TL + ehliyet iptali</div>
-    </div>
-  </div>
-
-  <div class="guide-card">
-    <div class="guide-icon">🪑</div>
-    <div class="guide-content">
-      <div class="guide-title">Emniyet Kemeri</div>
-      <div class="guide-body">Tüm koltuk yolcuları emniyet kemeri takmak zorundadır. Sürücü yolcuların kemerini taktığından sorumludur. 150 cm altındaki çocuklar için onaylı çocuk koltuğu zorunludur. Her yolcu için ayrı ceza kesilir.</div>
-      <div class="guide-penalty">⚠️ Her kişi için 1.246 TL ceza (2026)</div>
-    </div>
-  </div>
-
-  <div class="guide-card">
-    <div class="guide-icon">🚦</div>
-    <div class="guide-content">
-      <div class="guide-title">Makas & Tehlikeli Sürüş</div>
-      <div class="guide-body">Kesik çizgide sollama yapılabilir, düz çizgide kesinlikle yasaktır. Makas atmak ve drift yapmak 2026'da çok ağır yaptırımlara bağlandı. Tek ya da çift düz çizgide sollama, tepe ve viraj öncesi sollama yasaktır.</div>
-      <div class="guide-penalty">⚠️ Makas/drift: 90.000 TL + 60 gün ehliyet iptali + 30 gün araç men</div>
-    </div>
-  </div>
-
-  <div class="guide-card">
-    <div class="guide-icon">🅿️</div>
-    <div class="guide-content">
-      <div class="guide-title">Park & Duraklama İhlalleri</div>
-      <div class="guide-body">Sarı şerit boyunca, engelli önü, itfaiye kapısı, hastane girişi, köprü ve tünelde park yasaktır. Acil servislere (ambulans, itfaiye) yol vermemek ayrıca cezalandırılır.</div>
-      <div class="guide-penalty">⚠️ Park ihlali: 1.246 TL | Ambulans/itfaiyeye yol vermeme: 46.000 TL + 30 gün ehliyet</div>
-    </div>
-  </div>
-
-  <div class="guide-card">
-    <div class="guide-icon">🪪</div>
-    <div class="guide-content">
-      <div class="guide-title">Ehliyetsiz Araç Kullanımı</div>
-      <div class="guide-body">Ehliyetsiz araç kullanmak yasaktır. Ehliyeti geçici olarak alınmış olmasına rağmen araç kullananlar çok daha ağır cezayla karşılaşır. Ehliyetsiz sürücüye araç kullandıran işletme sahipleri de cezalandırılır.</div>
-      <div class="guide-penalty">⚠️ Ehliyetsiz: 40.000 TL | Ehliyeti iptal edilmişken: 200.000 TL</div>
-    </div>
-  </div>
-
-  <div style="font-size:10px;color:var(--muted);text-align:center;padding:8px 0 4px;line-height:1.6;">
+  <div style="font-family:var(--font-display);font-size:11px;letter-spacing:3px;color:var(--accent);padding-bottom:4px;" id="lbl-guide-title">SÜRÜCÜ KILAVUZU</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:4px;" id="lbl-guide-sub">Trafik cezası almamak için dikkat etmen gerekenler</div>
+  <div id="guide-cards-container"></div>
+  <div style="font-size:10px;color:var(--muted);text-align:center;padding:8px 0 4px;line-height:1.6;" id="guide-footer">
     📌 Cezalar 27 Şubat 2026 tarihli 7574 sayılı Kanun ile güncellendi.<br>Güncel bilgi için trafik.gov.tr adresini ziyaret edin.
   </div>
 </div>
@@ -1067,6 +995,49 @@ const STRINGS={
     'rate-yes':'⭐ Değerlendir','rate-later':'Daha Sonra','rate-no':'Hayır, Teşekkürler',
     'skipLabel':'saniye sonra atla',
     'unitLabel':'KM/S',
+    'tripStart':'▶ BAŞLAT','tripStop':'⏹ DURDUR','tripGpsNeeded':'GPS GEREKLİ',
+    'trip1Name':'Yolculuk 1','trip2Name':'Yolculuk 2',
+    'zoneGpsOff':'GPS aktif değil','zoneTracking':'GPS aktif — bölgeler takip ediliyor',
+    'zoneChecking':'Bölgeler kontrol ediliyor...','zoneNone':'Yakında özel bölge yok',
+    'zoneFailed':'Bölge verisi alınamadı',
+    'trafficGpsOff':'GPS aktif değil','trafficQuerying':'GPS aktif, trafik sorgulanıyor...',
+    'trafficLoading':'Trafik verisi alınıyor...','trafficFailed':'Trafik verisi alınamadı',
+    'trafficFlowing':'Akıcı','trafficLight':'Sakin','trafficMedium':'Orta','trafficHeavy':'Yoğun',
+    'trafficWeekend':'Hafta sonu trafiği','trafficPeak':'Yoğun saat trafiği',
+    'trafficNormal':'Normal seyir süresi','trafficSlow':'Biraz yavaş akıyor','trafficOpen':'Yol açık',
+    'scoreTip0':'Harika! Çok sakin sürüyorsun 👏',
+    'scoreTip1':'İyi sürüş! Küçük iyileştirmelerle mükemmel olur.',
+    'scoreTip2':'Ortalama sürüş. Ani hareketlere dikkat et.',
+    'scoreTip3':'Dikkatli ol! Hız ihlalleri skoru düşürüyor.',
+    'scoreTip4':'Tehlikeli sürüş tarzı tespit edildi. Lütfen yavaşla.',
+    'scoreTipWait':'Takibi başlat ve sürmeye başla.',
+    'harshNoEvent':'Henüz olay yok',
+    'harshBrakeEvent':'🛑 Ani fren — ','harshAccelEvent':'🚀 Ani hızlanma — ',
+    'reportChartLabel':'Son %d gün — günlük km',
+    'fuelUnitPetrol':'L/100km','fuelUnitElectric':'kWh/100km',
+    'lbl-fuel-petrol':'⛽ YAKIT','lbl-fuel-electric':'⚡ ELEKTRİK',
+    'score-lbl-speeding':'Hız ihlali','score-lbl-harsh':'Ani fren/gaz','score-lbl-smooth':'Sabit sürüş',
+    'lbl-harsh-brake':'ANİ FREN','lbl-harsh-accel':'ANİ HIZLANMA','lbl-last-event':'SON OLAY',
+    'lbl-zone-passed':'Bu sürüşte geçilen bölge',
+    'lbl-fuel-cost':'TAHMİNİ MALİYET','lbl-fuel-price':'Fiyat (₺/L veya ₺/kWh):',
+    'lbl-driving-report':'📈 SÜRÜŞ RAPORU',
+    'lbl-report-trips':'YOLCULUK','lbl-report-km':'TOPLAM KM','lbl-report-score':'ORT SKOR',
+    'lbl-report-week':'HAFTA','lbl-report-month':'AY',
+    'lbl-alert-dist-title':'📡 UYARI MESAFESİ','lbl-alert-dist-sub':'EDS kameralarına kaç metre kala uyarı alacaksın?',
+    'lbl-selected':'Seçili',
+    'lbl-traffic-delay':'DAKİKA GECİKME','lbl-traffic-level':'YOĞUNLUK SEVİYESİ',
+    'lbl-tripA-avg':'ORT KM/S','lbl-tripA-max':'MAK KM/S','lbl-tripB-avg':'ORT KM/S','lbl-tripB-max':'MAK KM/S',
+    'trip1-tag':'genel','trip2-tag':'bölüm',
+    'score-session-label':'Bu sürüş',
+    'lbl-theme-title':'TEMA','lbl-font-title':'YAZI FONTU',
+    'lbl-theme-night':'Gece','lbl-theme-forest':'Orman','lbl-theme-neon':'Neon',
+    'lbl-theme-sunset':'Gün Batımı','lbl-theme-steel':'Çelik','lbl-theme-light':'Açık',
+    'lbl-font-rajdhani':'Varsayılan · Teknik','lbl-font-inter':'Modern · Okunaklı',
+    'lbl-font-space':'Geometrik · Şık','lbl-font-dm':'Yuvarlak · Yumuşak','lbl-font-outfit':'Temiz · Minimal',
+    'lbl-guide-title':'SÜRÜCÜ KILAVUZU','lbl-guide-sub':'Trafik cezası almamak için dikkat etmen gerekenler',
+    'lbl-driving-score-title':'🏆 SÜRÜŞ SKORU','lbl-harsh-title':'⚡ ANİ HAREKET ALGILAMA',
+    'lbl-zone-title':'🏫 ÖZEL BÖLGE UYARILARI','lbl-fuel-title':'⛽ TÜKETİM TAHMİNİ',
+    'lbl-traffic-title':'🚦 CANLI TRAFİK',
   },
   en:{
     'accuracyReady':'READY','accuracyGood':'GPS GOOD','accuracyMedium':'GPS FAIR','accuracyWeak':'GPS WEAK','accuracyError':'ERROR',
@@ -1105,10 +1076,95 @@ const STRINGS={
     'rate-yes':'⭐ Rate Now','rate-later':'Later','rate-no':'No Thanks',
     'skipLabel':'seconds to skip',
     'unitLabel':'KM/H',
+    'tripStart':'▶ START','tripStop':'⏹ STOP','tripGpsNeeded':'GPS NEEDED',
+    'trip1Name':'Trip 1','trip2Name':'Trip 2',
+    'zoneGpsOff':'GPS inactive','zoneTracking':'GPS active — zones tracked',
+    'zoneChecking':'Checking zones...','zoneNone':'No special zones nearby',
+    'zoneFailed':'Zone data unavailable',
+    'trafficGpsOff':'GPS inactive','trafficQuerying':'GPS active, querying traffic...',
+    'trafficLoading':'Fetching traffic data...','trafficFailed':'Traffic data unavailable',
+    'trafficFlowing':'Flowing','trafficLight':'Light','trafficMedium':'Moderate','trafficHeavy':'Heavy',
+    'trafficWeekend':'Weekend traffic','trafficPeak':'Rush hour traffic',
+    'trafficNormal':'Normal travel time','trafficSlow':'Slightly slow','trafficOpen':'Road clear',
+    'scoreTip0':'Excellent! Very smooth driving 👏',
+    'scoreTip1':'Good drive! Small improvements will make it perfect.',
+    'scoreTip2':'Average driving. Watch out for sudden movements.',
+    'scoreTip3':'Be careful! Speed violations lower your score.',
+    'scoreTip4':'Dangerous driving detected. Please slow down.',
+    'scoreTipWait':'Start tracking and begin driving.',
+    'harshNoEvent':'No events yet',
+    'harshBrakeEvent':'🛑 Hard brake — ','harshAccelEvent':'🚀 Hard acceleration — ',
+    'reportChartLabel':'Last %d days — daily km',
+    'fuelUnitPetrol':'L/100km','fuelUnitElectric':'kWh/100km',
+    'lbl-fuel-petrol':'⛽ FUEL','lbl-fuel-electric':'⚡ ELECTRIC',
+    'score-lbl-speeding':'Speed violation','score-lbl-harsh':'Hard brake/accel','score-lbl-smooth':'Smooth driving',
+    'lbl-harsh-brake':'HARD BRAKE','lbl-harsh-accel':'HARD ACCEL','lbl-last-event':'LAST EVENT',
+    'lbl-zone-passed':'Zones passed this trip',
+    'lbl-fuel-cost':'EST. COST','lbl-fuel-price':'Price ($/L or $/kWh):',
+    'lbl-driving-report':'📈 DRIVING REPORT',
+    'lbl-report-trips':'TRIPS','lbl-report-km':'TOTAL KM','lbl-report-score':'AVG SCORE',
+    'lbl-report-week':'WEEK','lbl-report-month':'MONTH',
+    'lbl-alert-dist-title':'📡 ALERT DISTANCE','lbl-alert-dist-sub':'How far before a speed camera to alert?',
+    'lbl-selected':'Selected',
+    'lbl-traffic-delay':'MIN DELAY','lbl-traffic-level':'TRAFFIC LEVEL',
+    'lbl-tripA-avg':'AVG KM/H','lbl-tripA-max':'MAX KM/H','lbl-tripB-avg':'AVG KM/H','lbl-tripB-max':'MAX KM/H',
+    'trip1-tag':'general','trip2-tag':'segment',
+    'score-session-label':'This trip',
+    'lbl-theme-title':'THEME','lbl-font-title':'FONT',
+    'lbl-theme-night':'Night','lbl-theme-forest':'Forest','lbl-theme-neon':'Neon',
+    'lbl-theme-sunset':'Sunset','lbl-theme-steel':'Steel','lbl-theme-light':'Light',
+    'lbl-font-rajdhani':'Default · Technical','lbl-font-inter':'Modern · Readable',
+    'lbl-font-space':'Geometric · Sleek','lbl-font-dm':'Rounded · Soft','lbl-font-outfit':'Clean · Minimal',
+    'lbl-guide-title':'DRIVER\'S GUIDE','lbl-guide-sub':'Things to watch out for to avoid traffic fines',
+    'lbl-driving-score-title':'🏆 DRIVING SCORE','lbl-harsh-title':'⚡ HARSH EVENT DETECTION',
+    'lbl-zone-title':'🏫 SPECIAL ZONE ALERTS','lbl-fuel-title':'⛽ CONSUMPTION ESTIMATE',
+    'lbl-traffic-title':'🚦 LIVE TRAFFIC',
   }
 };
 let lang='tr';
 function t(k){return(STRINGS[lang]||STRINGS.tr)[k]||k;}
+
+const GUIDE_DATA={
+  tr:[
+    {icon:'🚗',title:'Hız Limiti İhlali',body:'Şehir içi 50 km/s, şehirlerarası yollarda 90 km/s, otoyollarda 120 km/s limitine uyulmalıdır. EDS kameralarında anlık hız ölçülür. Aşım miktarına göre ceza kademeli olarak artar, yüksek aşımlarda ehliyete el konulur.',penalty:'⚠️ 2.000 TL – 30.000 TL (aşım miktarına göre)'},
+    {icon:'📱',title:'Seyir Halinde Telefon Kullanımı',body:'Araç kullanırken elde telefon tutmak, mesaj atmak veya sosyal medya kullanmak yasaktır. Hands-free ve araç içi Bluetooth serbesttir. Kırmızı ışıkta da elde telefon tutmak ceza gerektirir.',penalty:'⚠️ 2.719 TL ceza (2026)'},
+    {icon:'🔴',title:'Kırmızı Işık & Stop İhlali',body:'Kırmızı ışıkta geçmek ve dur işaretine uymamak en tehlikeli ihlallerden biridir. Kırmızı ışık ihlali nedeniyle kazaya sebebiyet verilirse ehliyet 60 gün geri alınır. Sarı ışıkta durmak için frene basılmalıdır.',penalty:'⚠️ 2.719 TL + 20 ceza puanı. Kazaya neden olunursa 60 gün ehliyet iptali'},
+    {icon:'🍺',title:'Alkollü Araç Kullanımı',body:'0.50 promil üstü alkollü araç kullanmak yasaktır. Profesyonel sürücüler için limit 0.20 promildir. Tekrarlayan ihlallerde ceza katlanır. Alkol testi yaptırmayı reddetmek 150.000 TL ceza ve 5 yıl ehliyet iptali gerektirir.',penalty:'⚠️ İlk ihlal: 25.000 TL | İkinci: 50.000 TL | Üçüncü: 150.000 TL + ehliyet iptali'},
+    {icon:'🪑',title:'Emniyet Kemeri',body:'Tüm koltuk yolcuları emniyet kemeri takmak zorundadır. Sürücü yolcuların kemerini taktığından sorumludur. 150 cm altındaki çocuklar için onaylı çocuk koltuğu zorunludur. Her yolcu için ayrı ceza kesilir.',penalty:'⚠️ Her kişi için 1.246 TL ceza (2026)'},
+    {icon:'🚦',title:'Makas & Tehlikeli Sürüş',body:'Kesik çizgide sollama yapılabilir, düz çizgide kesinlikle yasaktır. Makas atmak ve drift yapmak 2026\'da çok ağır yaptırımlara bağlandı. Tek ya da çift düz çizgide sollama, tepe ve viraj öncesi sollama yasaktır.',penalty:'⚠️ Makas/drift: 90.000 TL + 60 gün ehliyet iptali + 30 gün araç men'},
+    {icon:'🅿️',title:'Park & Duraklama İhlalleri',body:'Sarı şerit boyunca, engelli önü, itfaiye kapısı, hastane girişi, köprü ve tünelde park yasaktır. Acil servislere (ambulans, itfaiye) yol vermemek ayrıca cezalandırılır.',penalty:'⚠️ Park ihlali: 1.246 TL | Ambulans/itfaiyeye yol vermeme: 46.000 TL + 30 gün ehliyet'},
+    {icon:'🪪',title:'Ehliyetsiz Araç Kullanımı',body:'Ehliyetsiz araç kullanmak yasaktır. Ehliyeti geçici olarak alınmış olmasına rağmen araç kullananlar çok daha ağır cezayla karşılaşır. Ehliyetsiz sürücüye araç kullandıran işletme sahipleri de cezalandırılır.',penalty:'⚠️ Ehliyetsiz: 40.000 TL | Ehliyeti iptal edilmişken: 200.000 TL'},
+  ],
+  en:[
+    {icon:'🚗',title:'Speed Limit Violation',body:'Speed limits are 50 km/h in urban areas, 90 km/h on highways, and 120 km/h on motorways. Speed cameras measure instantaneous speed. Fines increase progressively with the amount exceeded; severe violations result in license confiscation.',penalty:'⚠️ 2,000 TL – 30,000 TL (depending on excess speed)'},
+    {icon:'📱',title:'Phone Use While Driving',body:'Holding a phone, texting, or using social media while driving is prohibited. Hands-free and in-car Bluetooth are allowed. Holding a phone at a red light also incurs a fine.',penalty:'⚠️ 2,719 TL fine (2026)'},
+    {icon:'🔴',title:'Red Light & Stop Violation',body:'Running a red light or ignoring a stop sign is one of the most dangerous violations. If an accident is caused by a red light violation, the license is suspended for 60 days. Brakes must be applied at yellow lights.',penalty:'⚠️ 2,719 TL + 20 penalty points. 60-day license suspension if accident caused'},
+    {icon:'🍺',title:'Driving Under the Influence',body:'Driving with over 0.50 promille alcohol is prohibited. The limit for professional drivers is 0.20 promille. Repeat violations multiply the fine. Refusing a breath test results in a 150,000 TL fine and 5-year license revocation.',penalty:'⚠️ 1st: 25,000 TL | 2nd: 50,000 TL | 3rd: 150,000 TL + license revocation'},
+    {icon:'🪑',title:'Seatbelt',body:'All passengers must wear seatbelts. The driver is responsible for ensuring passengers buckle up. Children under 150 cm must use an approved child seat. A separate fine is issued per person.',penalty:'⚠️ 1,246 TL per person (2026)'},
+    {icon:'🚦',title:'Dangerous Overtaking & Drifting',body:'Overtaking is only allowed on dashed lines; solid lines are strictly prohibited. Dangerous overtaking and drifting carry severe penalties as of 2026. Overtaking on double solid lines, before hills or curves is forbidden.',penalty:'⚠️ Overtaking/drift: 90,000 TL + 60-day license suspension + 30-day vehicle ban'},
+    {icon:'🅿️',title:'Parking & Stopping Violations',body:'Parking is prohibited along yellow lines, in front of disabled spaces, fire exits, hospital entrances, bridges and tunnels. Failure to yield to emergency vehicles (ambulance, fire truck) is also penalized.',penalty:'⚠️ Parking violation: 1,246 TL | Blocking emergency vehicle: 46,000 TL + 30-day license'},
+    {icon:'🪪',title:'Driving Without a License',body:'Driving without a license is illegal. Those who drive despite a suspended license face much harsher penalties. Business owners who allow unlicensed drivers to use their vehicles are also penalized.',penalty:'⚠️ No license: 40,000 TL | Driving with revoked license: 200,000 TL'},
+  ]
+};
+
+function renderGuide(){
+  const container=document.getElementById('guide-cards-container');
+  if(!container)return;
+  const cards=GUIDE_DATA[lang]||GUIDE_DATA.tr;
+  container.innerHTML=cards.map(c=>`
+    <div class="guide-card">
+      <div class="guide-icon">${c.icon}</div>
+      <div class="guide-content">
+        <div class="guide-title">${c.title}</div>
+        <div class="guide-body">${c.body}</div>
+        <div class="guide-penalty">${c.penalty}</div>
+      </div>
+    </div>`).join('');
+  const footer=document.getElementById('guide-footer');
+  if(footer) footer.innerHTML=lang==='en'
+    ?'📌 Fines updated per Law No. 7574 dated February 27, 2026.<br>Visit trafik.gov.tr for current information.'
+    :'📌 Cezalar 27 Şubat 2026 tarihli 7574 sayılı Kanun ile güncellendi.<br>Güncel bilgi için trafik.gov.tr adresini ziyaret edin.';
+}
 function applyLang(){
   document.documentElement.lang=lang;
   Object.keys(STRINGS[lang]).forEach(k=>{const el=document.getElementById(k);if(el)el.textContent=t(k);});
@@ -1121,6 +1177,41 @@ function applyLang(){
   safe('hudFlipBtn',t('flipBtn'));
   safe('hudCloseBtn',t('closeBtn'));
   if(!isTracking) safe('t-startbtn',t('t-startbtn'));
+  // Yeni özellik çevirileri
+  safe('zone-status',t('zoneGpsOff'));
+  safe('traffic-loading',t('trafficGpsOff'));
+  safe('harsh-last',t('harshNoEvent'));
+  safe('score-tip',t('scoreTipWait'));
+  safe('fuel-unit-label',t('fuelUnitPetrol'));
+  // Yeni çeviriler
+  ['score-lbl-speeding','score-lbl-harsh','score-lbl-smooth',
+   'lbl-harsh-brake','lbl-harsh-accel','lbl-last-event','lbl-zone-passed',
+   'lbl-fuel-cost','lbl-fuel-price','lbl-driving-report',
+   'lbl-report-trips','lbl-report-km','lbl-report-score',
+   'lbl-report-week','lbl-report-month',
+   'lbl-alert-dist-title','lbl-alert-dist-sub','lbl-selected',
+   'lbl-traffic-delay','lbl-traffic-level',
+   'lbl-tripA-avg','lbl-tripA-max','lbl-tripB-avg','lbl-tripB-max',
+   'trip1-tag','trip2-tag','score-session-label',
+   'lbl-theme-title','lbl-font-title',
+   'lbl-theme-night','lbl-theme-forest','lbl-theme-neon','lbl-theme-sunset','lbl-theme-steel','lbl-theme-light',
+   'lbl-font-rajdhani','lbl-font-inter','lbl-font-space','lbl-font-dm','lbl-font-outfit',
+   'lbl-guide-title','lbl-guide-sub',
+   'lbl-driving-score-title','lbl-harsh-title','lbl-zone-title','lbl-fuel-title','lbl-traffic-title',
+   'lbl-fuel-petrol','lbl-fuel-electric'
+  ].forEach(k=>safe(k,t(k)));
+  // Report chart label güncelle
+  if(document.getElementById('report-chart-label')){
+    const days=typeof reportPeriod!=='undefined'&&reportPeriod==='month'?30:7;
+    document.getElementById('report-chart-label').textContent=lang==='en'?`Last ${days} days — daily km`:`Son ${days} gün — günlük km`;
+  }
+  // Trip buton isimleri
+  const btnA=document.getElementById('tripA-btn');
+  if(btnA&&btnA.textContent.includes('BAŞLAT')||btnA?.textContent.includes('START')) btnA.textContent=t('tripStart');
+  const btnB=document.getElementById('tripB-btn');
+  if(btnB&&btnB.textContent.includes('BAŞLAT')||btnB?.textContent.includes('START')) btnB.textContent=t('tripStart');
+  // Yolculuk isimleri
+  document.querySelectorAll('.trip-name').forEach((el,i)=>{ el.textContent=i===0?t('trip1Name'):t('trip2Name'); });
   // Hız göstergesi uyarı notu
   const noteEl=document.getElementById('speedo-note');
   if(noteEl){
@@ -1130,6 +1221,7 @@ function applyLang(){
       :'GPS gerçek hızı gösterir. Araç göstergesi yasal zorunluluk gereği <strong style="color:var(--text);">%2–10 daha yüksek</strong> gösterebilir.';
   }
   renderHistory();
+  renderGuide();
 }
 function changeLang(l){lang=l;settings.lang=l;saveSettings();applyLang();}
 function detectLang(){if(settings.lang)return settings.lang;const n=(navigator.language||'en').toLowerCase();return n.startsWith('tr')?'tr':'en';}
@@ -1251,15 +1343,65 @@ function checkSubscriptionStatus(){
     }
   }catch(e){}
 }
+// ── Google Play Billing (cordova-plugin-purchase) ──
+const IAP_PRODUCT_ID='radarsafe_premium_monthly';
+let iapReady=false;
+
+function initIAP(){
+  if(!window.CdvPurchase){
+    console.warn('IAP plugin yok — PWA/browser modunda çalışıyor');
+    return;
+  }
+  const store=CdvPurchase.store;
+  const {ProductType,Platform}=CdvPurchase;
+
+  store.register([{
+    id:IAP_PRODUCT_ID,
+    type:ProductType.PAID_SUBSCRIPTION,
+    platform:Platform.GOOGLE_PLAY
+  }]);
+
+  store.when().productUpdated(()=>{iapReady=true;});
+
+  store.when().approved(transaction=>{
+    transaction.verify();
+  });
+
+  store.when().verified(receipt=>{
+    receipt.finish();
+    settings.isPremium=true;
+    settings.subscriptionExpiry=null;
+    localStorage.setItem('rg_settings',JSON.stringify(settings));
+    applyPremiumUI();
+    closeModal('premiumModal');
+    alert(lang==='en'?'Welcome to Radar Safe Pro! 🎉':'Radar Safe Pro\'ya hoş geldin! 🎉');
+  });
+
+  store.when().unverified(()=>{
+    alert(lang==='en'?'Purchase could not be verified.':'Satın alma doğrulanamadı.');
+  });
+
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+
 function buyPremium(){
-  // Gerçek in-app purchase burada entegre edilir (Google Play Billing / Apple StoreKit)
-  // Şimdilik demo olarak aktive ediyoruz
+  // Native ortamda gerçek IAP
+  if(window.CdvPurchase&&iapReady){
+    const store=CdvPurchase.store;
+    const product=store.get(IAP_PRODUCT_ID,CdvPurchase.Platform.GOOGLE_PLAY);
+    if(product){
+      store.order(product);
+      return;
+    }
+  }
+  // PWA / geliştirme ortamı — demo mod
   settings.isPremium=true;
   localStorage.setItem('rg_settings',JSON.stringify(settings));
   applyPremiumUI();
   closeModal('premiumModal');
   alert(lang==='en'?'Welcome to Radar Safe Pro! 🎉':'Radar Safe Pro\'ya hoş geldin! 🎉');
 }
+
 function cancelSubscription(){
   if(!confirm(lang==='en'?'Cancel your subscription? Premium features will remain active until the end of the current period.':'Aboneliğinizi iptal etmek istiyor musunuz? Premium özellikler mevcut dönem sonuna kadar aktif kalır.')) return;
   settings.isPremium=false;
@@ -1268,16 +1410,20 @@ function cancelSubscription(){
   location.reload();
 }
 function restorePurchase(){
-  // Gerçek restore: Google Play Billing queryPurchasesAsync / StoreKit restore
-  const stored=JSON.parse(localStorage.getItem('rg_settings')||'{}');
-  if(stored.isPremium && (!stored.subscriptionExpiry || Date.now()<stored.subscriptionExpiry)){
-    settings.isPremium=true;
-    settings.subscriptionExpiry=stored.subscriptionExpiry;
-    localStorage.setItem('rg_settings',JSON.stringify(settings));
-    applyPremiumUI();
-    alert(lang==='en'?'Subscription restored! ✅':'Abonelik geri yüklendi! ✅');
-  }else{
-    alert(lang==='en'?'No active subscription found.':'Aktif abonelik bulunamadı.');
+  if(window.CdvPurchase){
+    CdvPurchase.store.restorePurchases();
+    alert(lang==='en'?'Restoring purchases...':'Satın almalar geri yükleniyor...');
+  } else {
+    // PWA fallback
+    const stored=JSON.parse(localStorage.getItem('rg_settings')||'{}');
+    if(stored.isPremium){
+      settings.isPremium=true;
+      localStorage.setItem('rg_settings',JSON.stringify(settings));
+      applyPremiumUI();
+      alert(lang==='en'?'Subscription restored! ✅':'Abonelik geri yüklendi! ✅');
+    } else {
+      alert(lang==='en'?'No active subscription found.':'Aktif abonelik bulunamadı.');
+    }
   }
 }
 
@@ -1587,8 +1733,8 @@ function onPosition(pos){
   checkEdsProximity(lat,lon);
   fetchZones(lat,lon);
   fetchTraffic(lat,lon);
-  document.getElementById('zone-status').textContent='GPS aktif — bölgeler takip ediliyor';
-  document.getElementById('traffic-loading').textContent='GPS aktif, trafik sorgulanıyor...';
+  document.getElementById('zone-status').textContent=t('zoneTracking');
+  document.getElementById('traffic-loading').textContent=t('trafficQuerying');
   const spd=Math.round(speed);
   const el=document.getElementById('currentSpeed');
   el.textContent=spd;
@@ -1630,8 +1776,8 @@ function stopTracking(){
   clearInterval(tripBTimerInterval);
   // Butonları sıfırla
   tripARunning=false;tripBRunning=false;
-  const btnA=document.getElementById('tripA-btn');if(btnA){btnA.textContent='▶ BAŞLAT';btnA.style.background='rgba(0,229,255,0.12)';}
-  const btnB=document.getElementById('tripB-btn');if(btnB){btnB.textContent='▶ BAŞLAT';btnB.style.background='rgba(255,107,53,0.12)';}
+  const btnA=document.getElementById('tripA-btn');if(btnA){btnA.textContent=t('tripStart');btnA.style.background='rgba(0,229,255,0.12)';}
+  const btnB=document.getElementById('tripB-btn');if(btnB){btnB.textContent=t('tripStart');btnB.style.background='rgba(255,107,53,0.12)';}
   const dotA=document.getElementById('tripA-dot');if(dotA){dotA.style.animation='none';dotA.style.opacity='0.4';}
   const dotB=document.getElementById('tripB-dot');if(dotB){dotB.style.animation='none';dotB.style.opacity='0.4';}
   if(alertTimer){clearTimeout(alertTimer);alertTimer=null;}
@@ -1650,8 +1796,8 @@ function toggleTracking(){
     speedHistory=[];lastUpdateTime=null;
     tripBReadings=[];tripBDistance=0;tripBMaxSpeed=0;tripBPrevCoords=null;tripBStartTime=null;
     tripARunning=false;tripBRunning=false;startTime=null; // GPS başlayınca tekrar set edilecek
-    document.getElementById('tripA-btn').textContent='▶ BAŞLAT';document.getElementById('tripA-btn').style.background='rgba(0,229,255,0.12)';
-    document.getElementById('tripB-btn').textContent='▶ BAŞLAT';document.getElementById('tripB-btn').style.background='rgba(255,107,53,0.12)';
+    document.getElementById('tripA-btn').textContent=t('tripStart');document.getElementById('tripA-btn').style.background='rgba(0,229,255,0.12)';
+    document.getElementById('tripB-btn').textContent=t('tripStart');document.getElementById('tripB-btn').style.background='rgba(255,107,53,0.12)';
     ['tripA-dot','tripB-dot'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.animation='none';el.style.opacity='0.4';}});
     document.getElementById('tripA-avg').textContent='0';document.getElementById('tripA-max').textContent='0';document.getElementById('tripA-dist').textContent='0.0';
     document.getElementById('tripTimeB').textContent='00:00:00';
@@ -1769,8 +1915,8 @@ let tripARunning=false;
 function toggleTripA(){
   if(!isTracking){
     const btn=document.getElementById('tripA-btn');
-    btn.textContent='GPS GEREKLİ';
-    setTimeout(()=>{btn.textContent='▶ BAŞLAT';},1500);
+    btn.textContent=t('tripGpsNeeded');
+    setTimeout(()=>{btn.textContent=t('tripStart');},1500);
     return;
   }
   tripARunning=!tripARunning;
@@ -1778,11 +1924,11 @@ function toggleTripA(){
   const dot=document.getElementById('tripA-dot');
   if(tripARunning){
     if(!startTime) startTime=Date.now();
-    btn.textContent='⏹ DURDUR';
+    btn.textContent=t('tripStop');
     btn.style.background='rgba(0,229,255,0.2)';
     dot.style.animation='pulse-dot 2s infinite';
   } else {
-    btn.textContent='▶ BAŞLAT';
+    btn.textContent=t('tripStart');
     btn.style.background='rgba(0,229,255,0.12)';
     dot.style.animation='none';
     dot.style.opacity='0.4';
@@ -1794,8 +1940,8 @@ let tripBRunning=false;
 function toggleTripB(){
   if(!isTracking){
     const btn=document.getElementById('tripB-btn');
-    btn.textContent='GPS GEREKLİ';
-    setTimeout(()=>{btn.textContent='▶ BAŞLAT';},1500);
+    btn.textContent=t('tripGpsNeeded');
+    setTimeout(()=>{btn.textContent=t('tripStart');},1500);
     return;
   }
   tripBRunning=!tripBRunning;
@@ -1803,11 +1949,11 @@ function toggleTripB(){
   const dot=document.getElementById('tripB-dot');
   if(tripBRunning){
     if(!tripBStartTime) tripBStartTime=Date.now();
-    btn.textContent='⏹ DURDUR';
+    btn.textContent=t('tripStop');
     btn.style.background='rgba(255,107,53,0.2)';
     dot.style.animation='pulse-dot 2s infinite';
   } else {
-    btn.textContent='▶ BAŞLAT';
+    btn.textContent=t('tripStart');
     btn.style.background='rgba(255,107,53,0.12)';
     dot.style.animation='none';
     dot.style.opacity='0.4';
@@ -1869,13 +2015,13 @@ function updateDrivingScore(){
   document.getElementById('score-harshevents').style.color=scoreData.harshPenalty>10?'#ff3b5c':'var(--accent3)';
   document.getElementById('score-smooth').textContent='+'+Math.round(scoreData.smoothBonus);
   document.getElementById('score-smooth').style.color='var(--accent3)';
-  const tips=['Harika! Çok sakin sürüyorsun 👏','İyi sürüş! Küçük iyileştirmelerle mükemmel olur.','Ortalama sürüş. Ani hareketlere dikkat et.','Dikkatli ol! Hız ihlalleri skoru düşürüyor.','Tehlikeli sürüş tarzı tespit edildi. Lütfen yavaşla.'];
+  const tips=[t('scoreTip0'),t('scoreTip1'),t('scoreTip2'),t('scoreTip3'),t('scoreTip4')];
   const idx=score>=90?0:score>=75?1:score>=55?2:score>=35?3:4;
   document.getElementById('score-tip').textContent=tips[idx];
 }
 
 // ── Ani Fren / Hızlanma ──
-let harshBrakeCount=0,harshAccelCount=0,prevSpeedMs=null,harshLastEvent='Henüz olay yok';
+let harshBrakeCount=0,harshAccelCount=0,prevSpeedMs=null,harshLastEvent='';
 const HARSH_BRAKE_THRESH=-4.0; // m/s²
 const HARSH_ACCEL_THRESH=3.5;  // m/s²
 
@@ -1886,14 +2032,14 @@ function detectHarshEvents(rawMs,dt){
   if(accel<HARSH_BRAKE_THRESH){
     harshBrakeCount++;
     scoreData.harshPenalty=Math.min(40,scoreData.harshPenalty+2);
-    harshLastEvent='🛑 Ani fren — '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    harshLastEvent=t('harshBrakeEvent')+new Date().toLocaleTimeString(lang==='en'?'en-GB':'tr-TR',{hour:'2-digit',minute:'2-digit'});
     document.getElementById('harsh-brake').textContent=harshBrakeCount;
     document.getElementById('harsh-last').textContent=harshLastEvent;
     playHarshBeep();
   } else if(accel>HARSH_ACCEL_THRESH){
     harshAccelCount++;
     scoreData.harshPenalty=Math.min(40,scoreData.harshPenalty+1.5);
-    harshLastEvent='🚀 Ani hızlanma — '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    harshLastEvent=t('harshAccelEvent')+new Date().toLocaleTimeString(lang==='en'?'en-GB':'tr-TR',{hour:'2-digit',minute:'2-digit'});
     document.getElementById('harsh-accel').textContent=harshAccelCount;
     document.getElementById('harsh-last').textContent=harshLastEvent;
   }
@@ -1918,18 +2064,18 @@ function setAlertDist(d){
 async function fetchZones(lat,lon){
   if(lastZoneFetch.lat&&haversine(lastZoneFetch.lat,lastZoneFetch.lon,lat,lon)*1000<300)return;
   lastZoneFetch={lat,lon};
-  document.getElementById('zone-status').textContent='Bölgeler kontrol ediliyor...';
+  document.getElementById('zone-status').textContent=t('zoneChecking');
   try{
     const q=`[out:json][timeout:8];(node["amenity"~"school|hospital|kindergarten"](around:${ZONE_FETCH_RADIUS},${lat},${lon});way["amenity"~"school|hospital|kindergarten"](around:${ZONE_FETCH_RADIUS},${lat},${lon}););out center;`;
     const data=await overpassFetch(q,9000);
     if(data.elements&&data.elements.length>0){
-      document.getElementById('zone-status').textContent=`Yakında ${data.elements.length} özel bölge var`;
+      document.getElementById('zone-status').textContent=(lang==='en'?`${data.elements.length} special zones nearby`:`Yakında ${data.elements.length} özel bölge var`);
       checkZoneProximity(lat,lon,data.elements);
     }else{
-      document.getElementById('zone-status').textContent='Yakında özel bölge yok';
+      document.getElementById('zone-status').textContent=t('zoneNone');
       document.getElementById('zone-active-banner').style.display='none';
     }
-  }catch(e){document.getElementById('zone-status').textContent='Bölge verisi alınamadı';}
+  }catch(e){document.getElementById('zone-status').textContent=t('zoneFailed');}
 }
 
 function checkZoneProximity(lat,lon,zones){
@@ -1968,7 +2114,7 @@ function setFuelMode(m){
   document.getElementById('fuel-tab-electric').style.borderColor=m==='electric'?'var(--accent)':'var(--border)';
   document.getElementById('fuel-tab-electric').style.background=m==='electric'?'rgba(0,229,255,0.1)':'transparent';
   document.getElementById('fuel-tab-electric').style.color=m==='electric'?'var(--accent)':'var(--muted)';
-  document.getElementById('fuel-unit-label').textContent=m==='electric'?'kWh/100km':'L/100km';
+  document.getElementById('fuel-unit-label').textContent=m==='electric'?t('fuelUnitElectric'):t('fuelUnitPetrol');
   calcFuel();
 }
 function calcFuel(){
@@ -2015,7 +2161,7 @@ function renderReport(){
   document.getElementById('report-avg-score').textContent=scores.length>0?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):'—';
   // Bar grafik
   const days=reportPeriod==='week'?7:30;
-  document.getElementById('report-chart-label').textContent=`Son ${days} gün — günlük km`;
+  document.getElementById('report-chart-label').textContent=lang==='en'?`Last ${days} days — daily km`:`Son ${days} gün — günlük km`;
   const bars=document.getElementById('report-bars');
   bars.innerHTML='';
   const buckets=Array(days).fill(0);
@@ -2034,13 +2180,12 @@ function renderReport(){
 let lastTrafficFetch=0,trafficZones=null;
 async function fetchTraffic(lat,lon){
   const now=Date.now();
-  if(now-lastTrafficFetch<120000)return; // 2 dk'da bir güncelle
+  if(now-lastTrafficFetch<120000)return;
   lastTrafficFetch=now;
-  document.getElementById('traffic-loading').textContent='Trafik verisi alınıyor...';
+  document.getElementById('traffic-loading').textContent=t('trafficLoading');
   document.getElementById('traffic-loading').style.display='block';
   document.getElementById('traffic-data').style.display='none';
   try{
-    // Overpass ile yakındaki yol tiplerini kontrol et — basit trafik tahmini
     const q=`[out:json][timeout:6];way["highway"~"primary|secondary|trunk"](around:500,${lat},${lon});out tags 3;`;
     const data=await overpassFetch(q,7000);
     const roadCount=data.elements?data.elements.length:0;
@@ -2048,11 +2193,11 @@ async function fetchTraffic(lat,lon){
     const isPeakHour=(hour>=7&&hour<=9)||(hour>=17&&hour<=19);
     const isWeekend=new Date().getDay()===0||new Date().getDay()===6;
     let level,status,desc,delay,icon;
-    if(isWeekend){level=1;status='Sakin';desc='Hafta sonu trafiği';delay=0;icon='🟢';}
-    else if(isPeakHour&&roadCount>1){level=4;status='Yoğun';desc='Yoğun saat trafiği';delay=Math.floor(8+roadCount*2);icon='🔴';}
-    else if(isPeakHour){level=3;status='Orta';desc='Biraz yavaş akıyor';delay=Math.floor(3+roadCount);icon='🟡';}
-    else if(roadCount>2){level=2;status='Orta';desc='Normal seyir süresi';delay=2;icon='🟡';}
-    else{level=1;status='Akıcı';desc='Yol açık';delay=0;icon='🟢';}
+    if(isWeekend){level=1;status=t('trafficLight');desc=t('trafficWeekend');delay=0;icon='🟢';}
+    else if(isPeakHour&&roadCount>1){level=4;status=t('trafficHeavy');desc=t('trafficPeak');delay=Math.floor(8+roadCount*2);icon='🔴';}
+    else if(isPeakHour){level=3;status=t('trafficMedium');desc=t('trafficSlow');delay=Math.floor(3+roadCount);icon='🟡';}
+    else if(roadCount>2){level=2;status=t('trafficMedium');desc=t('trafficNormal');delay=2;icon='🟡';}
+    else{level=1;status=t('trafficFlowing');desc=t('trafficOpen');delay=0;icon='🟢';}
     document.getElementById('traffic-loading').style.display='none';
     document.getElementById('traffic-data').style.display='block';
     document.getElementById('traffic-icon-box').textContent=icon;
@@ -2061,7 +2206,7 @@ async function fetchTraffic(lat,lon){
     document.getElementById('traffic-delay').textContent=delay;
     document.getElementById('traffic-level').textContent=level+'/5';
   }catch(e){
-    document.getElementById('traffic-loading').textContent='Trafik verisi alınamadı';
+    document.getElementById('traffic-loading').textContent=t('trafficFailed');
   }
 }
 
@@ -2164,6 +2309,7 @@ updateNeedle(0);
 renderHistory();
 checkRatePrompt();
 initAdMob();
+initIAP();
 </script>
 </div><!-- /app-wrap -->
 </body>
