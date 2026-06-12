@@ -1,499 +1,265 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#07070f" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Hair Color Studio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: #07070f; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Inter', system-ui, sans-serif; color: #fff; display: flex; flex-direction: column; min-height: 100dvh; }
+import { useState, useEffect, useRef, useCallback } from "react";
 
-    input[type=range] {
-      -webkit-appearance: none; appearance: none;
-      width: 100%; height: 4px; border-radius: 2px;
-      background: #1e1e30; outline: none; cursor: pointer;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 20px; height: 20px;
-      border-radius: 50%; cursor: pointer;
-      border: 2px solid rgba(255,255,255,0.2);
-    }
-
-    header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 16px; border-bottom: 1px solid #111; flex-shrink: 0;
-    }
-    .logo-label { font-size: 9px; letter-spacing: 0.25em; color: #2a2a3a; text-transform: uppercase; }
-    .logo-title { font-size: 18px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; }
-
-    .badge {
-      display: flex; align-items: center; gap: 8px;
-      background: #111; border-radius: 10px; padding: 6px 10px;
-      border: 1px solid #1e1e30;
-    }
-    .badge-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-
-    #settings-btn {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: #111; border: 1px solid #1e1e30;
-      color: #444; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 16px; flex-shrink: 0; transition: all 0.2s;
-    }
-    #settings-btn.open { background: #1e1e30; color: var(--accent,#fff); }
-
-    main { flex: 1; display: flex; overflow: hidden; }
-
-    #camera-area { flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-
-    #canvas-wrap {
-      flex: 1; background: #0a0a12; display: flex;
-      align-items: center; justify-content: center;
-      position: relative; overflow: hidden; min-height: 0;
-    }
-    #canvas-wrap canvas { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
-    #canvas-wrap canvas.show { display: block; }
-
-    #placeholder { text-align: center; padding: 24px; }
-    #ph-icon {
-      width: 72px; height: 72px; border-radius: 50%;
-      border: 2px dashed #1a1a2e;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px; font-size: 28px; opacity: 0.3;
-    }
-    #ph-msg { font-size: 13px; color: #2a2a3a; }
-    #ph-err { font-size: 12px; color: #c44; margin-top: 8px; line-height: 1.6; max-width: 260px; display: none; }
-    #loading-msg { font-size: 12px; color: #444; margin-top: 8px; display: none; }
-
-    #glow { position: absolute; inset: 0; pointer-events: none; transition: box-shadow 0.5s; }
-
-    #btn-wrap { padding: 12px 16px; flex-shrink: 0; }
-    #start-btn {
-      width: 100%; padding: 14px 0; border-radius: 14px; border: none;
-      color: #fff; font-size: 13px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      cursor: pointer; transition: all 0.3s; font-family: inherit;
-    }
-
-    #side-panel {
-      width: 260px; flex-shrink: 0; background: #0a0a12;
-      border-left: 1px solid #111;
-      display: flex; flex-direction: column; overflow: hidden;
-    }
-    .scroll { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-
-    .card { background: #0c0c1a; border-radius: 14px; border: 1px solid #161628; padding: 16px 14px; }
-    .card-label { font-size: 9px; letter-spacing: 0.2em; color: #2a2a3a; text-transform: uppercase; margin-bottom: 12px; }
-    .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
-    .swatch {
-      aspect-ratio: 1; border-radius: 8px; border: 2px solid transparent;
-      cursor: pointer; transition: all 0.15s; outline: none;
-    }
-    .swatch.sel { border-color: #fff; transform: scale(1.2); }
-
-    .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-
-    #color-strip {
-      padding: 10px 16px; background: #0a0a12;
-      border-top: 1px solid #111;
-      gap: 6px; overflow-x: auto; flex-shrink: 0; display: none;
-    }
-    #color-strip .swatch { width: 32px; height: 32px; flex-shrink: 0; aspect-ratio: unset; }
-
-    @media (max-width: 640px) {
-      #side-panel {
-        position: fixed; bottom: 0; left: 0; right: 0;
-        width: 100%; max-height: 65vh; border-left: none; border-top: 1px solid #111;
-        z-index: 20; transform: translateY(100%); transition: transform 0.3s ease;
-      }
-      #side-panel.open { transform: translateY(0); }
-      #color-strip { display: flex; }
-    }
-  </style>
-</head>
-<body>
-
-<header>
-  <div>
-    <div class="logo-label">Hair Studio</div>
-    <div class="logo-title" id="logo-title">Live Color</div>
-  </div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <div class="badge">
-      <div class="badge-dot" id="badge-dot"></div>
-      <span style="font-size:11px;color:#666;white-space:nowrap" id="badge-name">Auburn</span>
-    </div>
-    <button id="settings-btn" aria-label="Ayarlar">⚙</button>
-  </div>
-</header>
-
-<main>
-  <div id="camera-area">
-    <div id="canvas-wrap">
-      <video id="video" playsinline muted style="display:none"></video>
-      <!-- Layer 1: raw mirrored video -->
-      <canvas id="c-base"></canvas>
-      <!-- Layer 2: colored hair overlay (composited on top) -->
-      <canvas id="c-out" class="show" style="position:absolute;inset:0;margin:auto"></canvas>
-      <div id="placeholder">
-        <div id="ph-icon">◎</div>
-        <div id="ph-msg">Kamera kapalı</div>
-        <div id="loading-msg" id="load-msg">⏳ Model yükleniyor…</div>
-        <div id="ph-err"></div>
-      </div>
-      <div id="glow"></div>
-    </div>
-    <div id="btn-wrap">
-      <button id="start-btn">▶ &nbsp;Kamerayı Başlat</button>
-    </div>
-  </div>
-
-  <div id="side-panel">
-    <div class="scroll">
-
-      <div class="card">
-        <div class="card-label">Renk Seç</div>
-        <div class="color-grid" id="color-grid"></div>
-        <div style="margin-top:10px;font-size:11px;color:#555;text-align:center" id="color-lbl">Auburn</div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <span style="font-size:9px;letter-spacing:.2em;color:#2a2a3a;text-transform:uppercase">Yoğunluk</span>
-          <span style="font-size:13px;font-weight:700;color:var(--accent,#fff)" id="int-val">78%</span>
-        </div>
-        <input type="range" id="sl-intensity" min="0" max="100" value="78" />
-      </div>
-
-      <div class="card">
-        <div class="card-label">Renk Modu</div>
-        <div style="display:flex;gap:8px">
-          <button class="mode-btn sel" data-mode="tint" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #333;background:#1e1e30;color:#fff;font-size:11px;cursor:pointer;font-family:inherit">Tint</button>
-          <button class="mode-btn" data-mode="full" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #222;background:#111;color:#555;font-size:11px;cursor:pointer;font-family:inherit">Tam Renk</button>
-        </div>
-        <div style="margin-top:8px;font-size:10px;color:#333;line-height:1.6">
-          <b style="color:#444">Tint:</b> doğal görünüm, gölgeler korunur<br>
-          <b style="color:#444">Tam Renk:</b> canlı/fantezi renkler için
-        </div>
-      </div>
-
-    </div>
-  </div>
-</main>
-
-<div id="color-strip"></div>
-
-<script type="module">
-// ─── MediaPipe import ────────────────────────────────────────────────────────
-import { ImageSegmenter, FilesetResolver }
-  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
-
-// ─── Colors ──────────────────────────────────────────────────────────────────
-const COLORS = [
-  { name:"Doğal Siyah",    h:20,  s:15, l:8  },
-  { name:"Koyu Kahve",     h:22,  s:45, l:18 },
-  { name:"Sıcak Kahve",    h:28,  s:55, l:30 },
-  { name:"Auburn",         h:15,  s:70, l:35 },
-  { name:"Bakır",          h:22,  s:85, l:42 },
-  { name:"Altın Sarısı",   h:42,  s:80, l:58 },
-  { name:"Platin",         h:50,  s:30, l:82 },
-  { name:"Rose Gold",      h:10,  s:60, l:68 },
-  { name:"Bordo",          h:345, s:65, l:28 },
-  { name:"Canlı Kırmızı",  h:5,   s:90, l:42 },
-  { name:"Pembe",          h:330, s:80, l:52 },
-  { name:"Mor",            h:270, s:65, l:45 },
-  { name:"Okyanus Mavisi", h:210, s:80, l:40 },
-  { name:"Zümrüt",         h:150, s:70, l:32 },
-  { name:"Gümüş",          h:220, s:12, l:72 },
+const PALETTE = [
+ { name: "Jet Black",     h: 0,   s: 0,   l: 5   },
+ { name: "Dark Brown",    h: 20,  s: 50,  l: 15  },
+ { name: "Chestnut",      h: 18,  s: 60,  l: 28  },
+ { name: "Auburn",        h: 12,  s: 72,  l: 36  },
+ { name: "Copper",        h: 20,  s: 88,  l: 44  },
+ { name: "Honey Blonde",  h: 38,  s: 78,  l: 54  },
+ { name: "Platinum",      h: 48,  s: 22,  l: 84  },
+ { name: "Rose Gold",     h: 8,   s: 58,  l: 70  },
+ { name: "Burgundy",      h: 340, s: 68,  l: 26  },
+ { name: "Cherry Red",    h: 4,   s: 88,  l: 42  },
+ { name: "Candy Pink",    h: 328, s: 82,  l: 56  },
+ { name: "Lavender",      h: 272, s: 62,  l: 58  },
+ { name: "Electric Blue", h: 208, s: 90,  l: 44  },
+ { name: "Mint Green",    h: 152, s: 64,  l: 36  },
+ { name: "Silver",        h: 220, s: 10,  l: 75  },
+ { name: "Ash Gray",      h: 210, s: 8,   l: 50  },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function hslToHex(h,s,l){
-  s/=100; l/=100;
-  const a=s*Math.min(l,1-l);
-  const f=n=>{const k=(n+h/30)%12,c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,"0")};
-  return`#${f(0)}${f(8)}${f(4)}`;
-}
-function hslToRgb(h,s,l){
-  s/=100; l/=100;
-  const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(Math.min(k(n)-3,9-k(n),1),-1);
-  return[Math.round(f(0)*255),Math.round(f(8)*255),Math.round(f(4)*255)];
-}
-function rgbToHsl(r,g,b){
-  r/=255;g/=255;b/=255;
-  const max=Math.max(r,g,b),min=Math.min(r,g,b);
-  let h=0,s=0,l=(max+min)/2;
-  if(max!==min){const d=max-min;s=l>.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}
-  return[h*360,s*100,l*100];
-}
-function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return[r,g,b];}
-
-// ─── State ────────────────────────────────────────────────────────────────────
-let selected  = 3;
-let intensity = 0.78;
-let colorMode = "tint"; // "tint" | "full"
-let segmenter = null;
-let active    = false;
-let stream    = null;
-let animId    = null;
-let lastMask  = null;
-let modelReady = false;
-
-const video   = document.getElementById("video");
-const cBase   = document.getElementById("c-base");
-const cOut    = document.getElementById("c-out");
-const ctxB    = cBase.getContext("2d");
-const ctxO    = cOut.getContext("2d");
-
-// ─── Build swatches ───────────────────────────────────────────────────────────
-function buildSwatches(id, smallSize) {
-  const el = document.getElementById(id);
-  COLORS.forEach((c, i) => {
-    const btn = document.createElement("button");
-    btn.className = "swatch" + (i === selected ? " sel" : "");
-    btn.style.background = hslToHex(c.h, c.s, Math.max(c.l, 12));
-    if (i === selected) btn.style.boxShadow = `0 0 10px ${hslToHex(c.h,c.s,c.l)}aa`;
-    if (smallSize) { btn.style.width = "32px"; btn.style.height = "32px"; }
-    btn.title = c.name;
-    btn.onclick = () => selectColor(i);
-    el.appendChild(btn);
-  });
-}
-buildSwatches("color-grid", false);
-buildSwatches("color-strip", true);
-
-function selectColor(i) {
-  selected = i;
-  const c   = COLORS[i];
-  const hex = hslToHex(c.h, c.s, Math.max(c.l, 12));
-  const acc = hslToHex(c.h, c.s, Math.max(c.l, 40));
-  const ac2 = hslToHex((c.h+25)%360, c.s, c.l+12);
-
-  // update all swatch sets
-  document.querySelectorAll(".swatch").forEach((btn, idx) => {
-    const ci = idx % COLORS.length;
-    const on = ci === i;
-    btn.classList.toggle("sel", on);
-    btn.style.transform  = on ? "scale(1.2)" : "scale(1)";
-    btn.style.boxShadow  = on ? `0 0 10px ${hslToHex(COLORS[ci].h,COLORS[ci].s,COLORS[ci].l)}aa` : "none";
-  });
-
-  document.getElementById("badge-dot").style.cssText = `background:${hex};box-shadow:0 0 6px ${acc}88`;
-  document.getElementById("badge-name").textContent  = c.name;
-  document.getElementById("color-lbl").textContent   = c.name;
-
-  document.documentElement.style.setProperty("--accent", acc);
-  document.getElementById("sl-intensity").style.accentColor = acc;
-  document.getElementById("int-val").style.color = acc;
-
-  const title = document.getElementById("logo-title");
-  title.style.background = `linear-gradient(120deg,#fff 30%,${acc})`;
-  title.style.webkitBackgroundClip = "text";
-  title.style.webkitTextFillColor  = "transparent";
-
-  if (!active) {
-    const btn = document.getElementById("start-btn");
-    btn.style.background  = `linear-gradient(135deg,${hslToHex(c.h,c.s,c.l)},${ac2})`;
-    btn.style.boxShadow   = `0 4px 24px ${acc}44`;
-    btn.style.color       = "#fff";
-  }
-  if (active) document.getElementById("glow").style.boxShadow = `inset 0 0 60px ${acc}18`;
-}
-selectColor(3);
-
-// ─── Intensity ────────────────────────────────────────────────────────────────
-document.getElementById("sl-intensity").oninput = function(){
-  intensity = this.value / 100;
-  document.getElementById("int-val").textContent = this.value + "%";
-};
-
-// ─── Mode buttons ─────────────────────────────────────────────────────────────
-document.querySelectorAll(".mode-btn").forEach(btn => {
-  btn.onclick = () => {
-    colorMode = btn.dataset.mode;
-    document.querySelectorAll(".mode-btn").forEach(b => {
-      const on = b === btn;
-      b.classList.toggle("sel", on);
-      b.style.background  = on ? "#1e1e30" : "#111";
-      b.style.color       = on ? "#fff" : "#555";
-      b.style.borderColor = on ? "#333" : "#222";
-    });
-  };
-});
-
-// ─── Settings toggle ──────────────────────────────────────────────────────────
-document.getElementById("settings-btn").onclick = () => {
-  const p = document.getElementById("side-panel");
-  const o = p.classList.toggle("open");
-  document.getElementById("settings-btn").classList.toggle("open", o);
-};
-
-// ─── Load MediaPipe model ─────────────────────────────────────────────────────
-async function loadModel() {
-  document.getElementById("loading-msg").style.display = "block";
-  try {
-    const vision = await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
-    );
-    segmenter = await ImageSegmenter.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/image_segmenter/hair_segmenter/float32/latest/hair_segmenter.tflite",
-        delegate: "GPU",
-      },
-      runningMode: "VIDEO",
-      outputCategoryMask: true,
-      outputConfidenceMasks: false,
-    });
-    modelReady = true;
-    document.getElementById("loading-msg").textContent = "✅ Model hazır";
-    setTimeout(() => { document.getElementById("loading-msg").style.display = "none"; }, 1500);
-  } catch(e) {
-    document.getElementById("loading-msg").textContent = "⚠ Model yüklenemedi, basit mod kullanılıyor";
-    console.warn("MediaPipe load failed:", e);
-  }
-}
-loadModel();
-
-// ─── Camera ───────────────────────────────────────────────────────────────────
-document.getElementById("start-btn").onclick = () => active ? stopCamera() : startCamera();
-
-async function startCamera() {
-  try {
-    const mob = window.innerWidth < 640;
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode:"user", width:{ideal: mob?720:1280}, height:{ideal: mob?1280:720} },
-      audio: false
-    });
-    video.srcObject = stream;
-    await video.play();
-    active = true;
-
-    document.getElementById("placeholder").style.display = "none";
-    cOut.classList.add("show");
-
-    const acc = hslToHex(COLORS[selected].h, COLORS[selected].s, Math.max(COLORS[selected].l, 40));
-    document.getElementById("glow").style.boxShadow = `inset 0 0 60px ${acc}18`;
-
-    const btn = document.getElementById("start-btn");
-    btn.style.cssText = "background:#111;box-shadow:none;color:#555;";
-    btn.innerHTML = "&#9632; &nbsp;Durdur";
-
-    renderLoop();
-  } catch(e) {
-    document.getElementById("ph-err").style.display = "block";
-    document.getElementById("ph-err").textContent = "Kamera izni gerekiyor. Tarayıcı adres çubuğundaki kilit ikonuna tıklayarak izin ver.";
-  }
+function hsl2hex(h, s, l) {
+ s /= 100; l /= 100;
+ const a = s * Math.min(l, 1 - l);
+ const f = n => {
+   const k = (n + h / 30) % 12;
+   const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+   return Math.round(255 * c).toString(16).padStart(2, "0");
+ };
+ return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-function stopCamera() {
-  if (animId) cancelAnimationFrame(animId);
-  stream?.getTracks().forEach(t => t.stop());
-  active = false; lastMask = null;
-  cOut.classList.remove("show");
-  document.getElementById("placeholder").style.display = "block";
-  document.getElementById("glow").style.boxShadow = "none";
-  const c   = COLORS[selected];
-  const acc = hslToHex(c.h, c.s, Math.max(c.l, 40));
-  const ac2 = hslToHex((c.h+25)%360, c.s, c.l+12);
-  const btn = document.getElementById("start-btn");
-  btn.style.background  = `linear-gradient(135deg,${hslToHex(c.h,c.s,c.l)},${ac2})`;
-  btn.style.boxShadow   = `0 4px 24px ${acc}44`;
-  btn.style.color       = "#fff";
-  btn.innerHTML         = "&#9654; &nbsp;Kamerayı Başlat";
+function rgb2hsl(r, g, b) {
+ r /= 255; g /= 255; b /= 255;
+ const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+ let h = 0, s = 0, l = (max + min) / 2;
+ if (d > 0) {
+   s = d / (l > 0.5 ? 2 - max - min : max + min);
+   if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+   else if (max === g) h = ((b - r) / d + 2) / 6;
+   else h = ((r - g) / d + 4) / 6;
+ }
+ return [h * 360, s * 100, l * 100];
 }
 
-// ─── Render loop ──────────────────────────────────────────────────────────────
-let lastSegTime = -1;
-
-function renderLoop() {
-  if (!video.videoWidth) { animId = requestAnimationFrame(renderLoop); return; }
-
-  const W = video.videoWidth, H = video.videoHeight;
-  if (cBase.width !== W) {
-    cBase.width = W; cBase.height = H;
-    cOut.width  = W; cOut.height  = H;
-    cOut.style.width  = cBase.style.width  = "";
-    cOut.style.height = cBase.style.height = "";
-  }
-
-  // Draw mirrored frame to base canvas
-  ctxB.save();
-  ctxB.translate(W, 0); ctxB.scale(-1, 1);
-  ctxB.drawImage(video, 0, 0, W, H);
-  ctxB.restore();
-
-  const now = performance.now();
-
-  if (modelReady && segmenter) {
-    // Run segmentation every frame (GPU-accelerated)
-    try {
-      const result = segmenter.segmentForVideo(video, now);
-      if (result?.categoryMask) {
-        lastMask = result.categoryMask.getAsFloat32Array();
-        result.categoryMask.close();
-      }
-    } catch(e) { /* skip frame */ }
-  }
-
-  // Apply color using mask
-  const frame = ctxB.getImageData(0, 0, W, H);
-  const d     = frame.data;
-  const col   = COLORS[selected];
-
-  if (lastMask && lastMask.length === W * H) {
-    // ── MediaPipe mask path ──────────────────────────────────────────
-    // Mirror the mask horizontally (video is already mirrored on canvas)
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < W; x++) {
-        const srcX  = W - 1 - x; // mirror
-        const mIdx  = y * W + srcX;
-        const conf  = lastMask[mIdx]; // 0 = background, 1 = hair
-
-        if (conf < 0.35) continue; // not hair
-
-        const i = (y * W + x) * 4;
-        const r = d[i], g = d[i+1], b = d[i+2];
-        const blend = Math.min(conf * 1.4, 1) * intensity;
-
-        let nr, ng, nb;
-        if (colorMode === "tint") {
-          // Preserve luminance, apply hue+sat of target
-          const [, , ll] = rgbToHsl(r, g, b);
-          const newL = Math.min(90, ll * (1 + (col.l - 50) / 100));
-          [nr, ng, nb] = hslToRgb(col.h, col.s, newL);
-        } else {
-          // Full solid color
-          [nr, ng, nb] = hslToRgb(col.h, col.s, col.l);
-        }
-
-        d[i]   = Math.round(r * (1 - blend) + nr * blend);
-        d[i+1] = Math.round(g * (1 - blend) + ng * blend);
-        d[i+2] = Math.round(b * (1 - blend) + nb * blend);
-      }
-    }
-  } else {
-    // ── Fallback: heuristic (no model) ──────────────────────────────
-    for (let i = 0; i < d.length; i += 4) {
-      const r = d[i], g = d[i+1], b = d[i+2];
-      const [hh, ss, ll] = rgbToHsl(r, g, b);
-      const br  = (r + g + b) / 3;
-      const inH = hh <= 55 || hh >= 300;
-      if (inH && br >= 8 && br <= 200 && ss < 70) {
-        const newL = Math.min(90, ll * (1 + (col.l - 50) / 100));
-        const [nr, ng, nb] = hslToRgb(col.h, col.s, newL);
-        d[i]   = Math.round(r * (1 - intensity) + nr * intensity);
-        d[i+1] = Math.round(g * (1 - intensity) + ng * intensity);
-        d[i+2] = Math.round(b * (1 - intensity) + nb * intensity);
-      }
-    }
-  }
-
-  ctxO.putImageData(frame, 0, 0);
-  animId = requestAnimationFrame(renderLoop);
+function hsl2rgb(h, s, l) {
+ s /= 100; l /= 100;
+ const k = n => (n + h / 30) % 12;
+ const a = s * Math.min(l, 1 - l);
+ const f = n => Math.round((l - a * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1)) * 255);
+ return [f(0), f(8), f(4)];
 }
-</script>
-</body>
-</html>
+
+function isHairPixel(r, g, b, threshold) {
+ const [, s, l] = rgb2hsl(r, g, b);
+ const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+ if (brightness > 220 || brightness < 5) return false;
+ if (s < 8 && l < 20) return false;
+ const skinLike = r > 150 && g > 100 && b > 80 && r > g && g > b && (r - b) > 30;
+ if (skinLike) return false;
+ return s < threshold;
+}
+
+export default function App() {
+ const videoRef  = useRef(null);
+ const canvasRef = useRef(null);
+ const tmpRef    = useRef(null);
+ const animRef   = useRef(null);
+ const streamRef = useRef(null);
+
+ const [live,      setLive]      = useState(false);
+ const [error,     setError]     = useState("");
+ const [selIdx,    setSelIdx]    = useState(2);
+ const [intensity, setIntensity] = useState(85);
+ const [threshold, setThreshold] = useState(55);
+
+ const stateRef = useRef({ selIdx: 2, intensity: 85, threshold: 55 });
+ useEffect(() => { stateRef.current = { selIdx, intensity, threshold }; }, [selIdx, intensity, threshold]);
+
+ const startCam = useCallback(async () => {
+   setError("");
+   try {
+     const s = await navigator.mediaDevices.getUserMedia({
+       video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 1280 } },
+       audio: false
+     });
+     streamRef.current = s;
+     const v = videoRef.current;
+     v.srcObject = s;
+     v.onloadedmetadata = () => { v.play(); setLive(true); };
+   } catch {
+     setError("Kamera izni reddedildi. Tarayıcı adres çubuğundaki kilit ikonuna tıkla.");
+   }
+ }, []);
+
+ const stopCam = useCallback(() => {
+   cancelAnimationFrame(animRef.current);
+   streamRef.current?.getTracks().forEach(t => t.stop());
+   setLive(false);
+ }, []);
+
+ useEffect(() => {
+   if (!live) return;
+   const video  = videoRef.current;
+   const canvas = canvasRef.current;
+   const tmp    = tmpRef.current;
+   const ctx    = canvas.getContext("2d", { willReadFrequently: true });
+   const tctx   = tmp.getContext("2d",    { willReadFrequently: true });
+
+   const render = () => {
+     if (!video.videoWidth) { animRef.current = requestAnimationFrame(render); return; }
+     const W = video.videoWidth, H = video.videoHeight;
+     if (canvas.width !== W) { canvas.width = W; canvas.height = H; tmp.width = W; tmp.height = H; }
+
+     tctx.save(); tctx.translate(W, 0); tctx.scale(-1, 1);
+     tctx.drawImage(video, 0, 0, W, H);
+     tctx.restore();
+
+     const frame = tctx.getImageData(0, 0, W, H);
+     const d = frame.data;
+     const { selIdx: si, intensity: int, threshold: thr } = stateRef.current;
+     const { h: tH, s: tS, l: tL } = PALETTE[si];
+     const blend = int / 100;
+
+     for (let i = 0; i < d.length; i += 4) {
+       const r = d[i], g = d[i+1], b = d[i+2];
+       if (!isHairPixel(r, g, b, thr)) continue;
+       const [, , srcL] = rgb2hsl(r, g, b);
+       const targetL = Math.max(5, Math.min(92, srcL * 0.85 + tL * 0.15));
+       const [nr, ng, nb] = hsl2rgb(tH, tS * 0.9, targetL);
+       d[i]   = Math.round(r * (1 - blend) + nr * blend);
+       d[i+1] = Math.round(g * (1 - blend) + ng * blend);
+       d[i+2] = Math.round(b * (1 - blend) + nb * blend);
+     }
+     ctx.putImageData(frame, 0, 0);
+     animRef.current = requestAnimationFrame(render);
+   };
+   animRef.current = requestAnimationFrame(render);
+   return () => cancelAnimationFrame(animRef.current);
+ }, [live]);
+
+ const col = PALETTE[selIdx];
+ const accent = hsl2hex(col.h, Math.max(col.s, 30), Math.max(col.l, 45));
+
+ return (
+   <div style={{
+     minHeight: "100svh", background: "#09090f",
+     display: "flex", flexDirection: "column", alignItems: "center",
+     fontFamily: "system-ui, -apple-system, sans-serif",
+     color: "#fff", paddingBottom: 32, userSelect: "none"
+   }}>
+     {/* Camera portrait */}
+     <div style={{
+       width: "100%", maxWidth: 480, aspectRatio: "9/16",
+       background: "#0d0d18", position: "relative", overflow: "hidden",
+       borderRadius: "0 0 24px 24px",
+       boxShadow: live ? `0 8px 48px ${accent}33` : "0 4px 24px #00000066",
+       transition: "box-shadow 0.5s"
+     }}>
+       <video ref={videoRef} playsInline muted style={{ display: "none" }} />
+       <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: live ? "block" : "none", objectFit: "cover" }} />
+       <canvas ref={tmpRef} style={{ display: "none" }} />
+
+       {!live && (
+         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
+           <div style={{ fontSize: 56, opacity: 0.07 }}>◎</div>
+           {error
+             ? <div style={{ fontSize: 12, color: "#e55", textAlign: "center", maxWidth: 240, lineHeight: 1.6, padding: "0 20px" }}>{error}</div>
+             : <div style={{ fontSize: 12, color: "#2a2a40" }}>Kamera bekleniyor</div>
+           }
+         </div>
+       )}
+
+       <div style={{
+         position: "absolute", top: 0, left: 0, right: 0, padding: "18px 20px",
+         background: "linear-gradient(to bottom, #09090fdd, transparent)",
+         display: "flex", alignItems: "center", justifyContent: "space-between"
+       }}>
+         <div>
+           <div style={{ fontSize: 9, letterSpacing: "0.22em", color: "#ffffff33", textTransform: "uppercase" }}>Hair Studio</div>
+           <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Live Color</div>
+         </div>
+         {live && <div style={{ width: 7, height: 7, borderRadius: "50%", background: accent, boxShadow: `0 0 10px ${accent}` }} />}
+       </div>
+
+       {live && (
+         <div style={{
+           position: "absolute", bottom: 0, left: 0, right: 0,
+           padding: "40px 20px 18px",
+           background: "linear-gradient(to top, #09090fcc, transparent)",
+           fontSize: 11, color: "#ffffff55", letterSpacing: "0.12em", textTransform: "uppercase"
+         }}>
+           {col.name}
+         </div>
+       )}
+     </div>
+
+     {/* Controls */}
+     <div style={{ width: "100%", maxWidth: 480, padding: "22px 20px 0", display: "flex", flexDirection: "column", gap: 22 }}>
+
+       {/* Color swatches */}
+       <div>
+         <div style={{ fontSize: 9, color: "#ffffff25", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 12 }}>Renk Seç</div>
+         <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 8 }}>
+           {PALETTE.map((c, i) => {
+             const bg = hsl2hex(c.h, Math.max(c.s, 15), Math.max(c.l, 12));
+             const sel = selIdx === i;
+             return (
+               <button key={i} title={c.name} onClick={() => setSelIdx(i)} style={{
+                 aspectRatio: "1", borderRadius: 10, background: bg, padding: 0,
+                 border: sel ? "2px solid #fff" : "2px solid transparent",
+                 outline: sel ? `3px solid ${bg}55` : "none", outlineOffset: 2,
+                 cursor: "pointer",
+                 transform: sel ? "scale(1.18)" : "scale(1)",
+                 boxShadow: sel ? `0 0 14px ${bg}aa` : "none",
+                 transition: "all 0.15s"
+               }} />
+             );
+           })}
+         </div>
+       </div>
+
+       {/* Sliders */}
+       {[
+         { label: "Yoğunluk", val: intensity, set: setIntensity, min: 0, max: 100, unit: "%" },
+         { label: "Hassasiyet", val: threshold, set: setThreshold, min: 10, max: 100, unit: "" },
+       ].map(({ label, val, set, min, max, unit }) => (
+         <div key={label}>
+           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+             <span style={{ fontSize: 9, color: "#ffffff30", letterSpacing: "0.18em", textTransform: "uppercase" }}>{label}</span>
+             <span style={{ fontSize: 11, color: accent, fontWeight: 700 }}>{val}{unit}</span>
+           </div>
+           <div style={{ position: "relative", height: 4, borderRadius: 2, background: "#1a1a28" }}>
+             <div style={{
+               position: "absolute", left: 0, top: 0, bottom: 0,
+               width: `${(val - min) / (max - min) * 100}%`,
+               background: `linear-gradient(to right, ${hsl2hex(col.h, col.s, 20)}, ${accent})`,
+               borderRadius: 2
+             }} />
+             <input type="range" min={min} max={max} value={val}
+               onChange={e => set(+e.target.value)}
+               style={{ position: "absolute", inset: 0, width: "100%", opacity: 0, cursor: "pointer", height: 24, top: -10, margin: 0 }} />
+           </div>
+         </div>
+       ))}
+
+       {/* Button */}
+       <button onClick={live ? stopCam : startCam} style={{
+         padding: "15px", borderRadius: 14, border: "none",
+         background: live ? "#141420" : `linear-gradient(135deg, ${hsl2hex(col.h, col.s, col.l)}, ${hsl2hex((col.h + 20) % 360, col.s, col.l + 10)})`,
+         color: live ? "#444" : "#fff", fontSize: 12, fontWeight: 700,
+         letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer",
+         transition: "all 0.3s",
+         boxShadow: live ? "none" : `0 4px 24px ${accent}44`
+       }}>
+         {live ? "■  Durdur" : "▶  Kamerayı Başlat"}
+       </button>
+
+       <div style={{ fontSize: 10, color: "#ffffff15", lineHeight: 1.9, textAlign: "center" }}>
+         Koyu saç → Hassasiyet ↓ &nbsp;·&nbsp; Açık saç → Hassasiyet ↑
+       </div>
+     </div>
+   </div>
+ );
+}
