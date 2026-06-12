@@ -1,21 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 const COLORS = [
-  { name: "Natural Black", h: 20, s: 15, l: 8 },
-  { name: "Dark Brown",    h: 22, s: 45, l: 18 },
-  { name: "Warm Brown",    h: 28, s: 55, l: 30 },
-  { name: "Auburn",        h: 15, s: 70, l: 35 },
-  { name: "Copper",        h: 22, s: 85, l: 42 },
-  { name: "Golden Blonde", h: 42, s: 80, l: 58 },
-  { name: "Platinum",      h: 50, s: 30, l: 82 },
-  { name: "Rose Gold",     h: 10, s: 60, l: 68 },
-  { name: "Burgundy",      h: 345, s: 65, l: 28 },
-  { name: "Vivid Red",     h: 5,  s: 90, l: 42 },
-  { name: "Hot Pink",      h: 330, s: 80, l: 52 },
-  { name: "Violet",        h: 270, s: 65, l: 45 },
-  { name: "Ocean Blue",    h: 210, s: 80, l: 40 },
-  { name: "Emerald",       h: 150, s: 70, l: 32 },
-  { name: "Silver Gray",   h: 220, s: 12, l: 72 },
+  { name: "Natural Black", h: 20,  s: 15,  l: 8  },
+  { name: "Dark Brown",    h: 22,  s: 45,  l: 18 },
+  { name: "Warm Brown",    h: 28,  s: 55,  l: 30 },
+  { name: "Auburn",        h: 15,  s: 70,  l: 35 },
+  { name: "Copper",        h: 22,  s: 85,  l: 42 },
+  { name: "Golden Blonde", h: 42,  s: 80,  l: 58 },
+  { name: "Platinum",      h: 50,  s: 30,  l: 82 },
+  { name: "Rose Gold",     h: 10,  s: 60,  l: 68 },
+  { name: "Burgundy",      h: 345, s: 65,  l: 28 },
+  { name: "Vivid Red",     h: 5,   s: 90,  l: 42 },
+  { name: "Hot Pink",      h: 330, s: 80,  l: 52 },
+  { name: "Violet",        h: 270, s: 65,  l: 45 },
+  { name: "Ocean Blue",    h: 210, s: 80,  l: 40 },
+  { name: "Emerald",       h: 150, s: 70,  l: 32 },
+  { name: "Silver Gray",   h: 220, s: 12,  l: 72 },
 ];
 
 function hslToHex(h, s, l) {
@@ -54,30 +54,30 @@ function hslToRgb(h, s, l) {
 }
 
 export default function HairColorApp() {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const hiddenRef = useRef(null);
-  const animRef = useRef(null);
-  const streamRef = useRef(null);
+  const videoRef   = useRef(null);
+  const canvasRef  = useRef(null);
+  const hiddenRef  = useRef(null);
+  const animRef    = useRef(null);
+  const streamRef  = useRef(null);
 
-  const [active, setActive] = useState(false);
-  const [error, setError] = useState(null);
+  const [active,   setActive]   = useState(false);
+  const [error,    setError]    = useState(null);
   const [selected, setSelected] = useState(3);
-  const [intensity, setIntensity] = useState(0.78);
-  const [sensitivity, setSensitivity] = useState(58);
+  const [intensity,    setIntensity]    = useState(0.78);
+  const [sensitivity,  setSensitivity]  = useState(58);
   const [brightnessRange, setBrightnessRange] = useState([8, 180]);
 
   const color = COLORS[selected];
 
-  const intensityRef = useRef(intensity);
-  const sensitivityRef = useRef(sensitivity);
-  const brightnessRef = useRef(brightnessRange);
-  const colorRef = useRef(color);
+  const intensityRef    = useRef(intensity);
+  const sensitivityRef  = useRef(sensitivity);
+  const brightnessRef   = useRef(brightnessRange);
+  const colorRef        = useRef(color);
 
-  useEffect(() => { intensityRef.current = intensity; }, [intensity]);
-  useEffect(() => { sensitivityRef.current = sensitivity; }, [sensitivity]);
-  useEffect(() => { brightnessRef.current = brightnessRange; }, [brightnessRange]);
-  useEffect(() => { colorRef.current = color; }, [color]);
+  useEffect(() => { intensityRef.current   = intensity;       }, [intensity]);
+  useEffect(() => { sensitivityRef.current = sensitivity;     }, [sensitivity]);
+  useEffect(() => { brightnessRef.current  = brightnessRange; }, [brightnessRange]);
+  useEffect(() => { colorRef.current       = color;           }, [color]);
 
   const startCamera = useCallback(async () => {
     setError(null);
@@ -102,26 +102,28 @@ export default function HairColorApp() {
 
   useEffect(() => {
     if (!active) return;
-    const video = videoRef.current;
+    const video  = videoRef.current;
     const canvas = canvasRef.current;
     const hidden = hiddenRef.current;
-    const ctx = canvas.getContext("2d");
-    const hctx = hidden.getContext("2d");
+    const ctx    = canvas.getContext("2d");
+    const hctx   = hidden.getContext("2d");
 
     const loop = () => {
       if (!video.videoWidth) { animRef.current = requestAnimationFrame(loop); return; }
       const W = video.videoWidth, H = video.videoHeight;
-      if (canvas.width !== W) { canvas.width = W; canvas.height = H; hidden.width = W; hidden.height = H; }
-
+      if (canvas.width !== W) {
+        canvas.width = W; canvas.height = H;
+        hidden.width = W; hidden.height = H;
+      }
       hctx.save();
       hctx.translate(W, 0); hctx.scale(-1, 1);
       hctx.drawImage(video, 0, 0, W, H);
       hctx.restore();
 
       const frame = hctx.getImageData(0, 0, W, H);
-      const d = frame.data;
-      const int = intensityRef.current;
-      const sens = sensitivityRef.current;
+      const d     = frame.data;
+      const int   = intensityRef.current;
+      const sens  = sensitivityRef.current;
       const [bMin, bMax] = brightnessRef.current;
       const { h: tH, s: tS, l: tL } = colorRef.current;
 
@@ -129,7 +131,7 @@ export default function HairColorApp() {
         const r = d[i], g = d[i+1], b = d[i+2];
         const [hh, ss, ll] = rgbToHsl(r, g, b);
         const br = (r + g + b) / 3;
-        const inH = hh <= 55 || hh >= 300;
+        const inH    = hh <= 55 || hh >= 300;
         const isHair = inH && br >= bMin && br <= bMax && ss < sens;
         if (isHair) {
           const newL = Math.min(90, ll * (1 + (tL - 50) / 100));
@@ -166,14 +168,14 @@ export default function HairColorApp() {
 
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap", justifyContent: "center" }}>
 
-        {/* Camera feed */}
+        {/* Camera */}
         <div>
           <div style={{
             width: 480, maxWidth: "calc(100vw - 32px)", aspectRatio: "4/3",
             background: "#0c0c1a", borderRadius: 18,
             border: `1px solid ${active ? accentHex + "44" : "#1a1a2e"}`,
             overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-            position: "relative", transition: "border-color 0.4s",
+            transition: "border-color 0.4s",
             boxShadow: active ? `0 0 40px ${accentHex}22` : "none"
           }}>
             <video ref={videoRef} style={{ display: "none" }} playsInline muted />
@@ -204,7 +206,6 @@ export default function HairColorApp() {
         {/* Controls */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 220 }}>
 
-          {/* Colors */}
           <div style={{ background: "#0c0c1a", borderRadius: 14, border: "1px solid #161628", padding: "16px 14px" }}>
             <div style={{ fontSize: 9, letterSpacing: "0.2em", color: "#333", textTransform: "uppercase", marginBottom: 12 }}>Renk Seç</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 7 }}>
@@ -223,7 +224,6 @@ export default function HairColorApp() {
             <div style={{ marginTop: 10, fontSize: 11, color: "#555", textAlign: "center" }}>{color.name}</div>
           </div>
 
-          {/* Intensity */}
           <div style={{ background: "#0c0c1a", borderRadius: 14, border: "1px solid #161628", padding: "16px 14px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
               <span style={{ fontSize: 9, letterSpacing: "0.2em", color: "#333", textTransform: "uppercase" }}>Yoğunluk</span>
@@ -234,10 +234,8 @@ export default function HairColorApp() {
               style={{ width: "100%", accentColor: accentHex, cursor: "pointer" }} />
           </div>
 
-          {/* Detection */}
           <div style={{ background: "#0c0c1a", borderRadius: 14, border: "1px solid #161628", padding: "16px 14px" }}>
             <div style={{ fontSize: 9, letterSpacing: "0.2em", color: "#333", textTransform: "uppercase", marginBottom: 14 }}>Tespit Ayarı</div>
-
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
               <span style={{ fontSize: 11, color: "#444" }}>Hassasiyet</span>
               <span style={{ fontSize: 11, color: "#666" }}>{sensitivity}</span>
@@ -245,7 +243,6 @@ export default function HairColorApp() {
             <input type="range" min="10" max="120" value={sensitivity}
               onChange={e => setSensitivity(+e.target.value)}
               style={{ width: "100%", accentColor: "#444", cursor: "pointer", marginBottom: 14 }} />
-
             <div style={{ fontSize: 11, color: "#444", marginBottom: 8 }}>Parlaklık</div>
             <div style={{ display: "flex", gap: 8 }}>
               {[["Min", 0], ["Max", 1]].map(([label, idx]) => (
