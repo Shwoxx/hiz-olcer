@@ -22,8 +22,6 @@
       border-radius: 50%; cursor: pointer;
       border: 2px solid rgba(255,255,255,0.2);
     }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 
     header {
       display: flex; align-items: center; justify-content: space-between;
@@ -38,7 +36,6 @@
       border: 1px solid #1e1e30;
     }
     .badge-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-    .badge-name { font-size: 11px; color: #666; white-space: nowrap; }
 
     #settings-btn {
       width: 36px; height: 36px; border-radius: 10px;
@@ -46,28 +43,31 @@
       color: #444; display: flex; align-items: center; justify-content: center;
       cursor: pointer; font-size: 16px; flex-shrink: 0; transition: all 0.2s;
     }
-    #settings-btn.active { background: #1e1e30; color: var(--accent); border-color: var(--accent-dim); }
+    #settings-btn.open { background: #1e1e30; color: var(--accent,#fff); }
 
-    main { flex: 1; display: flex; overflow: hidden; position: relative; }
+    main { flex: 1; display: flex; overflow: hidden; }
 
-    #camera-area {
-      flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0;
-    }
+    #camera-area { flex: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+
     #canvas-wrap {
       flex: 1; background: #0a0a12; display: flex;
       align-items: center; justify-content: center;
       position: relative; overflow: hidden; min-height: 0;
     }
-    #output { display: none; max-width: 100%; max-height: 100%; object-fit: contain; }
+    #canvas-wrap canvas { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
+    #canvas-wrap canvas.show { display: block; }
+
     #placeholder { text-align: center; padding: 24px; }
-    #placeholder-icon {
+    #ph-icon {
       width: 72px; height: 72px; border-radius: 50%;
       border: 2px dashed #1a1a2e;
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto 16px; font-size: 28px; opacity: 0.3;
     }
-    #error-msg { font-size: 13px; color: #c44; line-height: 1.6; max-width: 260px; display: none; }
-    #idle-msg { font-size: 13px; color: #2a2a3a; }
+    #ph-msg { font-size: 13px; color: #2a2a3a; }
+    #ph-err { font-size: 12px; color: #c44; margin-top: 8px; line-height: 1.6; max-width: 260px; display: none; }
+    #loading-msg { font-size: 12px; color: #444; margin-top: 8px; display: none; }
+
     #glow { position: absolute; inset: 0; pointer-events: none; transition: box-shadow 0.5s; }
 
     #btn-wrap { padding: 12px 16px; flex-shrink: 0; }
@@ -80,49 +80,35 @@
 
     #side-panel {
       width: 260px; flex-shrink: 0; background: #0a0a12;
-      border-left: 1px solid #111; display: flex; flex-direction: column;
-      overflow: hidden;
+      border-left: 1px solid #111;
+      display: flex; flex-direction: column; overflow: hidden;
     }
-    #side-panel .scroll { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .scroll { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 
-    .card {
-      background: #0c0c1a; border-radius: 14px; border: 1px solid #161628;
-      padding: 16px 14px;
-    }
-    .card-label {
-      font-size: 9px; letter-spacing: 0.2em; color: #2a2a3a;
-      text-transform: uppercase; margin-bottom: 12px;
-    }
+    .card { background: #0c0c1a; border-radius: 14px; border: 1px solid #161628; padding: 16px 14px; }
+    .card-label { font-size: 9px; letter-spacing: 0.2em; color: #2a2a3a; text-transform: uppercase; margin-bottom: 12px; }
     .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
     .swatch {
       aspect-ratio: 1; border-radius: 8px; border: 2px solid transparent;
       cursor: pointer; transition: all 0.15s; outline: none;
     }
-    .swatch.active { border-color: #fff; transform: scale(1.2); }
+    .swatch.sel { border-color: #fff; transform: scale(1.2); }
 
-    .row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .row span { font-size: 11px; color: #444; }
-    .val { font-size: 13px; font-weight: 700; }
+    .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 
-    .sub-label { font-size: 10px; color: #2a2a3a; margin-bottom: 4px; }
-    .num-input {
-      width: 100%; background: #080812; border: 1px solid #1e1e30;
-      border-radius: 8px; color: #aaa; padding: 7px 8px;
-      font-size: 13px; outline: none; font-family: inherit;
-    }
-    .tips { font-size: 11px; color: #333; line-height: 1.9; }
-    .tips-label { font-size: 9px; letter-spacing: 0.2em; color: #2a2a3a; text-transform: uppercase; margin-bottom: 8px; }
-
-    /* Mobile bottom color strip */
     #color-strip {
       padding: 10px 16px; background: #0a0a12;
-      border-top: 1px solid #111; display: none;
-      gap: 6px; overflow-x: auto; flex-shrink: 0;
+      border-top: 1px solid #111;
+      gap: 6px; overflow-x: auto; flex-shrink: 0; display: none;
     }
-    #color-strip .swatch { width: 32px; height: 32px; flex-shrink: 0; }
+    #color-strip .swatch { width: 32px; height: 32px; flex-shrink: 0; aspect-ratio: unset; }
 
     @media (max-width: 640px) {
-      #side-panel { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 65vh; border-left: none; border-top: 1px solid #111; z-index: 10; transform: translateY(100%); transition: transform 0.3s ease; }
+      #side-panel {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        width: 100%; max-height: 65vh; border-left: none; border-top: 1px solid #111;
+        z-index: 20; transform: translateY(100%); transition: transform 0.3s ease;
+      }
       #side-panel.open { transform: translateY(0); }
       #color-strip { display: flex; }
     }
@@ -138,7 +124,7 @@
   <div style="display:flex;gap:8px;align-items:center">
     <div class="badge">
       <div class="badge-dot" id="badge-dot"></div>
-      <span class="badge-name" id="badge-name">Auburn</span>
+      <span style="font-size:11px;color:#666;white-space:nowrap" id="badge-name">Auburn</span>
     </div>
     <button id="settings-btn" aria-label="Ayarlar">⚙</button>
   </div>
@@ -147,13 +133,16 @@
 <main>
   <div id="camera-area">
     <div id="canvas-wrap">
-      <video id="video" style="display:none" playsinline muted></video>
-      <canvas id="output"></canvas>
-      <canvas id="hidden" style="display:none"></canvas>
+      <video id="video" playsinline muted style="display:none"></video>
+      <!-- Layer 1: raw mirrored video -->
+      <canvas id="c-base"></canvas>
+      <!-- Layer 2: colored hair overlay (composited on top) -->
+      <canvas id="c-out" class="show" style="position:absolute;inset:0;margin:auto"></canvas>
       <div id="placeholder">
-        <div id="placeholder-icon">◎</div>
-        <div id="idle-msg">Kamera kapalı</div>
-        <div id="error-msg"></div>
+        <div id="ph-icon">◎</div>
+        <div id="ph-msg">Kamera kapalı</div>
+        <div id="loading-msg" id="load-msg">⏳ Model yükleniyor…</div>
+        <div id="ph-err"></div>
       </div>
       <div id="glow"></div>
     </div>
@@ -168,40 +157,26 @@
       <div class="card">
         <div class="card-label">Renk Seç</div>
         <div class="color-grid" id="color-grid"></div>
-        <div style="margin-top:10px;font-size:11px;color:#555;text-align:center" id="color-name-label">Auburn</div>
+        <div style="margin-top:10px;font-size:11px;color:#555;text-align:center" id="color-lbl">Auburn</div>
       </div>
 
       <div class="card">
         <div class="row">
           <span style="font-size:9px;letter-spacing:.2em;color:#2a2a3a;text-transform:uppercase">Yoğunluk</span>
-          <span class="val" id="int-val" style="color:var(--accent)">78%</span>
+          <span style="font-size:13px;font-weight:700;color:var(--accent,#fff)" id="int-val">78%</span>
         </div>
-        <input type="range" id="intensity" min="0" max="100" value="78" />
+        <input type="range" id="sl-intensity" min="0" max="100" value="78" />
       </div>
 
       <div class="card">
-        <div class="card-label">Tespit Ayarı</div>
-        <div class="row"><span>Hassasiyet</span><span id="sens-val">58</span></div>
-        <input type="range" id="sensitivity" min="10" max="120" value="58" style="margin-bottom:14px" />
-        <div style="font-size:11px;color:#444;margin-bottom:10px">Parlaklık Aralığı</div>
+        <div class="card-label">Renk Modu</div>
         <div style="display:flex;gap:8px">
-          <div style="flex:1">
-            <div class="sub-label">Min</div>
-            <input type="number" class="num-input" id="br-min" min="0" max="255" value="8" />
-          </div>
-          <div style="flex:1">
-            <div class="sub-label">Max</div>
-            <input type="number" class="num-input" id="br-max" min="0" max="255" value="180" />
-          </div>
+          <button class="mode-btn sel" data-mode="tint" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #333;background:#1e1e30;color:#fff;font-size:11px;cursor:pointer;font-family:inherit">Tint</button>
+          <button class="mode-btn" data-mode="full" style="flex:1;padding:8px 0;border-radius:8px;border:1px solid #222;background:#111;color:#555;font-size:11px;cursor:pointer;font-family:inherit">Tam Renk</button>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="tips-label">İpuçları</div>
-        <div class="tips">
-          🖤 Siyah saç → Maks ≤ 90<br>
-          🌤 Açık saç → Hassasiyet ↑<br>
-          💧 Renk taşarsa → Hassasiyet ↓
+        <div style="margin-top:8px;font-size:10px;color:#333;line-height:1.6">
+          <b style="color:#444">Tint:</b> doğal görünüm, gölgeler korunur<br>
+          <b style="color:#444">Tam Renk:</b> canlı/fantezi renkler için
         </div>
       </div>
 
@@ -211,7 +186,12 @@
 
 <div id="color-strip"></div>
 
-<script>
+<script type="module">
+// ─── MediaPipe import ────────────────────────────────────────────────────────
+import { ImageSegmenter, FilesetResolver }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+// ─── Colors ──────────────────────────────────────────────────────────────────
 const COLORS = [
   { name:"Doğal Siyah",    h:20,  s:15, l:8  },
   { name:"Koyu Kahve",     h:22,  s:45, l:18 },
@@ -230,11 +210,17 @@ const COLORS = [
   { name:"Gümüş",          h:220, s:12, l:72 },
 ];
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function hslToHex(h,s,l){
-  s/=100;l/=100;
+  s/=100; l/=100;
   const a=s*Math.min(l,1-l);
   const f=n=>{const k=(n+h/30)%12,c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,"0")};
   return`#${f(0)}${f(8)}${f(4)}`;
+}
+function hslToRgb(h,s,l){
+  s/=100; l/=100;
+  const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(Math.min(k(n)-3,9-k(n),1),-1);
+  return[Math.round(f(0)*255),Math.round(f(8)*255),Math.round(f(4)*255)];
 }
 function rgbToHsl(r,g,b){
   r/=255;g/=255;b/=255;
@@ -243,190 +229,269 @@ function rgbToHsl(r,g,b){
   if(max!==min){const d=max-min;s=l>.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}
   return[h*360,s*100,l*100];
 }
-function hslToRgb(h,s,l){
-  s/=100;l/=100;
-  const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(Math.min(k(n)-3,9-k(n),1),-1);
-  return[Math.round(f(0)*255),Math.round(f(8)*255),Math.round(f(4)*255)];
-}
+function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return[r,g,b];}
 
-// State
-let selected = 3;
+// ─── State ────────────────────────────────────────────────────────────────────
+let selected  = 3;
 let intensity = 0.78;
-let sensitivity = 58;
-let brMin = 8, brMax = 180;
-let active = false;
-let animId = null;
-let stream = null;
+let colorMode = "tint"; // "tint" | "full"
+let segmenter = null;
+let active    = false;
+let stream    = null;
+let animId    = null;
+let lastMask  = null;
+let modelReady = false;
 
 const video   = document.getElementById("video");
-const canvas  = document.getElementById("output");
-const hidden  = document.getElementById("hidden");
-const ctx     = canvas.getContext("2d");
-const hctx    = hidden.getContext("2d");
+const cBase   = document.getElementById("c-base");
+const cOut    = document.getElementById("c-out");
+const ctxB    = cBase.getContext("2d");
+const ctxO    = cOut.getContext("2d");
 
-// Build color swatches
-function buildSwatches(containerId, size) {
-  const grid = document.getElementById(containerId);
+// ─── Build swatches ───────────────────────────────────────────────────────────
+function buildSwatches(id, smallSize) {
+  const el = document.getElementById(id);
   COLORS.forEach((c, i) => {
     const btn = document.createElement("button");
-    btn.className = "swatch" + (i === selected ? " active" : "");
+    btn.className = "swatch" + (i === selected ? " sel" : "");
     btn.style.background = hslToHex(c.h, c.s, Math.max(c.l, 12));
     if (i === selected) btn.style.boxShadow = `0 0 10px ${hslToHex(c.h,c.s,c.l)}aa`;
+    if (smallSize) { btn.style.width = "32px"; btn.style.height = "32px"; }
     btn.title = c.name;
-    btn.setAttribute("aria-label", c.name);
     btn.onclick = () => selectColor(i);
-    grid.appendChild(btn);
+    el.appendChild(btn);
   });
 }
-buildSwatches("color-grid");
-buildSwatches("color-strip");
+buildSwatches("color-grid", false);
+buildSwatches("color-strip", true);
 
 function selectColor(i) {
   selected = i;
-  const c = COLORS[i];
+  const c   = COLORS[i];
   const hex = hslToHex(c.h, c.s, Math.max(c.l, 12));
-  const accent = hslToHex(c.h, c.s, Math.max(c.l, 40));
-  const accent2 = hslToHex((c.h+25)%360, c.s, c.l+12);
+  const acc = hslToHex(c.h, c.s, Math.max(c.l, 40));
+  const ac2 = hslToHex((c.h+25)%360, c.s, c.l+12);
 
+  // update all swatch sets
   document.querySelectorAll(".swatch").forEach((btn, idx) => {
-    btn.classList.toggle("active", idx === i || idx === i + COLORS.length);
-    btn.style.boxShadow = (idx === i || idx === i + COLORS.length)
-      ? `0 0 10px ${hslToHex(COLORS[idx % COLORS.length].h, COLORS[idx % COLORS.length].s, COLORS[idx % COLORS.length].l)}aa` : "none";
-    btn.style.transform = (idx === i || idx === i + COLORS.length) ? "scale(1.2)" : "scale(1)";
+    const ci = idx % COLORS.length;
+    const on = ci === i;
+    btn.classList.toggle("sel", on);
+    btn.style.transform  = on ? "scale(1.2)" : "scale(1)";
+    btn.style.boxShadow  = on ? `0 0 10px ${hslToHex(COLORS[ci].h,COLORS[ci].s,COLORS[ci].l)}aa` : "none";
   });
 
-  document.getElementById("badge-dot").style.background = hex;
-  document.getElementById("badge-dot").style.boxShadow = `0 0 6px ${accent}88`;
-  document.getElementById("badge-name").textContent = c.name;
-  document.getElementById("color-name-label").textContent = c.name;
-  document.documentElement.style.setProperty("--accent", accent);
-  document.documentElement.style.setProperty("--accent-dim", accent + "44");
+  document.getElementById("badge-dot").style.cssText = `background:${hex};box-shadow:0 0 6px ${acc}88`;
+  document.getElementById("badge-name").textContent  = c.name;
+  document.getElementById("color-lbl").textContent   = c.name;
 
-  document.getElementById("int-val").style.color = accent;
-  document.getElementById("intensity").style.accentColor = accent;
+  document.documentElement.style.setProperty("--accent", acc);
+  document.getElementById("sl-intensity").style.accentColor = acc;
+  document.getElementById("int-val").style.color = acc;
 
-  const logoTitle = document.getElementById("logo-title");
-  logoTitle.style.background = `linear-gradient(120deg,#fff 30%,${accent})`;
-  logoTitle.style.webkitBackgroundClip = "text";
-  logoTitle.style.webkitTextFillColor = "transparent";
-
-  if (active) {
-    document.getElementById("glow").style.boxShadow = `inset 0 0 60px ${accent}18`;
-    document.getElementById("canvas-wrap").style.boxShadow = `0 0 40px ${accent}22`;
-  }
+  const title = document.getElementById("logo-title");
+  title.style.background = `linear-gradient(120deg,#fff 30%,${acc})`;
+  title.style.webkitBackgroundClip = "text";
+  title.style.webkitTextFillColor  = "transparent";
 
   if (!active) {
     const btn = document.getElementById("start-btn");
-    btn.style.background = `linear-gradient(135deg,${hslToHex(c.h,c.s,c.l)},${accent2})`;
-    btn.style.boxShadow = `0 4px 24px ${accent}44`;
+    btn.style.background  = `linear-gradient(135deg,${hslToHex(c.h,c.s,c.l)},${ac2})`;
+    btn.style.boxShadow   = `0 4px 24px ${acc}44`;
+    btn.style.color       = "#fff";
   }
+  if (active) document.getElementById("glow").style.boxShadow = `inset 0 0 60px ${acc}18`;
 }
-
-// Init accent color
 selectColor(3);
 
-// Controls
-document.getElementById("intensity").oninput = function() {
+// ─── Intensity ────────────────────────────────────────────────────────────────
+document.getElementById("sl-intensity").oninput = function(){
   intensity = this.value / 100;
   document.getElementById("int-val").textContent = this.value + "%";
 };
-document.getElementById("sensitivity").oninput = function() {
-  sensitivity = +this.value;
-  document.getElementById("sens-val").textContent = this.value;
-};
-document.getElementById("br-min").oninput = function() { brMin = +this.value; };
-document.getElementById("br-max").oninput = function() { brMax = +this.value; };
 
-// Settings toggle (mobile)
-const settingsBtn = document.getElementById("settings-btn");
-const sidePanel   = document.getElementById("side-panel");
-settingsBtn.onclick = () => {
-  const isOpen = sidePanel.classList.toggle("open");
-  settingsBtn.classList.toggle("active", isOpen);
+// ─── Mode buttons ─────────────────────────────────────────────────────────────
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.onclick = () => {
+    colorMode = btn.dataset.mode;
+    document.querySelectorAll(".mode-btn").forEach(b => {
+      const on = b === btn;
+      b.classList.toggle("sel", on);
+      b.style.background  = on ? "#1e1e30" : "#111";
+      b.style.color       = on ? "#fff" : "#555";
+      b.style.borderColor = on ? "#333" : "#222";
+    });
+  };
+});
+
+// ─── Settings toggle ──────────────────────────────────────────────────────────
+document.getElementById("settings-btn").onclick = () => {
+  const p = document.getElementById("side-panel");
+  const o = p.classList.toggle("open");
+  document.getElementById("settings-btn").classList.toggle("open", o);
 };
 
-// Camera
+// ─── Load MediaPipe model ─────────────────────────────────────────────────────
+async function loadModel() {
+  document.getElementById("loading-msg").style.display = "block";
+  try {
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+    );
+    segmenter = await ImageSegmenter.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/image_segmenter/hair_segmenter/float32/latest/hair_segmenter.tflite",
+        delegate: "GPU",
+      },
+      runningMode: "VIDEO",
+      outputCategoryMask: true,
+      outputConfidenceMasks: false,
+    });
+    modelReady = true;
+    document.getElementById("loading-msg").textContent = "✅ Model hazır";
+    setTimeout(() => { document.getElementById("loading-msg").style.display = "none"; }, 1500);
+  } catch(e) {
+    document.getElementById("loading-msg").textContent = "⚠ Model yüklenemedi, basit mod kullanılıyor";
+    console.warn("MediaPipe load failed:", e);
+  }
+}
+loadModel();
+
+// ─── Camera ───────────────────────────────────────────────────────────────────
+document.getElementById("start-btn").onclick = () => active ? stopCamera() : startCamera();
+
 async function startCamera() {
   try {
-    const isMobile = window.innerWidth < 640;
+    const mob = window.innerWidth < 640;
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: { ideal: isMobile ? 720 : 1280 }, height: { ideal: isMobile ? 1280 : 720 } },
+      video: { facingMode:"user", width:{ideal: mob?720:1280}, height:{ideal: mob?1280:720} },
       audio: false
     });
     video.srcObject = stream;
     await video.play();
     active = true;
 
-    canvas.style.display = "block";
     document.getElementById("placeholder").style.display = "none";
-    const c = COLORS[selected];
-    const accent = hslToHex(c.h, c.s, Math.max(c.l, 40));
-    document.getElementById("glow").style.boxShadow = `inset 0 0 60px ${accent}18`;
-    document.getElementById("canvas-wrap").style.boxShadow = `0 0 40px ${accent}22`;
+    cOut.classList.add("show");
+
+    const acc = hslToHex(COLORS[selected].h, COLORS[selected].s, Math.max(COLORS[selected].l, 40));
+    document.getElementById("glow").style.boxShadow = `inset 0 0 60px ${acc}18`;
 
     const btn = document.getElementById("start-btn");
-    btn.style.background = "#111";
-    btn.style.boxShadow = "none";
-    btn.style.color = "#555";
+    btn.style.cssText = "background:#111;box-shadow:none;color:#555;";
     btn.innerHTML = "&#9632; &nbsp;Durdur";
 
     renderLoop();
   } catch(e) {
-    document.getElementById("idle-msg").style.display = "none";
-    const errEl = document.getElementById("error-msg");
-    errEl.style.display = "block";
-    errEl.textContent = "Kamera izni gerekiyor. Tarayıcı adres çubuğundaki kilit ikonuna tıklayarak izin ver.";
+    document.getElementById("ph-err").style.display = "block";
+    document.getElementById("ph-err").textContent = "Kamera izni gerekiyor. Tarayıcı adres çubuğundaki kilit ikonuna tıklayarak izin ver.";
   }
 }
 
 function stopCamera() {
   if (animId) cancelAnimationFrame(animId);
   stream?.getTracks().forEach(t => t.stop());
-  active = false;
-  canvas.style.display = "none";
+  active = false; lastMask = null;
+  cOut.classList.remove("show");
   document.getElementById("placeholder").style.display = "block";
   document.getElementById("glow").style.boxShadow = "none";
-  document.getElementById("canvas-wrap").style.boxShadow = "none";
-
-  const c = COLORS[selected];
-  const accent  = hslToHex(c.h, c.s, Math.max(c.l, 40));
-  const accent2 = hslToHex((c.h+25)%360, c.s, c.l+12);
+  const c   = COLORS[selected];
+  const acc = hslToHex(c.h, c.s, Math.max(c.l, 40));
+  const ac2 = hslToHex((c.h+25)%360, c.s, c.l+12);
   const btn = document.getElementById("start-btn");
-  btn.style.background = `linear-gradient(135deg,${hslToHex(c.h,c.s,c.l)},${accent2})`;
-  btn.style.boxShadow = `0 4px 24px ${accent}44`;
-  btn.style.color = "#fff";
-  btn.innerHTML = "&#9654; &nbsp;Kamerayı Başlat";
+  btn.style.background  = `linear-gradient(135deg,${hslToHex(c.h,c.s,c.l)},${ac2})`;
+  btn.style.boxShadow   = `0 4px 24px ${acc}44`;
+  btn.style.color       = "#fff";
+  btn.innerHTML         = "&#9654; &nbsp;Kamerayı Başlat";
 }
 
-document.getElementById("start-btn").onclick = () => active ? stopCamera() : startCamera();
+// ─── Render loop ──────────────────────────────────────────────────────────────
+let lastSegTime = -1;
 
 function renderLoop() {
   if (!video.videoWidth) { animId = requestAnimationFrame(renderLoop); return; }
+
   const W = video.videoWidth, H = video.videoHeight;
-  if (canvas.width !== W) { canvas.width=W; canvas.height=H; hidden.width=W; hidden.height=H; }
+  if (cBase.width !== W) {
+    cBase.width = W; cBase.height = H;
+    cOut.width  = W; cOut.height  = H;
+    cOut.style.width  = cBase.style.width  = "";
+    cOut.style.height = cBase.style.height = "";
+  }
 
-  hctx.save(); hctx.translate(W,0); hctx.scale(-1,1);
-  hctx.drawImage(video,0,0,W,H); hctx.restore();
+  // Draw mirrored frame to base canvas
+  ctxB.save();
+  ctxB.translate(W, 0); ctxB.scale(-1, 1);
+  ctxB.drawImage(video, 0, 0, W, H);
+  ctxB.restore();
 
-  const frame = hctx.getImageData(0,0,W,H);
-  const d = frame.data;
-  const col = COLORS[selected];
-  const tH=col.h, tS=col.s, tL=col.l;
+  const now = performance.now();
 
-  for (let i=0; i<d.length; i+=4) {
-    const r=d[i],g=d[i+1],b=d[i+2];
-    const [hh,ss,ll] = rgbToHsl(r,g,b);
-    const br = (r+g+b)/3;
-    const inH = hh<=55 || hh>=300;
-    if (inH && br>=brMin && br<=brMax && ss<sensitivity) {
-      const newL = Math.min(90, ll*(1+(tL-50)/100));
-      const [nr,ng,nb] = hslToRgb(tH,tS,newL);
-      d[i]   = Math.round(r*(1-intensity)+nr*intensity);
-      d[i+1] = Math.round(g*(1-intensity)+ng*intensity);
-      d[i+2] = Math.round(b*(1-intensity)+nb*intensity);
+  if (modelReady && segmenter) {
+    // Run segmentation every frame (GPU-accelerated)
+    try {
+      const result = segmenter.segmentForVideo(video, now);
+      if (result?.categoryMask) {
+        lastMask = result.categoryMask.getAsFloat32Array();
+        result.categoryMask.close();
+      }
+    } catch(e) { /* skip frame */ }
+  }
+
+  // Apply color using mask
+  const frame = ctxB.getImageData(0, 0, W, H);
+  const d     = frame.data;
+  const col   = COLORS[selected];
+
+  if (lastMask && lastMask.length === W * H) {
+    // ── MediaPipe mask path ──────────────────────────────────────────
+    // Mirror the mask horizontally (video is already mirrored on canvas)
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const srcX  = W - 1 - x; // mirror
+        const mIdx  = y * W + srcX;
+        const conf  = lastMask[mIdx]; // 0 = background, 1 = hair
+
+        if (conf < 0.35) continue; // not hair
+
+        const i = (y * W + x) * 4;
+        const r = d[i], g = d[i+1], b = d[i+2];
+        const blend = Math.min(conf * 1.4, 1) * intensity;
+
+        let nr, ng, nb;
+        if (colorMode === "tint") {
+          // Preserve luminance, apply hue+sat of target
+          const [, , ll] = rgbToHsl(r, g, b);
+          const newL = Math.min(90, ll * (1 + (col.l - 50) / 100));
+          [nr, ng, nb] = hslToRgb(col.h, col.s, newL);
+        } else {
+          // Full solid color
+          [nr, ng, nb] = hslToRgb(col.h, col.s, col.l);
+        }
+
+        d[i]   = Math.round(r * (1 - blend) + nr * blend);
+        d[i+1] = Math.round(g * (1 - blend) + ng * blend);
+        d[i+2] = Math.round(b * (1 - blend) + nb * blend);
+      }
+    }
+  } else {
+    // ── Fallback: heuristic (no model) ──────────────────────────────
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i+1], b = d[i+2];
+      const [hh, ss, ll] = rgbToHsl(r, g, b);
+      const br  = (r + g + b) / 3;
+      const inH = hh <= 55 || hh >= 300;
+      if (inH && br >= 8 && br <= 200 && ss < 70) {
+        const newL = Math.min(90, ll * (1 + (col.l - 50) / 100));
+        const [nr, ng, nb] = hslToRgb(col.h, col.s, newL);
+        d[i]   = Math.round(r * (1 - intensity) + nr * intensity);
+        d[i+1] = Math.round(g * (1 - intensity) + ng * intensity);
+        d[i+2] = Math.round(b * (1 - intensity) + nb * intensity);
+      }
     }
   }
-  ctx.putImageData(frame,0,0);
+
+  ctxO.putImageData(frame, 0, 0);
   animId = requestAnimationFrame(renderLoop);
 }
 </script>
