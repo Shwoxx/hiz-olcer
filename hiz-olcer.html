@@ -1,2316 +1,274 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Radar Safe</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Radar Safe">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#080c10">
-<meta name="description" content="GPS Speed Limit Alert & HUD">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23080c10'/%3E%3Cpath d='M96 30 L162 162 L30 162 Z' fill='none' stroke='%23ff3b5c' stroke-width='12' stroke-linejoin='round'/%3E%3Ctext x='96' y='148' text-anchor='middle' font-size='64' font-family='Arial' fill='%23ff3b5c' font-weight='900'%3E!%3C/text%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Inter:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-/* ══ TEMA DEĞİŞKENLERİ ══ */
-:root{
-  --bg:#080c10;--bg2:#0d1520;--card:#111d2e;--card2:#162035;
-  --accent:#00e5ff;--accent2:#ff6b35;--accent3:#39ff14;
-  --text:#e8f4fd;--text2:#b0c8e0;--muted:#4a6580;
-  --border:rgba(0,229,255,0.15);--warn:#ff3b5c;
-  --shadow:rgba(0,0,0,0.4);
-  --font-ui:'Rajdhani',sans-serif;
-  --font-display:'Orbitron',monospace;
-  --font-num:'Rajdhani',sans-serif;
-}
-body.light{
-  --bg:#f0f4f8;--bg2:#e2e8f0;--card:#ffffff;--card2:#f7fafc;
-  --text:#1a2332;--text2:#4a5568;--muted:#a0aec0;
-  --border:rgba(0,100,180,0.15);--shadow:rgba(0,0,0,0.1);
-}
-/* Tema: Gece Mavisi (varsayılan) */
-body.theme-night{
-  --bg:#080c10;--bg2:#0d1520;--card:#111d2e;--card2:#162035;
-  --accent:#00e5ff;--accent2:#ff6b35;--accent3:#39ff14;
-  --text:#e8f4fd;--text2:#b0c8e0;--muted:#4a6580;
-  --border:rgba(0,229,255,0.15);
-}
-/* Tema: Koyu Yeşil */
-body.theme-forest{
-  --bg:#060f08;--bg2:#0b1a0e;--card:#0f2014;--card2:#162819;
-  --accent:#00ff88;--accent2:#ffaa00;--accent3:#39ff14;
-  --text:#d4f0de;--text2:#8fc4a0;--muted:#3d6b4f;
-  --border:rgba(0,255,136,0.15);
-}
-/* Tema: Mor/Futuristik */
-body.theme-neon{
-  --bg:#0a0510;--bg2:#120a1e;--card:#1a0d2e;--card2:#220f38;
-  --accent:#bf5fff;--accent2:#ff3fa0;--accent3:#00ffcc;
-  --text:#f0e6ff;--text2:#c4a8e8;--muted:#6a4d8a;
-  --border:rgba(191,95,255,0.2);
-}
-/* Tema: Gün Batımı */
-body.theme-sunset{
-  --bg:#0f080a;--bg2:#1a0e10;--card:#241218;--card2:#2e161e;
-  --accent:#ff6b6b;--accent2:#ffd166;--accent3:#06d6a0;
-  --text:#fff0f0;--text2:#e8c4c4;--muted:#7a5050;
-  --border:rgba(255,107,107,0.2);
-}
-/* Tema: Açık (Gündüz) */
-body.theme-light{
-  --bg:#f0f4f8;--bg2:#e2e8f0;--card:#ffffff;--card2:#f7fafc;
-  --accent:#0077cc;--accent2:#ff6b35;--accent3:#00aa44;
-  --text:#1a2332;--text2:#4a5568;--muted:#a0aec0;
-  --border:rgba(0,100,180,0.15);--shadow:rgba(0,0,0,0.1);
-}
-/* Tema: Çelik (Gri) */
-body.theme-steel{
-  --bg:#0d0d0f;--bg2:#151518;--card:#1c1c21;--card2:#232328;
-  --accent:#c8d0e0;--accent2:#7b9cff;--accent3:#50fa7b;
-  --text:#e8eaf0;--text2:#a0a8bc;--muted:#505060;
-  --border:rgba(200,208,224,0.12);
-}
-
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html{height:-webkit-fill-available;}
-body{
-  background:var(--bg);color:var(--text);font-family:var(--font-ui);
-  min-height:100vh;min-height:-webkit-fill-available;
-  display:flex;flex-direction:column;align-items:center;
-  overflow-x:hidden;overscroll-behavior:none;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
-  transition:background 0.4s,color 0.4s;
-}
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:radial-gradient(ellipse at 20% 0%,rgba(0,229,255,0.07) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(255,107,53,0.05) 0%,transparent 50%);
-}
-body.light::before{
-  background-image:radial-gradient(ellipse at 20% 0%,rgba(0,180,255,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(255,107,53,0.04) 0%,transparent 50%);
-}
-body.speeding-alert{background:#1a0008!important;animation:red-pulse 1.2s ease-in-out infinite;}
-@keyframes red-pulse{0%,100%{background-color:#1a0008;}50%{background-color:#260010;}}
-
-/* ══ MODALS ══ */
-.modal-bg{
-  display:none;position:fixed;inset:0;z-index:2000;
-  background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);
-  align-items:center;justify-content:center;padding:20px;
-}
-.modal-bg.show{display:flex;}
-.modal{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:24px;padding:28px 24px;width:100%;max-width:360px;
-  text-align:center;position:relative;
-}
-.modal-icon{font-size:52px;margin-bottom:12px;}
-.modal-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);letter-spacing:2px;margin-bottom:8px;}
-.modal-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
-.modal-btn{
-  width:100%;padding:14px;border-radius:12px;border:none;
-  font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:2px;
-  cursor:pointer;margin-bottom:8px;transition:all 0.2s;
-}
-.modal-btn.primary{background:linear-gradient(135deg,var(--accent),#0088aa);color:#080c10;}
-.modal-btn.premium{background:linear-gradient(135deg,#f6d365,#fda085);color:#1a0a00;}
-.modal-btn.secondary{background:transparent;color:var(--muted);border:1px solid var(--border);}
-.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
-
-/* Premium badge */
-.premium-badge{
-  display:inline-flex;align-items:center;gap:4px;
-  background:linear-gradient(135deg,rgba(246,211,101,0.15),rgba(253,160,133,0.15));
-  border:1px solid rgba(246,211,101,0.4);
-  border-radius:20px;padding:3px 10px;
-  font-size:10px;letter-spacing:2px;color:#f6d365;
-}
-
-
-/* ══ HEADER ══ */
-.header{
-  width:100%;max-width:480px;
-  padding:12px 18px 10px;
-  padding-top:calc(env(safe-area-inset-top, 0px) + 12px);
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);
-  background:rgba(8,12,16,0.95);backdrop-filter:blur(12px);
-  position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:10;
-  box-sizing:border-box;
-}
-body.light .header{background:rgba(240,244,248,0.95);}
-.header-left{display:flex;align-items:center;gap:8px;}
-.header-logo{font-family:var(--font-display);font-size:14px;font-weight:900;color:var(--accent);letter-spacing:3px;}
-.header-right{display:flex;align-items:center;gap:8px;}
-.theme-btn{
-  width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
-  background:var(--card);cursor:pointer;font-size:14px;
-  display:flex;align-items:center;justify-content:center;
-}
-.premium-btn{
-  padding:5px 12px;border-radius:20px;border:none;cursor:pointer;
-  background:linear-gradient(135deg,#f6d365,#fda085);
-  font-family:var(--font-display);font-size:9px;font-weight:700;
-  color:#1a0a00;letter-spacing:1px;
-}
-.status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:all 0.3s;}
-.status-dot.active{background:var(--accent3);box-shadow:0 0 8px var(--accent3);animation:pulse-dot 2s infinite;}
-.status-dot.error{background:var(--warn);}
-@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
-.accuracy-badge{
-  display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
-  border-radius:20px;background:rgba(0,229,255,0.08);border:1px solid var(--border);
-  font-size:9px;letter-spacing:1.5px;color:var(--muted);
-}
-.accuracy-badge .dot{width:5px;height:5px;border-radius:50%;background:var(--muted);}
-.accuracy-badge.good .dot{background:var(--accent3);}
-.accuracy-badge.medium .dot{background:var(--accent2);}
-
-/* ══ TABS ══ */
-.tabs{
-  display:flex;width:100%;max-width:480px;border-bottom:1px solid var(--border);
-  background:rgba(8,12,16,0.95);backdrop-filter:blur(10px);
-  position:fixed;top:calc(env(safe-area-inset-top,0px) + 53px);left:50%;transform:translateX(-50%);z-index:9;
-}
-body.light .tabs{background:rgba(240,244,248,0.95);}
-.tab{
-  flex:1;padding:11px 4px;text-align:center;
-  font-family:var(--font-display);font-size:9px;letter-spacing:1.5px;
-  color:var(--muted);border-bottom:2px solid transparent;
-  cursor:pointer;transition:all 0.2s;
-}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-/* ══ CONTENT OFFSET (header ~53px + tabs ~44px = 97px) ══ */
-
-/* ══ HUD ══ */
-.hud-overlay{
-  display:none;position:fixed;inset:0;z-index:1000;
-  background:#000;flex-direction:column;align-items:center;justify-content:center;
-}
-.hud-overlay.active{display:flex;}
-.hud-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:20px;}
-.hud-speed{
-  font-family:var(--font-num);font-size:min(40vw,210px);font-weight:900;
-  color:#fff;line-height:1;
-  text-shadow:0 0 80px rgba(255,255,255,0.2),0 0 160px rgba(0,229,255,0.1);
-}
-.hud-unit{font-family:var(--font-num);font-size:min(6vw,30px);color:rgba(255,255,255,0.4);letter-spacing:8px;margin-top:6px;}
-.hud-row{display:flex;align-items:center;gap:20px;margin-top:20px;}
-.hud-box{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:10px 22px;text-align:center;}
-.hud-box-lbl{font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:3px;margin-bottom:3px;}
-.hud-box-val{font-family:var(--font-num);font-size:min(7vw,36px);font-weight:700;color:#39ff14;transition:color 0.3s;}
-.hud-box-val.over{color:#ff3b5c;}
-.hud-diff{font-family:var(--font-num);font-size:min(5vw,24px);font-weight:700;padding:10px 18px;border-radius:12px;background:rgba(57,255,20,0.1);color:#39ff14;border:2px solid rgba(57,255,20,0.25);transition:all 0.3s;}
-.hud-diff.over{background:rgba(255,59,92,0.15);color:#ff3b5c;border-color:rgba(255,59,92,0.4);}
-/* EDS uyarısı HUD'da */
-.hud-eds{display:none;background:rgba(255,107,53,0.15);border:2px solid rgba(255,107,53,0.5);border-radius:12px;padding:8px 20px;text-align:center;margin-top:12px;}
-.hud-eds.show{display:block;}
-.hud-eds-txt{font-family:var(--font-display);font-size:14px;color:#ff6b35;letter-spacing:2px;}
-.hud-controls{position:absolute;top:env(safe-area-inset-top,16px);right:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
-.hud-btn-ctrl{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);font-family:var(--font-display);font-size:10px;letter-spacing:2px;padding:10px 18px;border-radius:24px;cursor:pointer;}
-
-
-/* ══ PAGES ══ */
-.page{display:none;width:100%;padding:14px;padding-top:calc(env(safe-area-inset-top,0px) + 97px);flex-direction:column;gap:12px;padding-bottom:100px;box-sizing:border-box;}
-.page.active{display:flex;}
-
-/* ══ KILAVUZ ══ */
-.guide-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:14px;padding:14px;
-  display:flex;gap:12px;align-items:flex-start;
-}
-.guide-icon{font-size:28px;flex-shrink:0;margin-top:2px;}
-.guide-content{flex:1;}
-.guide-title{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text);letter-spacing:1px;margin-bottom:6px;}
-.guide-body{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:6px;}
-.guide-penalty{font-size:11px;color:var(--accent2);font-weight:600;}
-
-/* ══ EDS ALERT BANNER ══ */
-.eds-banner{
-  display:none;align-items:center;gap:12px;
-  background:linear-gradient(135deg,rgba(255,107,53,0.15),rgba(255,59,92,0.1));
-  border:1px solid rgba(255,107,53,0.5);border-radius:14px;padding:12px 16px;
-  animation:eds-pulse 1.5s ease-in-out infinite;
-}
-.eds-banner.show{display:flex;}
-@keyframes eds-pulse{0%,100%{border-color:rgba(255,107,53,0.5);}50%{border-color:rgba(255,107,53,1);}}
-.eds-icon{font-size:28px;flex-shrink:0;}
-.eds-info{}
-.eds-title{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--accent2);letter-spacing:1px;}
-.eds-dist{font-size:12px;color:var(--muted);margin-top:2px;}
-
-/* ══ LIMIT BANNER ══ */
-.limit-banner{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:14px;padding:12px 16px;transition:all 0.3s;
-}
-.limit-banner.over-limit{border-color:rgba(255,59,92,0.7);background:rgba(255,59,92,0.08);animation:border-flash 1.2s infinite;}
-@keyframes border-flash{0%,100%{border-color:rgba(255,59,92,0.5);}50%{border-color:rgba(255,59,92,1);}}
-.limit-left{display:flex;align-items:center;gap:12px;}
-.limit-sign{width:50px;height:50px;border-radius:50%;border:4px solid #e8f4fd;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;box-shadow:0 2px 12px rgba(0,0,0,0.4);}
-.limit-sign::before{content:'';position:absolute;inset:3px;border-radius:50%;border:3px solid #cc0000;}
-.limit-sign-number{font-family:var(--font-num);font-size:13px;font-weight:900;color:#cc0000;z-index:1;}
-.limit-info{display:flex;flex-direction:column;gap:2px;}
-.limit-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
-.limit-value{font-family:var(--font-num);font-size:18px;font-weight:700;color:var(--text);}
-.limit-source{font-size:10px;color:var(--muted);}
-.limit-diff{font-family:var(--font-num);font-size:12px;font-weight:700;padding:6px 10px;border-radius:8px;white-space:nowrap;background:rgba(57,255,20,0.1);color:var(--accent3);border:1px solid rgba(57,255,20,0.2);transition:all 0.3s;}
-.limit-diff.over{background:rgba(255,59,92,0.15);color:var(--warn);border-color:rgba(255,59,92,0.4);}
-.osm-spinner{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--muted);border-top-color:var(--accent);animation:spin 0.8s linear infinite;display:inline-block;vertical-align:middle;margin-right:3px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-/* ══ SPEEDOMETER ══ */
-.speedometer-wrap{display:flex;flex-direction:column;align-items:center;}
-.arc-container{position:relative;width:260px;height:148px;overflow:visible;}
-.arc-container svg{width:100%;height:auto;overflow:visible;}
-.speed-display{text-align:center;margin-top:-6px;}
-.speed-number{font-family:var(--font-num);font-size:68px;font-weight:900;line-height:1;color:var(--text);letter-spacing:-2px;transition:color 0.3s,text-shadow 0.3s;text-shadow:0 0 40px rgba(0,229,255,0.15);}
-.speed-number.fast{color:var(--accent2);text-shadow:0 0 40px rgba(255,107,53,0.4);}
-.speed-number.over{color:var(--warn);text-shadow:0 0 40px rgba(255,59,92,0.6);}
-.speed-unit{font-size:17px;font-weight:600;color:var(--muted);letter-spacing:3px;margin-top:2px;}
-.speed-label{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-top:4px;}
-
-/* ══ STATS ══ */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;overflow:hidden;}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.5;}
-.stat-card.highlight::before{background:linear-gradient(90deg,transparent,var(--accent2),transparent);opacity:0.8;}
-.stat-icon{font-size:16px;margin-bottom:5px;display:block;}
-.stat-value{font-family:var(--font-num);font-size:22px;font-weight:700;color:var(--text);line-height:1;}
-.stat-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:3px;}
-
-/* ══ TRIP BAR ══ */
-.trip-bar{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
-.trip-row-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.trip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.trip-name{font-family:var(--font-ui);font-size:15px;font-weight:700;color:var(--text);letter-spacing:0.5px;}
-.trip-tag{font-size:10px;color:var(--muted);}
-.trip-timer{font-family:var(--font-ui);font-size:15px;font-weight:600;}
-.trip-btn{border-radius:8px;padding:5px 10px;font-family:var(--font-ui);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px;white-space:nowrap;}
-.trip-btn-a{background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.35);color:var(--accent);}
-.trip-btn-b{background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.35);color:var(--accent2);}
-.trip-reset-btn{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer;}
-.trip-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
-.trip-stat-box{background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 6px;text-align:center;}
-.trip-stat-val{font-family:var(--font-num);font-size:24px;font-weight:700;color:var(--text);line-height:1;}
-.trip-stat-lbl{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;}
-.trip-bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.trip-bar-title{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
-.trip-time{font-family:var(--font-num);font-size:13px;color:var(--accent);}
-.progress-track{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 0.5s linear;}
-
-/* ══ CHART ══ */
-.history-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
-.history-title{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
-
-/* ══ MAP ══ */
-.map-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-.map-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
-.map-title{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
-
-
-/* ══ ANALİZ SAYFA ══ */
-.dist-btn{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:9px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;}
-.dist-btn.active{border-color:var(--accent2);background:rgba(255,107,53,0.12);color:var(--accent2);}
-.zone-alert-pulse{animation:zone-pulse 1.5s infinite;}
-@keyframes zone-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,209,102,0.4);}50%{box-shadow:0 0 0 8px rgba(255,209,102,0);}}
-
-/* ══ TEMA & FONT SEÇİCİ ══ */
-.theme-swatch{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;}
-.swatch-preview{width:100%;height:44px;border-radius:10px;border:2px solid transparent;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
-.theme-swatch.active .swatch-preview{border-width:2.5px;box-shadow:0 0 10px var(--accent);}
-.swatch-label{font-size:10px;color:var(--muted);letter-spacing:1px;}
-.font-choice{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:all 0.2s;width:100%;}
-.font-choice:active{transform:scale(0.98);}
-.font-choice.active{border-color:var(--accent);background:rgba(0,229,255,0.08);}
-.font-sub{font-size:10px;color:var(--muted);letter-spacing:1px;}
-
-/* ══ HUD BUTTON ══ */
-.hud-open-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:var(--font-display);font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
-
-/* ══ HISTORY PAGE ══ */
-.history-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
-.history-item-stats{display:flex;gap:14px;margin-top:6px;flex-wrap:wrap;}
-.history-item-stat-val{font-family:var(--font-num);font-size:14px;font-weight:700;color:var(--text);}
-.history-item-stat-lbl{font-size:9px;color:var(--muted);letter-spacing:1px;}
-.history-item-del{background:rgba(255,59,92,0.1);border:1px solid rgba(255,59,92,0.2);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;}
-.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;letter-spacing:1px;line-height:1.8;}
-.empty-state span{display:block;font-size:36px;margin-bottom:12px;}
-
-/* ══ SETTINGS ══ */
-.settings-section{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:2px;}
-.settings-title{padding:12px 16px;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);}
-.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);}
-.settings-row:last-child{border-bottom:none;}
-.settings-row-label{font-size:13px;color:var(--text);}
-.settings-row-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.toggle{width:44px;height:24px;border-radius:12px;background:rgba(255,255,255,0.1);position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0;border:1px solid var(--border);}
-.toggle.on{background:var(--accent);}
-.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform 0.3s;}
-.toggle.on::after{transform:translateX(20px);}
-.settings-select{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:12px;font-family:var(--font-ui);}
-
-/* ══ PREMIUM CARD ══ */
-.premium-card{
-  background:linear-gradient(135deg,rgba(246,211,101,0.1),rgba(253,160,133,0.08));
-  border:1px solid rgba(246,211,101,0.3);border-radius:16px;padding:20px;text-align:center;
-}
-.premium-card-icon{font-size:40px;margin-bottom:10px;}
-.premium-card-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:#f6d365;letter-spacing:2px;margin-bottom:8px;}
-.premium-card-features{text-align:left;margin:14px 0;display:flex;flex-direction:column;gap:8px;}
-.premium-feature{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);}
-.premium-feature-icon{font-size:16px;flex-shrink:0;}
-.premium-buy-btn{
-  width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
-  background:linear-gradient(135deg,#f6d365,#fda085);
-  font-family:var(--font-display);font-size:13px;font-weight:700;
-  color:#1a0a00;letter-spacing:2px;box-shadow:0 4px 20px rgba(246,211,101,0.3);
-  transition:all 0.2s;
-}
-.premium-buy-btn:active{transform:scale(0.98);}
-.premium-restore{font-size:11px;color:var(--muted);margin-top:10px;cursor:pointer;text-decoration:underline;}
-
-/* ══ APP WRAPPER ══ */
-/* ══ APP WRAPPER ══ */
-body{margin:0;display:flex;flex-direction:column;align-items:center;overscroll-behavior:none;}
-.app-wrap{width:100%;max-width:480px;display:flex;flex-direction:column;align-items:stretch;}
-
-/* ══ CONTROL BTN ══ */
-.control-btn{width:100%;padding:16px;border-radius:14px;border:none;font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;}
-.control-btn.start{background:linear-gradient(135deg,var(--accent),#0088aa);color:#080c10;box-shadow:0 4px 24px rgba(0,229,255,0.3);}
-.control-btn.stop{background:linear-gradient(135deg,var(--warn),#cc2244);color:#fff;box-shadow:0 4px 24px rgba(255,59,92,0.3);}
-.control-btn:active{transform:scale(0.98);}
-.permission-msg{text-align:center;padding:16px;background:var(--card);border:1px solid rgba(255,107,53,0.3);border-radius:14px;font-size:13px;color:var(--accent2);line-height:1.6;}
-.permission-msg span{display:block;font-size:24px;margin-bottom:6px;}
-.install-banner{display:none;background:linear-gradient(135deg,rgba(0,229,255,0.1),rgba(0,229,255,0.05));border:1px solid rgba(0,229,255,0.3);border-radius:14px;padding:12px 16px;align-items:center;gap:12px;}
-.install-banner.show{display:flex;}
-.install-banner-text{flex:1;font-size:12px;color:var(--text);line-height:1.4;}
-.install-banner-btn{padding:8px 12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;font-family:var(--font-display);font-size:10px;font-weight:700;cursor:pointer;}
-@keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
-.scanline{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(transparent,rgba(0,229,255,0.04),transparent);animation:scanline 8s linear infinite;pointer-events:none;z-index:998;}
-body.light .scanline{display:none;}
-</style>
-</head>
-<body>
-<div class="scanline"></div>
-<div class="app-wrap">
-
-
-
-<!-- ══ MODALS ══ -->
-<!-- Premium Modal -->
-<div class="modal-bg" id="premiumModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('premiumModal')">✕</button>
-    <div class="modal-icon">⭐</div>
-    <div class="modal-title">RADAR SAFE PRO</div>
-    <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:-6px;margin-bottom:4px;">Radar Safe Pro</div>
-    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#39ff14;letter-spacing:1px;margin-bottom:10px;" id="trial-badge">🎁 <span id="trial-txt">7 GÜN ÜCRETSİZ DENE</span></div><div class="modal-sub" id="pm-sub">Reklamları kaldır, tüm özelliklerin kilidini aç</div>
-    <div style="margin:14px 0;display:flex;flex-direction:column;gap:8px;text-align:left;">
-      <div class="premium-feature"><span class="premium-feature-icon">🚫</span><span id="pm-f1">Reklam yok</span></div>
-      <div class="premium-feature"><span class="premium-feature-icon">🚨</span><span id="pm-f2">Sınırsız EDS kamera uyarısı</span></div>
-      <div class="premium-feature"><span class="premium-feature-icon">🗺️</span><span id="pm-f3">Detaylı rota haritası</span></div>
-      <div class="premium-feature"><span class="premium-feature-icon">🌙</span><span id="pm-f4">Tüm temalar</span></div>
-      <div class="premium-feature"><span class="premium-feature-icon">📊</span><span id="pm-f5">Sınırsız seyahat geçmişi</span></div>
-    </div>
-    <button class="modal-btn premium" onclick="buyPremium()">💳 <span id="pm-price">14,99 ₺ / Ay — ABONE OL</span></button>
-    <div style="font-size:10px;color:var(--muted);margin:-4px 0 6px;line-height:1.5;" id="sub-note-modal">İstediğin zaman iptal et. Otomatik yenilenir.</div>
-    <button class="modal-btn secondary" onclick="restorePurchase()" id="pm-restore">Aboneliği geri yükle</button>
-  </div>
-</div>
-
-<!-- Rate Modal -->
-<div class="modal-bg" id="rateModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('rateModal')">✕</button>
-    <div class="modal-icon">⭐</div>
-    <div class="modal-title" id="rate-title">UYGULAMAYI BEĞENDİN Mİ?</div>
-    <div class="modal-sub" id="rate-sub">Radar Safe'i değerlendirmen bize çok yardımcı olur!</div>
-    <button class="modal-btn primary" onclick="openStore()" id="rate-yes">⭐ Değerlendir</button>
-    <button class="modal-btn secondary" onclick="closeModal('rateModal')" id="rate-later">Daha Sonra</button>
-    <button class="modal-btn secondary" onclick="neverRate()" id="rate-no" style="margin-top:-4px;">Hayır, Teşekkürler</button>
-  </div>
-</div>
-
-<!-- HUD ══ -->
-<div class="hud-overlay" id="hudOverlay">
-  <div class="hud-inner">
-    <div class="hud-speed" id="hudSpeed">0</div>
-    <div class="hud-unit" id="hudUnit">KM/S</div>
-    <div class="hud-row">
-      <div class="hud-box">
-        <div class="hud-box-lbl" id="hudLimitLabel">LİMİT</div>
-        <div class="hud-box-val" id="hudLimitVal">—</div>
-      </div>
-      <div class="hud-diff" id="hudDiff">—</div>
-    </div>
-    <div class="hud-eds" id="hudEds">
-      <div class="hud-eds-txt" id="hudEdsTxt">📸 EDS KAMERA!</div>
-    </div>
-  </div>
-  <div class="hud-controls">
-    <button class="hud-btn-ctrl" id="hudFlipBtn" onclick="toggleHudFlip()">↕ ÇEVİR</button>
-    <button class="hud-btn-ctrl" id="hudCloseBtn" onclick="toggleHUD()">✕ KAPAT</button>
-  </div>
-</div>
-
-<!-- ══ HEADER ══ -->
-<div class="header">
-  <div class="header-left">
-    <div class="header-logo">Radar Safe</div>
-    <div class="premium-badge" id="premiumBadgeHeader" style="display:none">PRO</div>
-  </div>
-  <div class="header-right">
-    <div class="accuracy-badge" id="accuracyBadge"><div class="dot"></div><span id="accuracyText">—</span></div>
-    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
-    <button class="premium-btn" onclick="showModal('premiumModal')" id="premiumHeaderBtn">PRO</button>
-    <div class="status-dot" id="statusDot"></div>
-  </div>
-</div>
-
-<!-- ══ TABS ══ -->
-<div class="tabs">
-  <div class="tab active" id="tab-main" onclick="switchTab('main')"><span id="t-speed">🏎 HIZ</span></div>
-  <div class="tab" id="tab-analiz" onclick="switchTab('analiz')"><span>📊 ANALİZ</span></div>
-  <div class="tab" id="tab-history" onclick="switchTab('history')"><span id="t-hist">📋 GEÇMİŞ</span></div>
-  <div class="tab" id="tab-guide" onclick="switchTab('guide')"><span id="t-guide">📖 KILAVUZ</span></div>
-  <div class="tab" id="tab-settings" onclick="switchTab('settings')"><span id="t-sett">⚙️ AYARLAR</span></div>
-</div>
-
-<!-- ══ ANA SAYFA ══ -->
-<div class="page active" id="page-main">
-
-  <!-- EDS Uyarı Banner -->
-  <div class="eds-banner" id="edsBanner">
-    <div class="eds-icon">📸</div>
-    <div class="eds-info">
-      <div class="eds-title" id="edsTitle">EDS KAMERA</div>
-      <div class="eds-dist" id="edsDist">—</div>
-    </div>
-  </div>
-
-  <!-- Limit + Speedometer yan yana üst blok -->
-  <div style="display:flex;flex-direction:column;gap:10px;">
-
-    <!-- Hız limiti -->
-    <div class="limit-banner" id="limitBanner">
-      <div class="limit-left">
-        <div class="limit-sign"><div class="limit-sign-number" id="limitSignNum">—</div></div>
-        <div class="limit-info">
-          <div class="limit-label" id="t-speedlimit">HIZ LİMİTİ</div>
-          <div class="limit-value" id="limitValue">—</div>
-          <div style="font-size:10px;color:var(--muted);">
-            <span id="osmLoadingSpinner" style="display:none"><span class="osm-spinner"></span></span>
-            <span id="limitSource"></span>
-          </div>
-        </div>
-      </div>
-      <div class="limit-diff" id="limitDiff">—</div>
-    </div>
-
-    <!-- Speedometer -->
-    <div class="speedometer-wrap">
-      <div class="arc-container">
-        <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="8" stroke-linecap="round"/>
-          <path id="speedArc" d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="#00e5ff" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 377" pathLength="377"/>
-          <g id="ticks"></g>
-          <line id="needle" x1="140" y1="140" x2="140" y2="32" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="140" cy="140" r="6" fill="var(--accent2)"/>
-          <circle cx="140" cy="140" r="3" fill="var(--bg)"/>
-        </svg>
-      </div>
-      <div class="speed-display">
-        <div class="speed-number" id="currentSpeed">0</div>
-        <div class="speed-unit" id="speedUnitLabel">KM/S</div>
-        <div class="speed-label" id="t-curspeed">ANLÍK HIZ</div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- GPS uyarı notu -->
-  <div id="speedo-note" style="display:flex;align-items:center;gap:6px;background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.18);border-radius:8px;padding:7px 11px;">
-    <span style="font-size:14px;flex-shrink:0;">ℹ️</span>
-    <span id="speedo-note-txt" style="font-size:11px;color:var(--text2);line-height:1.5;flex:1;">GPS gerçek hızı gösterir. Araç göstergesi yasal zorunluluk gereği <strong style="color:var(--text);">%2–10 daha yüksek</strong> gösterebilir.</span>
-    <button onclick="document.getElementById('speedo-note').style.display='none';sessionStorage.setItem('rg_hidenote','1');" style="background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;flex-shrink:0;padding:0 0 0 4px;line-height:1;">✕</button>
-  </div>
-
-  <!-- 4 stat kart -->
-  <div class="stats-grid">
-    <div class="stat-card highlight"><span class="stat-icon">📊</span><div class="stat-value" id="avgSpeed">0</div><div class="stat-label" id="t-avg">ORT. HIZ</div></div>
-    <div class="stat-card"><span class="stat-icon">🏎️</span><div class="stat-value" id="maxSpeed">0</div><div class="stat-label" id="t-max">MAK. HIZ</div></div>
-    <div class="stat-card"><span class="stat-icon">📍</span><div class="stat-value" id="distanceVal">0.0</div><div class="stat-label" id="t-dist">MESAFE (KM)</div></div>
-    <div class="stat-card"><span class="stat-icon">🛰️</span><div class="stat-value" id="altitudeVal">—</div><div class="stat-label" id="t-alt">İRTİFA (M)</div></div>
-  </div>
-
-  <!-- Hız geçmişi grafiği -->
-  <div class="history-wrap">
-    <div class="history-title" id="t-speedhist">HIZ GEÇMİŞİ (SON 60S)</div>
-    <svg id="historyChart" viewBox="0 0 340 60" style="width:100%;overflow:visible;">
-      <defs>
-        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(0,229,255,0.4)"/>
-          <stop offset="100%" stop-color="rgba(0,229,255,0)"/>
-        </linearGradient>
-      </defs>
-      <path id="chartArea" fill="url(#chartGrad)" d="M0 60 L340 60 Z"/>
-      <path id="chartLine" fill="none" stroke="var(--accent)" stroke-width="1.5" d="M0 60 L340 60"/>
-      <line id="limitLine" x1="0" y1="60" x2="340" y2="60" stroke="rgba(255,59,92,0.5)" stroke-width="1" stroke-dasharray="4 4"/>
-    </svg>
-  </div>
-
-  <!-- Yolculuk 1 -->
-  <div class="trip-bar" id="tripBarA">
-    <div class="trip-row-top">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="trip-dot" id="tripA-dot" style="background:var(--accent);box-shadow:0 0 6px var(--accent);"></div>
-        <span class="trip-name">Yolculuk 1</span>
-        <span class="trip-tag" id="trip1-tag">genel</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="trip-timer" id="tripTime" style="color:var(--accent);">00:00:00</span>
-        <button id="tripA-btn" class="trip-btn trip-btn-a" onclick="toggleTripA()">▶ BAŞLAT</button>
-      </div>
-    </div>
-    <div class="trip-stats">
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-avg">0</div><div class="trip-stat-lbl" id="lbl-tripA-avg">ORT KM/S</div></div>
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-max">0</div><div class="trip-stat-lbl" id="lbl-tripA-max">MAK KM/S</div></div>
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripA-dist">0.0</div><div class="trip-stat-lbl">KM</div></div>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-  </div>
-
-  <!-- Yolculuk 2 -->
-  <div class="trip-bar" id="tripBarB" style="border-color:rgba(255,107,53,0.25);">
-    <div class="trip-row-top">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="trip-dot" id="tripB-dot" style="background:var(--accent2);box-shadow:0 0 6px var(--accent2);"></div>
-        <span class="trip-name">Yolculuk 2</span>
-        <span class="trip-tag" id="trip2-tag">bölüm</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span class="trip-timer" id="tripTimeB" style="color:var(--accent2);">00:00:00</span>
-        <button id="tripB-btn" class="trip-btn trip-btn-b" onclick="toggleTripB()">▶ BAŞLAT</button>
-        <button class="trip-reset-btn" onclick="resetTripB()">↺</button>
-      </div>
-    </div>
-    <div class="trip-stats">
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-avg">0</div><div class="trip-stat-lbl" id="lbl-tripB-avg">ORT KM/S</div></div>
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-max">0</div><div class="trip-stat-lbl" id="lbl-tripB-max">MAK KM/S</div></div>
-      <div class="trip-stat-box"><div class="trip-stat-val" id="tripB-dist">0.0</div><div class="trip-stat-lbl">KM</div></div>
-    </div>
-    <div class="progress-track" style="background:rgba(255,107,53,0.08);">
-      <div style="height:100%;background:linear-gradient(90deg,var(--accent2),#ff3b5c);width:0%;transition:width 0.5s linear;border-radius:2px;" id="progressFillB"></div>
-    </div>
-  </div>
-
-  <!-- HUD ve başlat -->
-  <button class="hud-open-btn" onclick="toggleHUD()">🖥️ <span id="t-hudopen">HUD MODU — ÖN CAMA YANSITIN</span></button>
-  <div class="permission-msg" id="permMsg" style="display:none"><span>📡</span><span id="t-gpserr">GPS izni gerekiyor.</span></div>
-  <button class="control-btn start" id="controlBtn" onclick="toggleTracking()"><span id="t-startbtn">TAKİBİ BAŞLAT</span></button>
-
-  <!-- Install banner (en altta) -->
-  <div class="install-banner" id="installBanner">
-    <div class="install-banner-text" id="t-install">📲 Ana ekrana ekle — uygulama gibi!</div>
-    <button class="install-banner-btn" id="installBtn">EKLE</button>
-  </div>
-
-</div>
-
-<!-- ══ ANALİZ ══ -->
-<div class="page" id="page-analiz">
-
-    <!-- Sürüş Skoru -->
-    <div class="trip-bar" style="padding:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent);" id="lbl-driving-score-title">🏆 SÜRÜŞ SKORU</div>
-        <div style="font-size:10px;color:var(--muted);" id="score-session-label">Bu sürüş</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:16px;">
-        <div style="position:relative;width:80px;height:80px;flex-shrink:0;">
-          <svg width="80" height="80" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
-            <circle cx="40" cy="40" r="34" fill="none" id="score-arc" stroke="var(--accent3)" stroke-width="8" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset 1s ease,stroke 0.5s;"/>
-          </svg>
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-            <div style="font-family:var(--font-num);font-size:22px;font-weight:700;color:var(--text);line-height:1;" id="score-val">—</div>
-            <div style="font-size:8px;color:var(--muted);letter-spacing:1px;">/100</div>
-          </div>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:var(--text2);" id="score-lbl-speeding">Hız ihlali</span>
-            <span style="font-family:var(--font-num);font-size:12px;font-weight:700;" id="score-speeding">—</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:var(--text2);" id="score-lbl-harsh">Ani fren/gaz</span>
-            <span style="font-family:var(--font-num);font-size:12px;font-weight:700;" id="score-harshevents">—</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:var(--text2);" id="score-lbl-smooth">Sabit sürüş</span>
-            <span style="font-family:var(--font-num);font-size:12px;font-weight:700;" id="score-smooth">—</span>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);text-align:center;font-style:italic;" id="score-tip">Takibi başlat ve sürmeye başla.</div>
-    </div>
-
-    <!-- Ani Fren / Hızlanma -->
-    <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;" id="lbl-harsh-title">⚡ ANİ HAREKET ALGILAMA</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="background:rgba(255,59,92,0.07);border:1px solid rgba(255,59,92,0.2);border-radius:12px;padding:12px;text-align:center;">
-          <div style="font-size:22px;margin-bottom:4px;">🛑</div>
-          <div style="font-family:var(--font-num);font-size:28px;font-weight:700;color:#ff3b5c;line-height:1;" id="harsh-brake">0</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;" id="lbl-harsh-brake">ANİ FREN</div>
-        </div>
-        <div style="background:rgba(255,107,53,0.07);border:1px solid rgba(255,107,53,0.2);border-radius:12px;padding:12px;text-align:center;">
-          <div style="font-size:22px;margin-bottom:4px;">🚀</div>
-          <div style="font-family:var(--font-num);font-size:28px;font-weight:700;color:var(--accent2);line-height:1;" id="harsh-accel">0</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;" id="lbl-harsh-accel">ANİ HIZLANMA</div>
-        </div>
-      </div>
-      <div style="margin-top:10px;background:rgba(255,255,255,0.03);border-radius:10px;padding:10px 12px;">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;" id="lbl-last-event">SON OLAY</div>
-        <div style="font-size:12px;color:var(--text2);" id="harsh-last">Henüz olay yok</div>
-      </div>
-    </div>
-
-    <!-- Okul / Hastane Bölgesi -->
-    <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:#ffd166;margin-bottom:12px;" id="lbl-zone-title">🏫 ÖZEL BÖLGE UYARILARI</div>
-      <div id="zone-active-banner" style="display:none;align-items:center;gap:8px;background:rgba(255,209,102,0.12);border:1px solid rgba(255,209,102,0.4);border-radius:12px;padding:12px;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="font-size:24px;" id="zone-icon">🏫</div>
-          <div>
-            <div style="font-family:var(--font-num);font-size:14px;font-weight:700;color:#ffd166;" id="zone-name">Okul Bölgesi</div>
-            <div style="font-size:11px;color:var(--muted);" id="zone-dist-text">— m uzakta</div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px;color:var(--text2);" id="lbl-zone-passed">Bu sürüşte geçilen bölge</span>
-        <span style="font-family:var(--font-num);font-size:16px;font-weight:700;color:var(--text);" id="zone-count">0</span>
-      </div>
-      <div style="margin-top:8px;font-size:11px;color:var(--muted);" id="zone-status">GPS aktif değil</div>
-    </div>
-
-    <!-- Yakıt / Elektrik Tahmini -->
-    <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent3);margin-bottom:12px;" id="lbl-fuel-title">⛽ TÜKETİM TAHMİNİ</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button id="fuel-tab-petrol" onclick="setFuelMode('petrol')" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--accent3);background:rgba(57,255,20,0.1);color:var(--accent3);font-family:var(--font-display);font-size:9px;letter-spacing:1px;cursor:pointer;"><span id="lbl-fuel-petrol">⛽ YAKIT</span></button>
-        <button id="fuel-tab-electric" onclick="setFuelMode('electric')" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:9px;letter-spacing:1px;cursor:pointer;"><span id="lbl-fuel-electric">⚡ ELEKTRİK</span></button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;text-align:center;">
-          <div style="font-family:var(--font-num);font-size:24px;font-weight:700;color:var(--text);" id="fuel-est">—</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;" id="fuel-unit-label">L/100km</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;text-align:center;">
-          <div style="font-family:var(--font-num);font-size:24px;font-weight:700;color:var(--text);" id="fuel-cost">—</div>
-          <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;" id="lbl-fuel-cost">TAHMİNİ MALİYET</div>
-        </div>
-      </div>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:11px;color:var(--muted);" id="lbl-fuel-price">Fiyat (₺/L veya ₺/kWh):</span>
-        <input id="fuel-price-input" type="number" value="42" min="1" max="999" step="0.5" oninput="calcFuel()" style="width:70px;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:8px;font-family:var(--font-num);font-size:13px;text-align:center;">
-      </div>
-    </div>
-
-    <!-- Haftalık/Aylık Rapor -->
-    <div class="trip-bar" style="padding:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent);" id="lbl-driving-report">📈 SÜRÜŞ RAPORU</div>
-        <div style="display:flex;gap:4px;">
-          <button onclick="setReportPeriod('week')" id="report-week-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--accent);background:rgba(0,229,255,0.1);color:var(--accent);font-family:var(--font-display);font-size:8px;cursor:pointer;"><span id="lbl-report-week">HAFTA</span></button>
-          <button onclick="setReportPeriod('month')" id="report-month-btn" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:8px;cursor:pointer;"><span id="lbl-report-month">AY</span></button>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 6px;text-align:center;">
-          <div style="font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--text);" id="report-trips">0</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-report-trips">YOLCULUK</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 6px;text-align:center;">
-          <div style="font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--text);" id="report-km">0</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-report-km">TOPLAM KM</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 6px;text-align:center;">
-          <div style="font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--text);" id="report-avg-score">—</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-report-score">ORT SKOR</div>
-        </div>
-      </div>
-      <!-- Basit bar grafik -->
-      <div style="font-size:10px;color:var(--muted);margin-bottom:6px;" id="report-chart-label">Son 7 gün — günlük km</div>
-      <div style="display:flex;align-items:flex-end;gap:3px;height:48px;" id="report-bars"></div>
-    </div>
-
-    <!-- Özelleştirilebilir Uyarı Mesafesi -->
-    <div class="trip-bar" style="padding:16px;">
-      <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;" id="lbl-alert-dist-title">📡 UYARI MESAFESİ</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;" id="lbl-alert-dist-sub">EDS kameralarına kaç metre kala uyarı alacaksın?</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="dist-btn active" data-dist="300" onclick="setAlertDist(300)">300 m</button>
-        <button class="dist-btn" data-dist="500" onclick="setAlertDist(500)">500 m</button>
-        <button class="dist-btn" data-dist="750" onclick="setAlertDist(750)">750 m</button>
-        <button class="dist-btn" data-dist="1000" onclick="setAlertDist(1000)">1 km</button>
-        <button class="dist-btn" data-dist="1500" onclick="setAlertDist(1500)">1.5 km</button>
-      </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);"><span id="lbl-selected">Seçili</span>: <span style="color:var(--accent);" id="alert-dist-label">300 m</span></div>
-    </div>
-
-    <!-- Canlı Trafik -->
-    <div class="trip-bar" style="padding:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:#ff3b5c;" id="lbl-traffic-title">🚦 CANLI TRAFİK</div>
-        <div style="font-size:9px;color:var(--muted);">Waze verisi</div>
-      </div>
-      <div id="traffic-loading" style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">GPS aktif değil</div>
-      <div id="traffic-data" style="display:none;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-          <div style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;" id="traffic-icon-box">🟢</div>
-          <div>
-            <div style="font-family:var(--font-num);font-size:16px;font-weight:700;color:var(--text);" id="traffic-status">Akıcı</div>
-            <div style="font-size:11px;color:var(--muted);" id="traffic-desc">Normal seyir süresi</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;">
-            <div style="font-family:var(--font-num);font-size:18px;font-weight:700;color:var(--text);" id="traffic-delay">0</div>
-            <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-traffic-delay">DAKİKA GECİKME</div>
-          </div>
-          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center;">
-            <div style="font-family:var(--font-num);font-size:18px;font-weight:700;color:var(--text);" id="traffic-level">1/5</div>
-            <div style="font-size:9px;color:var(--muted);margin-top:2px;" id="lbl-traffic-level">YOĞUNLUK SEVİYESİ</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══ GEÇMİŞ ══ -->
-<div class="page" id="page-history">
-  <div style="display:flex;justify-content:space-between;align-items:center;">
-    <div style="font-family:var(--font-display);font-size:11px;letter-spacing:3px;color:var(--accent);" id="t-triphisttitle">YOLCULUK GEÇMİŞİ</div>
-    <button onclick="clearHistory()" style="background:rgba(255,59,92,0.1);border:1px solid rgba(255,59,92,0.2);color:var(--warn);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;" id="t-clearall">Tümünü Sil</button>
-  </div>
-  <div id="historyList"></div>
-</div>
-
-<!-- ══ AYARLAR ══ -->
-<div class="page" id="page-settings">
-  <div style="font-family:var(--font-display);font-size:11px;letter-spacing:3px;color:var(--accent);padding-bottom:4px;" id="t-settingstitle">AYARLAR</div>
-
-  <!-- Premium Card -->
-  <div class="premium-card" id="premiumCardSettings">
-    <div class="premium-card-icon">⭐</div>
-    <div class="premium-card-title">Radar Safe Pro</div>
-    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.2);border-radius:20px;padding:4px 12px;font-size:11px;color:#39ff14;letter-spacing:1px;margin-bottom:4px;" id="trial-badge2">🎁 <span id="trial-txt2">7 GÜN ÜCRETSİZ DENE</span></div>
-    <div class="premium-card-features">
-      <div class="premium-feature"><span class="premium-feature-icon">🚫</span><span id="pc-f1">Reklam yok</span></div>
-      <div class="premium-feature"><span class="premium-feature-icon">🚨</span><span id="pc-f2">Sınırsız EDS uyarısı</span></div>
-      <div class="premium-feature"><span class="premium-feature-icon">🗺️</span><span id="pc-f3">Detaylı rota haritası</span></div>
-      <div class="premium-feature"><span class="premium-feature-icon">📊</span><span id="pc-f4">Sınırsız geçmiş</span></div>
-    </div>
-    <button class="premium-buy-btn" onclick="buyPremium()" id="premiumBuyBtn">💳 14,99 ₺ / Ay — ABONE OL</button>
-    <div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5;" id="sub-note-card">İstediğin zaman iptal edebilirsin. Abonelik otomatik yenilenir.</div>
-    <div class="premium-restore" onclick="restorePurchase()" id="t-restore">Aboneliği geri yükle</div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-title" id="t-lang-title">DİL / LANGUAGE</div>
-    <div class="settings-row">
-      <div><div class="settings-row-label" id="t-lang-label">Dil</div></div>
-      <select class="settings-select" id="langSelect" onchange="changeLang(this.value)">
-        <option value="tr">🇹🇷 Türkçe</option>
-        <option value="en">🇬🇧 English</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-title" id="t-alerts-title">UYARILAR</div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-sound-lbl">Ses Uyarısı</div><div class="settings-row-sub" id="t-sound-sub">Limit aşılınca bip</div></div><div class="toggle on" id="toggle-sound" onclick="toggleSetting('sound')"></div></div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-visual-lbl">Ekran Uyarısı</div><div class="settings-row-sub" id="t-visual-sub">Ekran kırmızıya döner</div></div><div class="toggle on" id="toggle-visual" onclick="toggleSetting('visual')"></div></div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-notif-lbl">Bildirim</div><div class="settings-row-sub" id="t-notif-sub">Arka plan bildirimi</div></div><div class="toggle on" id="toggle-notif" onclick="toggleSetting('notif')"></div></div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-eds-lbl">EDS Kamera Uyarısı</div><div class="settings-row-sub" id="t-eds-sub">Sabit radar kamerası</div></div><div class="toggle on" id="toggle-eds" onclick="toggleSetting('eds')"></div></div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-delay-lbl">Uyarı Gecikmesi</div><div class="settings-row-sub" id="t-delay-sub">Limit aşılınca bekleme</div></div>
-      <select class="settings-select" id="alertDelay" onchange="saveSettings()"><option value="2000">2s</option><option value="3000" selected>3s</option><option value="5000">5s</option></select></div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-title" id="t-unit-title">HIZ BİRİMİ</div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-unit-lbl">Birim</div></div>
-      <select class="settings-select" id="speedUnit" onchange="saveSettings()"><option value="kmh" selected>km/s</option><option value="mph">mph</option><option value="ms">m/s</option></select></div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-title" id="t-map-title">HARİTA & LİMİT</div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-osm-lbl">OSM Hız Limiti</div><div class="settings-row-sub" id="t-osm-sub">Otomatik tespit</div></div><div class="toggle on" id="toggle-osm" onclick="toggleSetting('osm')"></div></div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-deflimit-lbl">Varsayılan Limit</div><div class="settings-row-sub" id="t-deflimit-sub">OSM yoksa</div></div>
-      <select class="settings-select" id="defaultLimit" onchange="saveSettings()"><option value="30">30</option><option value="50" selected>50</option><option value="90">90</option><option value="120">120</option></select></div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-save-lbl">Yolculukları Kaydet</div><div class="settings-row-sub" id="t-save-sub">Geçmişe ekle</div></div><div class="toggle on" id="toggle-save" onclick="toggleSetting('save')"></div></div>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-title">APP</div>
-    <div class="settings-row"><div><div class="settings-row-label">Radar Safe</div></div><div style="font-family:var(--font-display);font-size:11px;color:var(--muted);">v3.0.0</div></div>
-    <div class="settings-row"><div><div class="settings-row-label" id="t-datasrc-lbl">Veri</div></div><div style="font-size:11px;color:var(--muted);">OpenStreetMap</div></div>
-  </div>
-
-  <!-- TEMA SEÇİCİ -->
-  <div class="settings-section">
-    <div class="settings-title">🎨 <span id="lbl-theme-title">TEMA</span></div>
-    <div style="padding:14px 16px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-        <button class="theme-swatch" data-theme="theme-night" onclick="applyTheme('theme-night')" style="--sw-bg:#080c10;--sw-accent:#00e5ff;">
-          <div class="swatch-preview" style="background:#080c10;border-color:rgba(0,229,255,0.4);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#00e5ff;margin:auto;margin-top:8px;box-shadow:0 0 6px #00e5ff;"></div>
-          </div>
-          <div class="swatch-label" id="lbl-theme-night">Gece</div>
-        </button>
-        <button class="theme-swatch" data-theme="theme-forest" onclick="applyTheme('theme-forest')" style="">
-          <div class="swatch-preview" style="background:#060f08;border-color:rgba(0,255,136,0.4);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#00ff88;margin:auto;margin-top:8px;box-shadow:0 0 6px #00ff88;"></div>
-          </div>
-          <div class="swatch-label" id="lbl-theme-forest">Orman</div>
-        </button>
-        <button class="theme-swatch" data-theme="theme-neon" onclick="applyTheme('theme-neon')">
-          <div class="swatch-preview" style="background:#0a0510;border-color:rgba(191,95,255,0.4);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#bf5fff;margin:auto;margin-top:8px;box-shadow:0 0 6px #bf5fff;"></div>
-          </div>
-          <div class="swatch-label" id="lbl-theme-neon">Neon</div>
-        </button>
-        <button class="theme-swatch" data-theme="theme-sunset" onclick="applyTheme('theme-sunset')">
-          <div class="swatch-preview" style="background:#0f080a;border-color:rgba(255,107,107,0.4);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#ff6b6b;margin:auto;margin-top:8px;box-shadow:0 0 6px #ff6b6b;"></div>
-          </div>
-          <div class="swatch-label" id="lbl-theme-sunset">Gün Batımı</div>
-        </button>
-        <button class="theme-swatch" data-theme="theme-steel" onclick="applyTheme('theme-steel')">
-          <div class="swatch-preview" style="background:#0d0d0f;border-color:rgba(200,208,224,0.3);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#c8d0e0;margin:auto;margin-top:8px;box-shadow:0 0 4px #c8d0e0;"></div>
-          </div>
-          <div class="swatch-label" id="lbl-theme-steel">Çelik</div>
-        </button>
-        <button class="theme-swatch" data-theme="theme-light" onclick="applyTheme('theme-light')">
-          <div class="swatch-preview" style="background:#f0f4f8;border-color:rgba(0,119,204,0.4);">
-            <div style="width:10px;height:10px;border-radius:50%;background:#0077cc;margin:auto;margin-top:8px;box-shadow:0 0 4px rgba(0,119,204,0.5);"></div>
-          </div>
-          <div class="swatch-label" id="lbl-theme-light" style="color:#555;">Açık</div>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- YAZI FONTU SEÇİCİ -->
-  <div class="settings-section">
-    <div class="settings-title">🔤 <span id="lbl-font-title">YAZI FONTU</span></div>
-    <div style="padding:10px 16px;display:flex;flex-direction:column;gap:6px;">
-      <button class="font-choice" data-font="Rajdhani" onclick="applyFont('Rajdhani')">
-        <span style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;">Rajdhani</span>
-        <span class="font-sub" id="lbl-font-rajdhani">Varsayılan · Teknik</span>
-      </button>
-      <button class="font-choice" data-font="Inter" onclick="applyFont('Inter')">
-        <span style="font-family:'Inter',sans-serif;font-size:16px;font-weight:600;">Inter</span>
-        <span class="font-sub" id="lbl-font-inter">Modern · Okunaklı</span>
-      </button>
-      <button class="font-choice" data-font="Space Grotesk" onclick="applyFont('Space Grotesk')">
-        <span style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;">Space Grotesk</span>
-        <span class="font-sub" id="lbl-font-space">Geometrik · Şık</span>
-      </button>
-      <button class="font-choice" data-font="DM Sans" onclick="applyFont('DM Sans')">
-        <span style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;">DM Sans</span>
-        <span class="font-sub" id="lbl-font-dm">Yuvarlak · Yumuşak</span>
-      </button>
-      <button class="font-choice" data-font="Outfit" onclick="applyFont('Outfit')">
-        <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;">Outfit</span>
-        <span class="font-sub" id="lbl-font-outfit">Temiz · Minimal</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══ KILAVUZ ══ -->
-<div class="page" id="page-guide">
-  <div style="font-family:var(--font-display);font-size:11px;letter-spacing:3px;color:var(--accent);padding-bottom:4px;" id="lbl-guide-title">SÜRÜCÜ KILAVUZU</div>
-  <div style="font-size:11px;color:var(--muted);margin-bottom:4px;" id="lbl-guide-sub">Trafik cezası almamak için dikkat etmen gerekenler</div>
-  <div id="guide-cards-container"></div>
-  <div style="font-size:10px;color:var(--muted);text-align:center;padding:8px 0 4px;line-height:1.6;" id="guide-footer">
-    📌 Cezalar 27 Şubat 2026 tarihli 7574 sayılı Kanun ile güncellendi.<br>Güncel bilgi için trafik.gov.tr adresini ziyaret edin.
-  </div>
-</div>
-
-</div>
-
-<script>
-// ══════════════════════════════════════════════════════
-// DİL
-// ══════════════════════════════════════════════════════
-const STRINGS={
-  tr:{
-    'accuracyReady':'HAZIR','accuracyGood':'GPS İYİ','accuracyMedium':'GPS ORTA','accuracyWeak':'GPS ZAYIF','accuracyError':'HATA',
-    't-speed':'🏎 HIZ','t-hist':'📋 GEÇMİŞ','t-sett':'⚙️ AYARLAR','t-guide':'📖 KILAVUZ',
-    't-install':'📲 Ana ekrana ekle!','t-speedlimit':'HIZ LİMİTİ',
-    't-curspeed':'ANLÍK HIZ','t-avg':'ORT. HIZ','t-max':'MAK. HIZ',
-    't-dist':'MESAFE (KM)','t-alt':'İRTİFA (M)','t-triptime':'SEYAHAT SÜRESİ',
-    't-speedhist':'HIZ GEÇMİŞİ (SON 60S)','t-routemap':'ROTA HARİTASI',
-    't-hudopen':'HUD MODU — ÖN CAMA YANSITIN',
-    't-gpserr':'GPS izni gerekiyor.',
-    't-startbtn':'TAKİBİ BAŞLAT','t-stopbtn':'DURDUR',
-    't-triphisttitle':'YOLCULUK GEÇMİŞİ','t-clearall':'Tümünü Sil',
-    't-settingstitle':'AYARLAR','t-lang-title':'DİL / LANGUAGE','t-lang-label':'Dil',
-    't-alerts-title':'UYARILAR',
-    't-sound-lbl':'Ses Uyarısı','t-sound-sub':'Limit aşılınca bip',
-    't-visual-lbl':'Ekran Uyarısı','t-visual-sub':'Ekran kırmızıya döner',
-    't-notif-lbl':'Bildirim','t-notif-sub':'Arka plan bildirimi',
-    't-eds-lbl':'EDS Kamera Uyarısı','t-eds-sub':'Sabit radar kamerası',
-    't-delay-lbl':'Uyarı Gecikmesi','t-delay-sub':'Limit aşılınca bekleme',
-    't-unit-title':'HIZ BİRİMİ','t-unit-lbl':'Birim',
-    't-map-title':'HARİTA & LİMİT','t-osm-lbl':'OSM Hız Limiti','t-osm-sub':'Otomatik tespit',
-    't-deflimit-lbl':'Varsayılan Limit','t-deflimit-sub':'OSM yoksa',
-    't-save-lbl':'Yolculukları Kaydet','t-save-sub':'Geçmişe ekle',
-    't-datasrc-lbl':'Veri Kaynağı','t-restore':'Aboneliği geri yükle',
-    'limitWaiting':'Konum bekleniyor','limitQuerying':'Sorgulanıyor...','limitError':'Bağlantı hatası',
-    'hudLimitLabel':'LİMİT','flipBtn':'↕ ÇEVİR','closeBtn':'✕ KAPAT',
-    'emptyHistory':'Henüz yolculuk yok.\nTakibi başlat!',
-    'deleteConfirm':'Tüm geçmiş silinsin mi?',
-    'kmLabel':'KM','avgLabel':'ORT','maxLabel':'MAK','durLabel':'SÜRE',
-    'edsTitle':'EDS KAMERA YAKINDA',
-    'pm-sub':'Reklamları kaldır, tüm özelliklerin kilidini aç',
-    'pm-f1':'Reklam yok','pm-f2':'Sınırsız EDS uyarısı','pm-f3':'Detaylı rota haritası','pm-f4':'Tüm temalar','pm-f5':'Sınırsız geçmiş',
-    'pm-price':'14,99 ₺ / Ay — ABONE OL','pm-restore':'Aboneliği geri yükle','trial-txt':'7 GÜN ÜCRETSİZ DENE','trial-txt2':'7 GÜN ÜCRETSİZ DENE','sub-note-modal':'İstediğin zaman iptal et. Otomatik yenilenir.','sub-note-card':'İstediğin zaman iptal edebilirsin. Abonelik otomatik yenilenir.',
-    'pc-f1':'Reklam yok','pc-f2':'Sınırsız EDS uyarısı','pc-f3':'Detaylı rota haritası','pc-f4':'Sınırsız geçmiş',
-    'rate-title':'UYGULAMAYI BEĞENDİN Mİ?','rate-sub':'Değerlendirmen bize çok yardımcı olur!',
-    'rate-yes':'⭐ Değerlendir','rate-later':'Daha Sonra','rate-no':'Hayır, Teşekkürler',
-    'skipLabel':'saniye sonra atla',
-    'unitLabel':'KM/S',
-    'tripStart':'▶ BAŞLAT','tripStop':'⏹ DURDUR','tripGpsNeeded':'GPS GEREKLİ',
-    'trip1Name':'Yolculuk 1','trip2Name':'Yolculuk 2',
-    'zoneGpsOff':'GPS aktif değil','zoneTracking':'GPS aktif — bölgeler takip ediliyor',
-    'zoneChecking':'Bölgeler kontrol ediliyor...','zoneNone':'Yakında özel bölge yok',
-    'zoneFailed':'Bölge verisi alınamadı',
-    'trafficGpsOff':'GPS aktif değil','trafficQuerying':'GPS aktif, trafik sorgulanıyor...',
-    'trafficLoading':'Trafik verisi alınıyor...','trafficFailed':'Trafik verisi alınamadı',
-    'trafficFlowing':'Akıcı','trafficLight':'Sakin','trafficMedium':'Orta','trafficHeavy':'Yoğun',
-    'trafficWeekend':'Hafta sonu trafiği','trafficPeak':'Yoğun saat trafiği',
-    'trafficNormal':'Normal seyir süresi','trafficSlow':'Biraz yavaş akıyor','trafficOpen':'Yol açık',
-    'scoreTip0':'Harika! Çok sakin sürüyorsun 👏',
-    'scoreTip1':'İyi sürüş! Küçük iyileştirmelerle mükemmel olur.',
-    'scoreTip2':'Ortalama sürüş. Ani hareketlere dikkat et.',
-    'scoreTip3':'Dikkatli ol! Hız ihlalleri skoru düşürüyor.',
-    'scoreTip4':'Tehlikeli sürüş tarzı tespit edildi. Lütfen yavaşla.',
-    'scoreTipWait':'Takibi başlat ve sürmeye başla.',
-    'harshNoEvent':'Henüz olay yok',
-    'harshBrakeEvent':'🛑 Ani fren — ','harshAccelEvent':'🚀 Ani hızlanma — ',
-    'reportChartLabel':'Son %d gün — günlük km',
-    'fuelUnitPetrol':'L/100km','fuelUnitElectric':'kWh/100km',
-    'lbl-fuel-petrol':'⛽ YAKIT','lbl-fuel-electric':'⚡ ELEKTRİK',
-    'score-lbl-speeding':'Hız ihlali','score-lbl-harsh':'Ani fren/gaz','score-lbl-smooth':'Sabit sürüş',
-    'lbl-harsh-brake':'ANİ FREN','lbl-harsh-accel':'ANİ HIZLANMA','lbl-last-event':'SON OLAY',
-    'lbl-zone-passed':'Bu sürüşte geçilen bölge',
-    'lbl-fuel-cost':'TAHMİNİ MALİYET','lbl-fuel-price':'Fiyat (₺/L veya ₺/kWh):',
-    'lbl-driving-report':'📈 SÜRÜŞ RAPORU',
-    'lbl-report-trips':'YOLCULUK','lbl-report-km':'TOPLAM KM','lbl-report-score':'ORT SKOR',
-    'lbl-report-week':'HAFTA','lbl-report-month':'AY',
-    'lbl-alert-dist-title':'📡 UYARI MESAFESİ','lbl-alert-dist-sub':'EDS kameralarına kaç metre kala uyarı alacaksın?',
-    'lbl-selected':'Seçili',
-    'lbl-traffic-delay':'DAKİKA GECİKME','lbl-traffic-level':'YOĞUNLUK SEVİYESİ',
-    'lbl-tripA-avg':'ORT KM/S','lbl-tripA-max':'MAK KM/S','lbl-tripB-avg':'ORT KM/S','lbl-tripB-max':'MAK KM/S',
-    'trip1-tag':'genel','trip2-tag':'bölüm',
-    'score-session-label':'Bu sürüş',
-    'lbl-theme-title':'TEMA','lbl-font-title':'YAZI FONTU',
-    'lbl-theme-night':'Gece','lbl-theme-forest':'Orman','lbl-theme-neon':'Neon',
-    'lbl-theme-sunset':'Gün Batımı','lbl-theme-steel':'Çelik','lbl-theme-light':'Açık',
-    'lbl-font-rajdhani':'Varsayılan · Teknik','lbl-font-inter':'Modern · Okunaklı',
-    'lbl-font-space':'Geometrik · Şık','lbl-font-dm':'Yuvarlak · Yumuşak','lbl-font-outfit':'Temiz · Minimal',
-    'lbl-guide-title':'SÜRÜCÜ KILAVUZU','lbl-guide-sub':'Trafik cezası almamak için dikkat etmen gerekenler',
-    'lbl-driving-score-title':'🏆 SÜRÜŞ SKORU','lbl-harsh-title':'⚡ ANİ HAREKET ALGILAMA',
-    'lbl-zone-title':'🏫 ÖZEL BÖLGE UYARILARI','lbl-fuel-title':'⛽ TÜKETİM TAHMİNİ',
-    'lbl-traffic-title':'🚦 CANLI TRAFİK',
-  },
-  en:{
-    'accuracyReady':'READY','accuracyGood':'GPS GOOD','accuracyMedium':'GPS FAIR','accuracyWeak':'GPS WEAK','accuracyError':'ERROR',
-    't-speed':'🏎 SPEED','t-hist':'📋 HISTORY','t-sett':'⚙️ SETTINGS','t-guide':'📖 GUIDE',
-    't-install':'📲 Add to home screen!','t-speedlimit':'SPEED LIMIT',
-    't-curspeed':'CURRENT SPEED','t-avg':'AVG SPEED','t-max':'MAX SPEED',
-    't-dist':'DISTANCE (KM)','t-alt':'ALTITUDE (M)','t-triptime':'TRIP DURATION',
-    't-speedhist':'SPEED HISTORY (LAST 60S)','t-routemap':'ROUTE MAP',
-    't-hudopen':'HUD MODE — PROJECT ON WINDSHIELD',
-    't-gpserr':'GPS permission required.',
-    't-startbtn':'START TRACKING','t-stopbtn':'STOP',
-    't-triphisttitle':'TRIP HISTORY','t-clearall':'Clear All',
-    't-settingstitle':'SETTINGS','t-lang-title':'LANGUAGE / DİL','t-lang-label':'Language',
-    't-alerts-title':'ALERTS',
-    't-sound-lbl':'Sound Alert','t-sound-sub':'Beep when limit exceeded',
-    't-visual-lbl':'Visual Alert','t-visual-sub':'Screen turns red',
-    't-notif-lbl':'Notification','t-notif-sub':'Background push notification',
-    't-eds-lbl':'Speed Camera Alert','t-eds-sub':'Fixed radar cameras',
-    't-delay-lbl':'Alert Delay','t-delay-sub':'Wait before alerting',
-    't-unit-title':'SPEED UNIT','t-unit-lbl':'Unit',
-    't-map-title':'MAP & LIMIT','t-osm-lbl':'OSM Speed Limit','t-osm-sub':'Auto detection',
-    't-deflimit-lbl':'Default Limit','t-deflimit-sub':'When no OSM data',
-    't-save-lbl':'Save Trips','t-save-sub':'Add to history',
-    't-datasrc-lbl':'Data Source','t-restore':'Restore subscription',
-    'limitWaiting':'Waiting for location','limitQuerying':'Querying...','limitError':'Connection error',
-    'hudLimitLabel':'LIMIT','flipBtn':'↕ FLIP','closeBtn':'✕ CLOSE',
-    'emptyHistory':'No trips yet.\nStart tracking!',
-    'deleteConfirm':'Delete all trip history?',
-    'kmLabel':'KM','avgLabel':'AVG','maxLabel':'MAX','durLabel':'DUR',
-    'edsTitle':'SPEED CAMERA AHEAD',
-    'pm-sub':'Remove ads & unlock all features',
-    'pm-f1':'No ads','pm-f2':'Unlimited camera alerts','pm-f3':'Detailed route map','pm-f4':'All themes','pm-f5':'Unlimited history',
-    'pm-price':'$0.99 / Month — SUBSCRIBE','pm-restore':'Restore subscription','trial-txt':'7-DAY FREE TRIAL','trial-txt2':'7-DAY FREE TRIAL','sub-note-modal':'Cancel anytime. Auto-renews monthly.','sub-note-card':'Cancel anytime. Subscription auto-renews monthly.',
-    'pc-f1':'No ads','pc-f2':'Unlimited camera alerts','pc-f3':'Detailed route map','pc-f4':'Unlimited history',
-    'rate-title':'ENJOYING RADAR SAFE?','rate-sub':'Your rating helps us a lot!',
-    'rate-yes':'⭐ Rate Now','rate-later':'Later','rate-no':'No Thanks',
-    'skipLabel':'seconds to skip',
-    'unitLabel':'KM/H',
-    'tripStart':'▶ START','tripStop':'⏹ STOP','tripGpsNeeded':'GPS NEEDED',
-    'trip1Name':'Trip 1','trip2Name':'Trip 2',
-    'zoneGpsOff':'GPS inactive','zoneTracking':'GPS active — zones tracked',
-    'zoneChecking':'Checking zones...','zoneNone':'No special zones nearby',
-    'zoneFailed':'Zone data unavailable',
-    'trafficGpsOff':'GPS inactive','trafficQuerying':'GPS active, querying traffic...',
-    'trafficLoading':'Fetching traffic data...','trafficFailed':'Traffic data unavailable',
-    'trafficFlowing':'Flowing','trafficLight':'Light','trafficMedium':'Moderate','trafficHeavy':'Heavy',
-    'trafficWeekend':'Weekend traffic','trafficPeak':'Rush hour traffic',
-    'trafficNormal':'Normal travel time','trafficSlow':'Slightly slow','trafficOpen':'Road clear',
-    'scoreTip0':'Excellent! Very smooth driving 👏',
-    'scoreTip1':'Good drive! Small improvements will make it perfect.',
-    'scoreTip2':'Average driving. Watch out for sudden movements.',
-    'scoreTip3':'Be careful! Speed violations lower your score.',
-    'scoreTip4':'Dangerous driving detected. Please slow down.',
-    'scoreTipWait':'Start tracking and begin driving.',
-    'harshNoEvent':'No events yet',
-    'harshBrakeEvent':'🛑 Hard brake — ','harshAccelEvent':'🚀 Hard acceleration — ',
-    'reportChartLabel':'Last %d days — daily km',
-    'fuelUnitPetrol':'L/100km','fuelUnitElectric':'kWh/100km',
-    'lbl-fuel-petrol':'⛽ FUEL','lbl-fuel-electric':'⚡ ELECTRIC',
-    'score-lbl-speeding':'Speed violation','score-lbl-harsh':'Hard brake/accel','score-lbl-smooth':'Smooth driving',
-    'lbl-harsh-brake':'HARD BRAKE','lbl-harsh-accel':'HARD ACCEL','lbl-last-event':'LAST EVENT',
-    'lbl-zone-passed':'Zones passed this trip',
-    'lbl-fuel-cost':'EST. COST','lbl-fuel-price':'Price ($/L or $/kWh):',
-    'lbl-driving-report':'📈 DRIVING REPORT',
-    'lbl-report-trips':'TRIPS','lbl-report-km':'TOTAL KM','lbl-report-score':'AVG SCORE',
-    'lbl-report-week':'WEEK','lbl-report-month':'MONTH',
-    'lbl-alert-dist-title':'📡 ALERT DISTANCE','lbl-alert-dist-sub':'How far before a speed camera to alert?',
-    'lbl-selected':'Selected',
-    'lbl-traffic-delay':'MIN DELAY','lbl-traffic-level':'TRAFFIC LEVEL',
-    'lbl-tripA-avg':'AVG KM/H','lbl-tripA-max':'MAX KM/H','lbl-tripB-avg':'AVG KM/H','lbl-tripB-max':'MAX KM/H',
-    'trip1-tag':'general','trip2-tag':'segment',
-    'score-session-label':'This trip',
-    'lbl-theme-title':'THEME','lbl-font-title':'FONT',
-    'lbl-theme-night':'Night','lbl-theme-forest':'Forest','lbl-theme-neon':'Neon',
-    'lbl-theme-sunset':'Sunset','lbl-theme-steel':'Steel','lbl-theme-light':'Light',
-    'lbl-font-rajdhani':'Default · Technical','lbl-font-inter':'Modern · Readable',
-    'lbl-font-space':'Geometric · Sleek','lbl-font-dm':'Rounded · Soft','lbl-font-outfit':'Clean · Minimal',
-    'lbl-guide-title':'DRIVER\'S GUIDE','lbl-guide-sub':'Things to watch out for to avoid traffic fines',
-    'lbl-driving-score-title':'🏆 DRIVING SCORE','lbl-harsh-title':'⚡ HARSH EVENT DETECTION',
-    'lbl-zone-title':'🏫 SPECIAL ZONE ALERTS','lbl-fuel-title':'⛽ CONSUMPTION ESTIMATE',
-    'lbl-traffic-title':'🚦 LIVE TRAFFIC',
-  }
-};
-let lang='tr';
-function t(k){return(STRINGS[lang]||STRINGS.tr)[k]||k;}
-
-const GUIDE_DATA={
-  tr:[
-    {icon:'🚗',title:'Hız Limiti İhlali',body:'Şehir içi 50 km/s, şehirlerarası yollarda 90 km/s, otoyollarda 120 km/s limitine uyulmalıdır. EDS kameralarında anlık hız ölçülür. Aşım miktarına göre ceza kademeli olarak artar, yüksek aşımlarda ehliyete el konulur.',penalty:'⚠️ 2.000 TL – 30.000 TL (aşım miktarına göre)'},
-    {icon:'📱',title:'Seyir Halinde Telefon Kullanımı',body:'Araç kullanırken elde telefon tutmak, mesaj atmak veya sosyal medya kullanmak yasaktır. Hands-free ve araç içi Bluetooth serbesttir. Kırmızı ışıkta da elde telefon tutmak ceza gerektirir.',penalty:'⚠️ 2.719 TL ceza (2026)'},
-    {icon:'🔴',title:'Kırmızı Işık & Stop İhlali',body:'Kırmızı ışıkta geçmek ve dur işaretine uymamak en tehlikeli ihlallerden biridir. Kırmızı ışık ihlali nedeniyle kazaya sebebiyet verilirse ehliyet 60 gün geri alınır. Sarı ışıkta durmak için frene basılmalıdır.',penalty:'⚠️ 2.719 TL + 20 ceza puanı. Kazaya neden olunursa 60 gün ehliyet iptali'},
-    {icon:'🍺',title:'Alkollü Araç Kullanımı',body:'0.50 promil üstü alkollü araç kullanmak yasaktır. Profesyonel sürücüler için limit 0.20 promildir. Tekrarlayan ihlallerde ceza katlanır. Alkol testi yaptırmayı reddetmek 150.000 TL ceza ve 5 yıl ehliyet iptali gerektirir.',penalty:'⚠️ İlk ihlal: 25.000 TL | İkinci: 50.000 TL | Üçüncü: 150.000 TL + ehliyet iptali'},
-    {icon:'🪑',title:'Emniyet Kemeri',body:'Tüm koltuk yolcuları emniyet kemeri takmak zorundadır. Sürücü yolcuların kemerini taktığından sorumludur. 150 cm altındaki çocuklar için onaylı çocuk koltuğu zorunludur. Her yolcu için ayrı ceza kesilir.',penalty:'⚠️ Her kişi için 1.246 TL ceza (2026)'},
-    {icon:'🚦',title:'Makas & Tehlikeli Sürüş',body:'Kesik çizgide sollama yapılabilir, düz çizgide kesinlikle yasaktır. Makas atmak ve drift yapmak 2026\'da çok ağır yaptırımlara bağlandı. Tek ya da çift düz çizgide sollama, tepe ve viraj öncesi sollama yasaktır.',penalty:'⚠️ Makas/drift: 90.000 TL + 60 gün ehliyet iptali + 30 gün araç men'},
-    {icon:'🅿️',title:'Park & Duraklama İhlalleri',body:'Sarı şerit boyunca, engelli önü, itfaiye kapısı, hastane girişi, köprü ve tünelde park yasaktır. Acil servislere (ambulans, itfaiye) yol vermemek ayrıca cezalandırılır.',penalty:'⚠️ Park ihlali: 1.246 TL | Ambulans/itfaiyeye yol vermeme: 46.000 TL + 30 gün ehliyet'},
-    {icon:'🪪',title:'Ehliyetsiz Araç Kullanımı',body:'Ehliyetsiz araç kullanmak yasaktır. Ehliyeti geçici olarak alınmış olmasına rağmen araç kullananlar çok daha ağır cezayla karşılaşır. Ehliyetsiz sürücüye araç kullandıran işletme sahipleri de cezalandırılır.',penalty:'⚠️ Ehliyetsiz: 40.000 TL | Ehliyeti iptal edilmişken: 200.000 TL'},
-  ],
-  en:[
-    {icon:'🚗',title:'Speed Limit Violation',body:'Speed limits are 50 km/h in urban areas, 90 km/h on highways, and 120 km/h on motorways. Speed cameras measure instantaneous speed. Fines increase progressively with the amount exceeded; severe violations result in license confiscation.',penalty:'⚠️ 2,000 TL – 30,000 TL (depending on excess speed)'},
-    {icon:'📱',title:'Phone Use While Driving',body:'Holding a phone, texting, or using social media while driving is prohibited. Hands-free and in-car Bluetooth are allowed. Holding a phone at a red light also incurs a fine.',penalty:'⚠️ 2,719 TL fine (2026)'},
-    {icon:'🔴',title:'Red Light & Stop Violation',body:'Running a red light or ignoring a stop sign is one of the most dangerous violations. If an accident is caused by a red light violation, the license is suspended for 60 days. Brakes must be applied at yellow lights.',penalty:'⚠️ 2,719 TL + 20 penalty points. 60-day license suspension if accident caused'},
-    {icon:'🍺',title:'Driving Under the Influence',body:'Driving with over 0.50 promille alcohol is prohibited. The limit for professional drivers is 0.20 promille. Repeat violations multiply the fine. Refusing a breath test results in a 150,000 TL fine and 5-year license revocation.',penalty:'⚠️ 1st: 25,000 TL | 2nd: 50,000 TL | 3rd: 150,000 TL + license revocation'},
-    {icon:'🪑',title:'Seatbelt',body:'All passengers must wear seatbelts. The driver is responsible for ensuring passengers buckle up. Children under 150 cm must use an approved child seat. A separate fine is issued per person.',penalty:'⚠️ 1,246 TL per person (2026)'},
-    {icon:'🚦',title:'Dangerous Overtaking & Drifting',body:'Overtaking is only allowed on dashed lines; solid lines are strictly prohibited. Dangerous overtaking and drifting carry severe penalties as of 2026. Overtaking on double solid lines, before hills or curves is forbidden.',penalty:'⚠️ Overtaking/drift: 90,000 TL + 60-day license suspension + 30-day vehicle ban'},
-    {icon:'🅿️',title:'Parking & Stopping Violations',body:'Parking is prohibited along yellow lines, in front of disabled spaces, fire exits, hospital entrances, bridges and tunnels. Failure to yield to emergency vehicles (ambulance, fire truck) is also penalized.',penalty:'⚠️ Parking violation: 1,246 TL | Blocking emergency vehicle: 46,000 TL + 30-day license'},
-    {icon:'🪪',title:'Driving Without a License',body:'Driving without a license is illegal. Those who drive despite a suspended license face much harsher penalties. Business owners who allow unlicensed drivers to use their vehicles are also penalized.',penalty:'⚠️ No license: 40,000 TL | Driving with revoked license: 200,000 TL'},
-  ]
-};
-
-function renderGuide(){
-  const container=document.getElementById('guide-cards-container');
-  if(!container)return;
-  const cards=GUIDE_DATA[lang]||GUIDE_DATA.tr;
-  container.innerHTML=cards.map(c=>`
-    <div class="guide-card">
-      <div class="guide-icon">${c.icon}</div>
-      <div class="guide-content">
-        <div class="guide-title">${c.title}</div>
-        <div class="guide-body">${c.body}</div>
-        <div class="guide-penalty">${c.penalty}</div>
-      </div>
-    </div>`).join('');
-  const footer=document.getElementById('guide-footer');
-  if(footer) footer.innerHTML=lang==='en'
-    ?'📌 Fines updated per Law No. 7574 dated February 27, 2026.<br>Visit trafik.gov.tr for current information.'
-    :'📌 Cezalar 27 Şubat 2026 tarihli 7574 sayılı Kanun ile güncellendi.<br>Güncel bilgi için trafik.gov.tr adresini ziyaret edin.';
-}
-function applyLang(){
-  document.documentElement.lang=lang;
-  Object.keys(STRINGS[lang]).forEach(k=>{const el=document.getElementById(k);if(el)el.textContent=t(k);});
-  const safe=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-  safe('accuracyText',t('accuracyReady'));
-  safe('limitSource',t('limitWaiting'));
-  safe('speedUnitLabel',getUnitLabel());
-  safe('hudUnit',getUnitLabel());
-  safe('hudLimitLabel',t('hudLimitLabel'));
-  safe('hudFlipBtn',t('flipBtn'));
-  safe('hudCloseBtn',t('closeBtn'));
-  if(!isTracking) safe('t-startbtn',t('t-startbtn'));
-  // Yeni özellik çevirileri
-  safe('zone-status',t('zoneGpsOff'));
-  safe('traffic-loading',t('trafficGpsOff'));
-  safe('harsh-last',t('harshNoEvent'));
-  safe('score-tip',t('scoreTipWait'));
-  safe('fuel-unit-label',t('fuelUnitPetrol'));
-  // Yeni çeviriler
-  ['score-lbl-speeding','score-lbl-harsh','score-lbl-smooth',
-   'lbl-harsh-brake','lbl-harsh-accel','lbl-last-event','lbl-zone-passed',
-   'lbl-fuel-cost','lbl-fuel-price','lbl-driving-report',
-   'lbl-report-trips','lbl-report-km','lbl-report-score',
-   'lbl-report-week','lbl-report-month',
-   'lbl-alert-dist-title','lbl-alert-dist-sub','lbl-selected',
-   'lbl-traffic-delay','lbl-traffic-level',
-   'lbl-tripA-avg','lbl-tripA-max','lbl-tripB-avg','lbl-tripB-max',
-   'trip1-tag','trip2-tag','score-session-label',
-   'lbl-theme-title','lbl-font-title',
-   'lbl-theme-night','lbl-theme-forest','lbl-theme-neon','lbl-theme-sunset','lbl-theme-steel','lbl-theme-light',
-   'lbl-font-rajdhani','lbl-font-inter','lbl-font-space','lbl-font-dm','lbl-font-outfit',
-   'lbl-guide-title','lbl-guide-sub',
-   'lbl-driving-score-title','lbl-harsh-title','lbl-zone-title','lbl-fuel-title','lbl-traffic-title',
-   'lbl-fuel-petrol','lbl-fuel-electric'
-  ].forEach(k=>safe(k,t(k)));
-  // Report chart label güncelle
-  if(document.getElementById('report-chart-label')){
-    const days=typeof reportPeriod!=='undefined'&&reportPeriod==='month'?30:7;
-    document.getElementById('report-chart-label').textContent=lang==='en'?`Last ${days} days — daily km`:`Son ${days} gün — günlük km`;
-  }
-  // Trip buton isimleri
-  const btnA=document.getElementById('tripA-btn');
-  if(btnA&&btnA.textContent.includes('BAŞLAT')||btnA?.textContent.includes('START')) btnA.textContent=t('tripStart');
-  const btnB=document.getElementById('tripB-btn');
-  if(btnB&&btnB.textContent.includes('BAŞLAT')||btnB?.textContent.includes('START')) btnB.textContent=t('tripStart');
-  // Yolculuk isimleri
-  document.querySelectorAll('.trip-name').forEach((el,i)=>{ el.textContent=i===0?t('trip1Name'):t('trip2Name'); });
-  // Hız göstergesi uyarı notu
-  const noteEl=document.getElementById('speedo-note');
-  if(noteEl){
-    const span=noteEl.querySelector('#speedo-note-txt');
-    if(span) span.innerHTML=lang==='en'
-      ?'GPS shows real speed. Car speedometer may read <strong style="color:var(--text);">2–10% higher</strong> by law.'
-      :'GPS gerçek hızı gösterir. Araç göstergesi yasal zorunluluk gereği <strong style="color:var(--text);">%2–10 daha yüksek</strong> gösterebilir.';
-  }
-  renderHistory();
-  renderGuide();
-}
-function changeLang(l){lang=l;settings.lang=l;saveSettings();applyLang();}
-function detectLang(){if(settings.lang)return settings.lang;const n=(navigator.language||'en').toLowerCase();return n.startsWith('tr')?'tr':'en';}
-
-// ══════════════════════════════════════════════════════
-// AYARLAR
-// ══════════════════════════════════════════════════════
-const settings={sound:true,visual:true,notif:true,osm:true,save:true,eds:true,alertDelay:3000,speedUnit:'kmh',defaultLimit:50,lang:null,theme:'theme-night',fontUi:'Rajdhani',fontDisplay:'Orbitron',fontNum:'Rajdhani',alertDist:300,isPremium:false,launchCount:0,neverRate:false};
-
-const THEME_CLASSES=['theme-night','theme-forest','theme-neon','theme-sunset','theme-steel','theme-light','light'];
-
-function applyTheme(themeName){
-  THEME_CLASSES.forEach(c=>document.body.classList.remove(c));
-  document.body.classList.add(themeName);
-  // CSS'deki body.light kuralları için de senkronize et
-  if(themeName==='theme-light'){document.body.classList.add('light');}
-  if(themeName==='theme-light'){
-    document.getElementById('themeBtn').textContent='☀️';
-  } else {
-    document.getElementById('themeBtn').textContent='🌙';
-  }
-  settings.theme=themeName;
-  saveSettings();
-  // Aktif swatch güncelle
-  document.querySelectorAll('.theme-swatch').forEach(el=>{
-    el.classList.toggle('active', el.dataset.theme===themeName);
-  });
-}
-
-function applyFont(fontName){
-  const uiFonts={'Rajdhani':"'Rajdhani',sans-serif",'Inter':"'Inter',sans-serif",'Space Grotesk':"'Space Grotesk',sans-serif",'DM Sans':"'DM Sans',sans-serif",'Outfit':"'Outfit',sans-serif"};
-  const val=uiFonts[fontName]||"'Rajdhani',sans-serif";
-  document.documentElement.style.setProperty('--font-ui', val);
-  document.documentElement.style.setProperty('--font-num', val);
-  document.documentElement.style.setProperty('--font-display', val);
-  settings.fontUi=fontName;settings.fontNum=fontName;settings.fontDisplay=fontName;
-  saveSettings();
-  document.querySelectorAll('.font-choice').forEach(el=>{
-    el.classList.toggle('active', el.dataset.font===fontName);
-  });
-}
-
-function loadSettings(){
-  try{
-    const s=JSON.parse(localStorage.getItem('rg_settings')||'{}');
-    Object.assign(settings,s);
-    ['sound','visual','notif','osm','save','eds'].forEach(k=>{const el=document.getElementById('toggle-'+k);if(el)el.className='toggle'+(settings[k]?' on':'');});
-    document.getElementById('alertDelay').value=settings.alertDelay;
-    document.getElementById('speedUnit').value=settings.speedUnit;
-    document.getElementById('defaultLimit').value=settings.defaultLimit;
-    lang=detectLang();
-    document.getElementById('langSelect').value=lang;
-    // Tema uygula
-    applyTheme(settings.theme||'theme-night');
-    // Font uygula
-    applyFont(settings.fontUi||'Rajdhani');
-    if(settings.isPremium) applyPremiumUI();
-    if(sessionStorage.getItem('rg_hidenote')==='1'){const n=document.getElementById('speedo-note');if(n)n.style.display='none';}
-  }catch(e){}
-}
-function saveSettings(){
-  settings.alertDelay=parseInt(document.getElementById('alertDelay').value);
-  settings.speedUnit=document.getElementById('speedUnit').value;
-  settings.defaultLimit=parseInt(document.getElementById('defaultLimit').value);
-  settings.lang=lang;
-  localStorage.setItem('rg_settings',JSON.stringify(settings));
-  document.getElementById('speedUnitLabel').textContent=getUnitLabel();
-  document.getElementById('hudUnit').textContent=getUnitLabel();
-}
-function toggleSetting(k){settings[k]=!settings[k];document.getElementById('toggle-'+k).className='toggle'+(settings[k]?' on':'');saveSettings();}
-function getUnitLabel(){if(settings.speedUnit==='mph')return 'MPH';if(settings.speedUnit==='ms')return 'M/S';return t('unitLabel');}
-function convertSpeed(ms){if(settings.speedUnit==='mph')return ms*2.23694;if(settings.speedUnit==='ms')return ms;return ms*3.6;}
-
-// ══════════════════════════════════════════════════════
-// TEMA
-// ══════════════════════════════════════════════════════
-function toggleTheme(){
-  const isLight=document.body.classList.contains('theme-light');
-  applyTheme(isLight?'theme-night':'theme-light');
-}
-
-// ══════════════════════════════════════════════════════
-// PREMIUM
-// ══════════════════════════════════════════════════════
-function applyPremiumUI(){
-  hideBanner();
-  document.getElementById('premiumHeaderBtn').style.display='none';
-  document.getElementById('premiumBadgeHeader').style.display='inline-flex';
-  // Premium card yerine abonelik yönetim paneli göster
-  const card=document.getElementById('premiumCardSettings');
-  if(card){
-    const expiry=settings.subscriptionExpiry?new Date(settings.subscriptionExpiry).toLocaleDateString():'—';
-    const renewTxt=lang==='en'?`Next renewal: ${expiry}`:`Sonraki yenileme: ${expiry}`;
-    card.innerHTML=`
-      <div style="text-align:center;padding:16px 0 8px;">
-        <div style="font-size:32px;margin-bottom:6px;">⭐</div>
-        <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#f6d365;letter-spacing:2px;">Radar Safe Pro</div>
-        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(57,255,20,0.1);border:1px solid rgba(57,255,20,0.2);border-radius:20px;padding:4px 12px;font-size:10px;color:#39ff14;letter-spacing:1px;margin-top:8px;">✓ ${lang==='en'?'Active Subscription':'Aktif Abonelik'}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;">${renewTxt}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px;">${lang==='en'?'$0.99 / month':'14,99 ₺ / ay'}</div>
-        <button onclick="cancelSubscription()" style="margin-top:12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 18px;font-size:11px;cursor:pointer;">${lang==='en'?'Cancel Subscription':'Aboneliği İptal Et'}</button>
-      </div>`;
-  }
-}
-function checkSubscriptionStatus(){
-  try{
-    const s=JSON.parse(localStorage.getItem('rg_settings')||'{}');
-    if(s.isPremium){
-      // Abonelik süresi varsa kontrol et
-      if(s.subscriptionExpiry&&Date.now()>s.subscriptionExpiry){
-        // Süre dolmuş — premium'u kaldır
-        settings.isPremium=false;
-        settings.subscriptionExpiry=null;
-        localStorage.setItem('rg_settings',JSON.stringify(settings));
-        return;
-      }
-      settings.isPremium=true;
-      applyPremiumUI();
-    }
-  }catch(e){}
-}
-// ── Google Play Billing (cordova-plugin-purchase) ──
-const IAP_PRODUCT_ID='radarsafe_premium_monthly';
-let iapReady=false;
-
-function initIAP(){
-  if(!window.CdvPurchase){
-    console.warn('IAP plugin yok — PWA/browser modunda çalışıyor');
-    return;
-  }
-  const store=CdvPurchase.store;
-  const {ProductType,Platform}=CdvPurchase;
-
-  store.register([{
-    id:IAP_PRODUCT_ID,
-    type:ProductType.PAID_SUBSCRIPTION,
-    platform:Platform.GOOGLE_PLAY
-  }]);
-
-  store.when().productUpdated(()=>{iapReady=true;});
-
-  store.when().approved(transaction=>{
-    transaction.verify();
-  });
-
-  store.when().verified(receipt=>{
-    receipt.finish();
-    settings.isPremium=true;
-    settings.subscriptionExpiry=null;
-    localStorage.setItem('rg_settings',JSON.stringify(settings));
-    applyPremiumUI();
-    closeModal('premiumModal');
-    alert(lang==='en'?'Welcome to Radar Safe Pro! 🎉':'Radar Safe Pro\'ya hoş geldin! 🎉');
-  });
-
-  store.when().unverified(()=>{
-    alert(lang==='en'?'Purchase could not be verified.':'Satın alma doğrulanamadı.');
-  });
-
-  store.initialize([Platform.GOOGLE_PLAY]);
-}
-
-function buyPremium(){
-  // Native ortamda gerçek IAP
-  if(window.CdvPurchase&&iapReady){
-    const store=CdvPurchase.store;
-    const product=store.get(IAP_PRODUCT_ID,CdvPurchase.Platform.GOOGLE_PLAY);
-    if(product){
-      store.order(product);
-      return;
-    }
-  }
-  // PWA / geliştirme ortamı — demo mod
-  settings.isPremium=true;
-  localStorage.setItem('rg_settings',JSON.stringify(settings));
-  applyPremiumUI();
-  closeModal('premiumModal');
-  alert(lang==='en'?'Welcome to Radar Safe Pro! 🎉':'Radar Safe Pro\'ya hoş geldin! 🎉');
-}
-
-function cancelSubscription(){
-  if(!confirm(lang==='en'?'Cancel your subscription? Premium features will remain active until the end of the current period.':'Aboneliğinizi iptal etmek istiyor musunuz? Premium özellikler mevcut dönem sonuna kadar aktif kalır.')) return;
-  settings.isPremium=false;
-  settings.subscriptionExpiry=null;
-  localStorage.setItem('rg_settings',JSON.stringify(settings));
-  location.reload();
-}
-function restorePurchase(){
-  if(window.CdvPurchase){
-    CdvPurchase.store.restorePurchases();
-    alert(lang==='en'?'Restoring purchases...':'Satın almalar geri yükleniyor...');
-  } else {
-    // PWA fallback
-    const stored=JSON.parse(localStorage.getItem('rg_settings')||'{}');
-    if(stored.isPremium){
-      settings.isPremium=true;
-      localStorage.setItem('rg_settings',JSON.stringify(settings));
-      applyPremiumUI();
-      alert(lang==='en'?'Subscription restored! ✅':'Abonelik geri yüklendi! ✅');
-    } else {
-      alert(lang==='en'?'No active subscription found.':'Aktif abonelik bulunamadı.');
-    }
-  }
-}
-
-// ══════════════════════════════════════════════════════
-// REKLAM
-// ══════════════════════════════════════════════════════
-
-
-// ══════════════════════════════════════════════════════
-// PUAN İSTE (3. açılışta)
-// ══════════════════════════════════════════════════════
-function checkRatePrompt(){
-  if(settings.neverRate) return;
-  settings.launchCount=(settings.launchCount||0)+1;
-  saveSettings();
-  if(settings.launchCount===3){
-    setTimeout(()=>showModal('rateModal'),2000);
-  }
-}
-function openStore(){
-  window.open('https://play.google.com/store/apps/details?id=com.radarfree','_blank');
-  closeModal('rateModal');
-}
-function neverRate(){settings.neverRate=true;saveSettings();closeModal('rateModal');}
-
-// ══════════════════════════════════════════════════════
-// MODAL
-// ══════════════════════════════════════════════════════
-function showModal(id){document.getElementById(id).classList.add('show');}
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-
-// ══════════════════════════════════════════════════════
-// EDS KAMERALARI (Türkiye örnek konumlar + OSM)
-// ══════════════════════════════════════════════════════
-// Gerçek EDS konumları için overpass kullanılabilir
-// Burada demo + OSM speed_camera sorgusu
-let nearbyEds=[], lastEdsFetch={lat:null,lon:null};
-
-async function fetchEdsCamera(lat,lon){
-  if(!settings.eds) return;
-  if(lastEdsFetch.lat!==null){
-    const d=haversine(lastEdsFetch.lat,lastEdsFetch.lon,lat,lon);
-    if(d<0.3) return;
-  }
-  lastEdsFetch={lat,lon};
-  try{
-    const q=`[out:json][timeout:8];node(around:500,${lat},${lon})["highway"="speed_camera"];out body 10;`;
-    const data=await overpassFetch(q,9000);
-    nearbyEds=data.elements||[];
-  }catch(e){} // Hata olunca önceki listeyi koru
-}
-
-function checkEdsProximity(lat,lon){
-  if(!settings.eds||nearbyEds.length===0){
-    document.getElementById('edsBanner').classList.remove('show');
-    document.getElementById('hudEds').classList.remove('show');
-    return;
-  }
-  // Sadece yaklaşılan (mesafesi azalan) kameraları göster
-  // Her kameranın önceki mesafesini takip et
-  let closest=null,closestDist=Infinity;
-  nearbyEds.forEach(cam=>{
-    const d=haversine(lat,lon,cam.lat,cam.lon)*1000;
-    // Önceki mesafeyi kaydet
-    const prev=cam._prevDist??d;
-    cam._prevDist=d;
-    // Kameraya yaklaşıyorsak (mesafe azalıyorsa) veya zaten çok yakınsa göster
-    const approaching=d<prev||d<alertDistMeters*0.3; // yaklaşıyor veya çok yakın
-    if(approaching&&d<closestDist){closestDist=d;closest=cam;}
-  });
-  if(closest&&closestDist<alertDistMeters){
-    const dist=Math.round(closestDist);
-    document.getElementById('edsBanner').classList.add('show');
-    document.getElementById('edsTitle').textContent=t('edsTitle');
-    document.getElementById('edsDist').textContent=`${dist}m ${lang==='en'?'ahead':'ileride'}`;
-    document.getElementById('hudEds').classList.add('show');
-    document.getElementById('hudEdsTxt').textContent=`📸 ${dist}m`;
-    if(!closest._alerted){closest._alerted=true;playEdsAlert();}
-  } else {
-    document.getElementById('edsBanner').classList.remove('show');
-    document.getElementById('hudEds').classList.remove('show');
-    nearbyEds.forEach(cam=>{cam._alerted=false;});
-  }
-}
-
-
-// ══════════════════════════════════════════════════════
-// SES
-// ══════════════════════════════════════════════════════
-let audioCtx=null;
-function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
-function playAlert(){
-  if(!settings.sound) return;
-  try{
-    const ctx=getAudio();if(ctx.state==='suspended')ctx.resume();
-    [0,0.28].forEach(d=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
-      o.frequency.value=900;o.type='sine';
-      g.gain.setValueAtTime(0,ctx.currentTime+d);g.gain.linearRampToValueAtTime(0.35,ctx.currentTime+d+0.05);g.gain.linearRampToValueAtTime(0,ctx.currentTime+d+0.22);
-      o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+0.28);
-    });
-  }catch(e){}
-}
-function playEdsAlert(){
-  if(!settings.sound)return;
-  try{
-    const ctx=getAudio();if(ctx.state==='suspended')ctx.resume();
-    [0,0.2,0.4].forEach(d=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
-      o.frequency.value=660;o.type='triangle';
-      g.gain.setValueAtTime(0,ctx.currentTime+d);g.gain.linearRampToValueAtTime(0.25,ctx.currentTime+d+0.04);g.gain.linearRampToValueAtTime(0,ctx.currentTime+d+0.15);
-      o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+0.18);
-    });
-  }catch(e){}
-}
-
-// ══════════════════════════════════════════════════════
-// WAKE LOCK & SW
-// ══════════════════════════════════════════════════════
-let wakeLock=null;
-async function requestWakeLock(){
-  try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{if(isTracking)document.addEventListener('visibilitychange',reacquireWL,{once:true});});}}catch(e){}
-}
-async function reacquireWL(){if(isTracking&&document.visibilityState==='visible')await requestWakeLock();}
-function registerSW(){
-  if(!('serviceWorker' in navigator))return;
-  const c=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(clients.claim()));self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));`;
-  navigator.serviceWorker.register(URL.createObjectURL(new Blob([c],{type:'application/javascript'}))).catch(()=>{});
-}
-async function requestNotifPermission(){if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission();}
-function sendNotif(speed,limit){
-  if(!settings.notif)return;
-  if('Notification' in window&&Notification.permission==='granted'){
-    try{new Notification('⚠️ Radar Safe',{body:`${lang==='en'?'Speed':'Hız'}: ${Math.round(speed)} | ${lang==='en'?'Limit':'Limit'}: ${limit}`,tag:'speed-alert',renotify:true});}catch(e){}
-  }
-}
-
-// ══════════════════════════════════════════════════════
-// OSM HIZ LİMİTİ
-// ══════════════════════════════════════════════════════
-let currentLimit=null,lastLimitFetch={lat:null,lon:null},osmFetching=false;
-// Overpass mirror listesi — biri çalışmazsa diğeri denenir
-const OVERPASS_MIRRORS=[
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+import { useState, useEffect, useRef, useCallback } from "react";
+
+const COLORS = [
+  { name: "Natural Black", h: 20, s: 15, l: 8 },
+  { name: "Dark Brown",    h: 22, s: 45, l: 18 },
+  { name: "Warm Brown",    h: 28, s: 55, l: 30 },
+  { name: "Auburn",        h: 15, s: 70, l: 35 },
+  { name: "Copper",        h: 22, s: 85, l: 42 },
+  { name: "Golden Blonde", h: 42, s: 80, l: 58 },
+  { name: "Platinum",      h: 50, s: 30, l: 82 },
+  { name: "Rose Gold",     h: 10, s: 60, l: 68 },
+  { name: "Burgundy",      h: 345, s: 65, l: 28 },
+  { name: "Vivid Red",     h: 5,  s: 90, l: 42 },
+  { name: "Hot Pink",      h: 330, s: 80, l: 52 },
+  { name: "Violet",        h: 270, s: 65, l: 45 },
+  { name: "Ocean Blue",    h: 210, s: 80, l: 40 },
+  { name: "Emerald",       h: 150, s: 70, l: 32 },
+  { name: "Silver Gray",   h: 220, s: 12, l: 72 },
 ];
-async function overpassFetch(query,timeoutMs=9000){
-  let lastErr=null;
-  for(const mirror of OVERPASS_MIRRORS){
-    try{
-      const ctrl=new AbortController();
-      const timer=setTimeout(()=>ctrl.abort(),timeoutMs);
-      const r=await fetch(`${mirror}?data=${encodeURIComponent(query)}`,{signal:ctrl.signal});
-      clearTimeout(timer);
-      if(!r.ok) throw new Error(`HTTP ${r.status}`);
-      const json=await r.json();
-      return json;
-    }catch(e){lastErr=e;await new Promise(res=>setTimeout(res,200));}
+
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * c).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
   }
-  throw lastErr||new Error('All mirrors failed');
+  return [h * 360, s * 100, l * 100];
 }
-function parseMaxspeed(raw){
-  if(!raw) return null;
-  const upper=raw.trim().toUpperCase();
-  if(upper==='TR:URBAN'||upper==='TR:LIVING_STREET') return 50;
-  if(upper==='TR:RURAL') return 90;
-  if(upper==='TR:MOTORWAY') return 120;
-  if(upper==='WALK'||upper==='TR:WALK') return 7;
-  const n=parseInt(raw);
-  return isNaN(n)?null:n;
+
+function hslToRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
+  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
 }
-async function fetchSpeedLimit(lat,lon){
-  if(!settings.osm||osmFetching)return;
-  if(lastLimitFetch.lat!==null&&haversine(lastLimitFetch.lat,lastLimitFetch.lon,lat,lon)<0.12)return;
-  lastLimitFetch={lat,lon};osmFetching=true;
-  document.getElementById('osmLoadingSpinner').style.display='inline';
-  document.getElementById('limitSource').textContent='';
-  try{
-    // Birleşik sorgu — tek ağ isteğiyle hem maxspeed hem highway al
-    const q=`[out:json][timeout:10];way(around:30,${lat},${lon})["highway"];out body 8;`;
-    const d=await overpassFetch(q,10000);
-    let best=null,bestHw=null;
-    if(d.elements?.length>0){
-      for(const el of d.elements){
-        const lim=parseMaxspeed(el.tags?.maxspeed);
-        if(lim!==null&&best===null){best=lim;}
-        if(bestHw===null&&el.tags?.highway) bestHw=el.tags.highway;
+
+export default function HairColorApp() {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const hiddenRef = useRef(null);
+  const animRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const [active, setActive] = useState(false);
+  const [error, setError] = useState(null);
+  const [selected, setSelected] = useState(3);
+  const [intensity, setIntensity] = useState(0.78);
+  const [sensitivity, setSensitivity] = useState(58);
+  const [brightnessRange, setBrightnessRange] = useState([8, 180]);
+
+  const color = COLORS[selected];
+
+  const intensityRef = useRef(intensity);
+  const sensitivityRef = useRef(sensitivity);
+  const brightnessRef = useRef(brightnessRange);
+  const colorRef = useRef(color);
+
+  useEffect(() => { intensityRef.current = intensity; }, [intensity]);
+  useEffect(() => { sensitivityRef.current = sensitivity; }, [sensitivity]);
+  useEffect(() => { brightnessRef.current = brightnessRange; }, [brightnessRange]);
+  useEffect(() => { colorRef.current = color; }, [color]);
+
+  const startCamera = useCallback(async () => {
+    setError(null);
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480, facingMode: "user" }, audio: false
+      });
+      streamRef.current = s;
+      videoRef.current.srcObject = s;
+      await videoRef.current.play();
+      setActive(true);
+    } catch (e) {
+      setError("Kamera izni gerekiyor. Tarayıcı adres çubuğundaki kilit ikonuna tıklayıp izin ver.");
+    }
+  }, []);
+
+  const stopCamera = useCallback(() => {
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    setActive(false);
+  }, []);
+
+  useEffect(() => {
+    if (!active) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const hidden = hiddenRef.current;
+    const ctx = canvas.getContext("2d");
+    const hctx = hidden.getContext("2d");
+
+    const loop = () => {
+      if (!video.videoWidth) { animRef.current = requestAnimationFrame(loop); return; }
+      const W = video.videoWidth, H = video.videoHeight;
+      if (canvas.width !== W) { canvas.width = W; canvas.height = H; hidden.width = W; hidden.height = H; }
+
+      hctx.save();
+      hctx.translate(W, 0); hctx.scale(-1, 1);
+      hctx.drawImage(video, 0, 0, W, H);
+      hctx.restore();
+
+      const frame = hctx.getImageData(0, 0, W, H);
+      const d = frame.data;
+      const int = intensityRef.current;
+      const sens = sensitivityRef.current;
+      const [bMin, bMax] = brightnessRef.current;
+      const { h: tH, s: tS, l: tL } = colorRef.current;
+
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i+1], b = d[i+2];
+        const [hh, ss, ll] = rgbToHsl(r, g, b);
+        const br = (r + g + b) / 3;
+        const inH = hh <= 55 || hh >= 300;
+        const isHair = inH && br >= bMin && br <= bMax && ss < sens;
+        if (isHair) {
+          const newL = Math.min(90, ll * (1 + (tL - 50) / 100));
+          const [nr, ng, nb] = hslToRgb(tH, tS, newL);
+          d[i]   = Math.round(r * (1 - int) + nr * int);
+          d[i+1] = Math.round(g * (1 - int) + ng * int);
+          d[i+2] = Math.round(b * (1 - int) + nb * int);
+        }
       }
-    }
-    if(best!==null){
-      currentLimit=best;
-      updateLimitUI(best,lang==='en'?'OSM Map Data':'OSM Harita Verisi');
-      return;
-    }
-    // maxspeed yoksa yol tipinden tahmin et
-    const names={en:{motorway:'Motorway',trunk:'Trunk',primary:'Highway',living_street:'Living street',residential:'Urban',service:'Service'},
-                 tr:{motorway:'Otoyol',trunk:'Çevreyolu',primary:'Şehirlerarası',living_street:'Sakin yol',residential:'Şehiriçi',service:'Servis'}};
-    let guess=settings.defaultLimit,src=lang==='en'?'Default':'Varsayılan';
-    if(bestHw){
-      if(bestHw==='motorway'){guess=120;}
-      else if(bestHw==='motorway_link'){guess=80;}
-      else if(bestHw==='trunk'||bestHw==='trunk_link'){guess=90;}
-      else if(bestHw==='primary'||bestHw==='secondary'){guess=90;}
-      else if(bestHw==='living_street'){guess=20;}
-      else if(bestHw==='residential'||bestHw==='unclassified'){guess=50;}
-      else if(bestHw==='service'){guess=30;}
-      src=(names[lang]?.[bestHw]||src)+(lang==='en'?' (est.)':' (tahmini)');
-    }
-    currentLimit=guess;updateLimitUI(guess,src);
-  }catch(e){
-    console.warn('OSM fetch error:',e);
-    document.getElementById('limitSource').textContent=t('limitError');
-    if(currentLimit===null) currentLimit=settings.defaultLimit;
-  }finally{
-    osmFetching=false;
-    document.getElementById('osmLoadingSpinner').style.display='none';
-  }
-}
-function updateLimitUI(limit,source){
-  document.getElementById('limitSignNum').textContent=limit;
-  document.getElementById('limitValue').textContent=limit+' '+(settings.speedUnit==='mph'?'mph':settings.speedUnit==='ms'?'m/s':(lang==='en'?'km/h':'km/s'));
-  document.getElementById('limitSource').textContent=source;
-  document.getElementById('hudLimitVal').textContent=limit;
-}
+      ctx.putImageData(frame, 0, 0);
+      animRef.current = requestAnimationFrame(loop);
+    };
+    animRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [active]);
 
-// ══════════════════════════════════════════════════════
-// UYARI
-// ══════════════════════════════════════════════════════
-let alertTimer=null,alertFired=false,isOverLimit=false;
-function checkAlert(rawMs){
-  if(currentLimit===null)return;
-  const kmh=rawMs*3.6,over=kmh>currentLimit;
-  const diff=document.getElementById('limitDiff'),excess=Math.round(kmh-currentLimit),remain=Math.round(currentLimit-kmh);
-  if(over){
-    diff.textContent='+'+excess+' '+getUnitLabel();diff.className='limit-diff over';
-    document.getElementById('limitBanner').className='limit-banner over-limit';
-    if(settings.visual)document.body.classList.add('speeding-alert');
-    document.getElementById('hudLimitVal').className='hud-box-val over';
-    document.getElementById('hudDiff').textContent='+'+excess;document.getElementById('hudDiff').className='hud-diff over';
-    if(!isOverLimit){
-      isOverLimit=true;
-      if(!alertTimer&&!alertFired){
-        alertTimer=setTimeout(()=>{playAlert();sendNotif(kmh,currentLimit);alertFired=true;alertTimer=null;},settings.alertDelay);
-      }
-    }
-  }else{
-    diff.textContent=remain>0?'-'+remain+' '+getUnitLabel():'✓';diff.className='limit-diff';
-    document.getElementById('limitBanner').className='limit-banner';
-    document.body.classList.remove('speeding-alert');
-    document.getElementById('hudLimitVal').className='hud-box-val';
-    document.getElementById('hudDiff').textContent=remain>0?'-'+remain:'✓';document.getElementById('hudDiff').className='hud-diff';
-    if(isOverLimit){isOverLimit=false;alertFired=false;if(alertTimer){clearTimeout(alertTimer);alertTimer=null;}}
-  }
-}
+  const accentHex = hslToHex(color.h, color.s, Math.max(color.l, 40));
 
-// ══════════════════════════════════════════════════════
-// GPS & TAKİP
-// ══════════════════════════════════════════════════════
-let isTracking=false,watchId=null,startTime=null,timerInterval=null,tripBTimerInterval=null;
-let speedReadings=[],totalDistance=0,maxSpeedVal=0,prevCoords=null,lastUpdateTime=null,speedHistory=[];
-const ROLLING=8,MAX_SPEED=200;
+  return (
+    <div style={{
+      minHeight: "100vh", background: "#07070f",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", fontFamily: "'Inter', system-ui, sans-serif",
+      padding: "20px 16px", color: "#fff", gap: 20
+    }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.25em", color: "#333", textTransform: "uppercase", marginBottom: 6 }}>Hair Studio</div>
+        <h1 style={{
+          fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", margin: 0,
+          background: `linear-gradient(120deg, #fff 30%, ${accentHex})`,
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent"
+        }}>Live Color</h1>
+      </div>
 
-// Trip B (bölüm sayacı — bağımsız, sıfırlanabilir)
-let tripBReadings=[],tripBDistance=0,tripBMaxSpeed=0,tripBStartTime=null,tripBPrevCoords=null;
+      <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap", justifyContent: "center" }}>
 
-function onPosition(pos){
-  const rawMs=pos.coords.speed!=null&&pos.coords.speed>=0?pos.coords.speed:0;
-  const speed=convertSpeed(rawMs);
-  const{latitude:lat,longitude:lon,accuracy,altitude}=pos.coords;
-  const badge=document.getElementById('accuracyBadge'),acc=document.getElementById('accuracyText');
-  if(accuracy<15){badge.className='accuracy-badge good';acc.textContent=t('accuracyGood');}
-  else if(accuracy<50){badge.className='accuracy-badge medium';acc.textContent=t('accuracyMedium');}
-  else{badge.className='accuracy-badge';acc.textContent=t('accuracyWeak');}
-  if(prevCoords){const d=haversine(prevCoords.lat,prevCoords.lon,lat,lon);if(d<0.5)totalDistance+=d;}
-  prevCoords={lat,lon};
-  speedReadings.push(speed);if(speedReadings.length>ROLLING)speedReadings.shift();
-  const avg=speedReadings.length>0?speedReadings.reduce((a,b)=>a+b,0)/speedReadings.length:0;
-  if(speed>maxSpeedVal)maxSpeedVal=speed;
-
-  // Trip B güncelle
-  if(tripBRunning){
-    if(tripBPrevCoords){const d=haversine(tripBPrevCoords.lat,tripBPrevCoords.lon,lat,lon);if(d<0.5)tripBDistance+=d;}
-    tripBPrevCoords={lat,lon};
-    tripBReadings.push(speed);if(tripBReadings.length>200)tripBReadings.shift();
-    const tripBAvg=tripBReadings.length>0?tripBReadings.reduce((a,b)=>a+b,0)/tripBReadings.length:0;
-    if(speed>tripBMaxSpeed)tripBMaxSpeed=speed;
-    document.getElementById('tripB-avg').textContent=Math.round(tripBAvg);
-    document.getElementById('tripB-max').textContent=Math.round(tripBMaxSpeed);
-    document.getElementById('tripB-dist').textContent=tripBDistance.toFixed(1);
-    document.getElementById('progressFillB').style.width=Math.min((tripBDistance/10)*100,100)+'%';
-  }
-  const now=Date.now();
-  // Analiz modülleri — lastUpdateTime güncellemeden ÖNCE dt hesapla
-  const dtSec=lastUpdateTime?((now-lastUpdateTime)/1000):0;
-  detectHarshEvents(rawMs,dtSec);
-  if(currentLimit!==null&&rawMs*3.6>currentLimit){scoreData.speedingPenalty=Math.min(40,scoreData.speedingPenalty+0.05);}
-  else if(rawMs>2){scoreData.smoothBonus=Math.min(15,scoreData.smoothBonus+0.01);}
-  scoreData.samples++;
-  if(!lastUpdateTime||now-lastUpdateTime>=800){
-    speedHistory.push(Math.round(speed));if(speedHistory.length>60)speedHistory.shift();
-    updateDrivingScore(); // Anlık skor güncelle
-  }
-  lastUpdateTime=now;
-  fetchSpeedLimit(lat,lon);
-  fetchEdsCamera(lat,lon);
-  checkEdsProximity(lat,lon);
-  fetchZones(lat,lon);
-  fetchTraffic(lat,lon);
-  document.getElementById('zone-status').textContent=t('zoneTracking');
-  document.getElementById('traffic-loading').textContent=t('trafficQuerying');
-  const spd=Math.round(speed);
-  const el=document.getElementById('currentSpeed');
-  el.textContent=spd;
-  const kmh=rawMs*3.6,overLim=currentLimit!==null&&kmh>currentLimit;
-  el.className='speed-number'+(overLim?' over':spd>80?' fast':'');
-  document.getElementById('avgSpeed').textContent=Math.round(avg);
-  document.getElementById('maxSpeed').textContent=Math.round(maxSpeedVal);
-  document.getElementById('distanceVal').textContent=totalDistance.toFixed(1);
-  document.getElementById('altitudeVal').textContent=altitude!=null?Math.round(altitude):'—';
-  // Trip A bar
-  if(tripARunning){
-    document.getElementById('tripA-avg').textContent=Math.round(avg);
-    document.getElementById('tripA-max').textContent=Math.round(maxSpeedVal);
-    document.getElementById('tripA-dist').textContent=totalDistance.toFixed(1);
-  }
-  document.getElementById('hudSpeed').textContent=spd;
-  updateNeedle(kmh);updateChart(kmh);checkAlert(rawMs);
-  document.getElementById('progressFill').style.width=Math.min((totalDistance/10)*100,100)+'%';
-}
-function onError(){document.getElementById('permMsg').style.display='block';document.getElementById('statusDot').className='status-dot error';stopTracking();}
-function startTracking(){
-  if(!navigator.geolocation){document.getElementById('permMsg').style.display='block';return;}
-  getAudio();requestWakeLock();requestNotifPermission();
-  document.getElementById('permMsg').style.display='none';
-  document.getElementById('statusDot').className='status-dot active';
-  document.getElementById('controlBtn').className='control-btn stop';
-  document.getElementById('t-startbtn').textContent=t('t-stopbtn');
-  if(!startTime) startTime=Date.now(); // Fix 6: startTime'ı burada set et
-  timerInterval=setInterval(()=>{updateTimer();updateTimerB();},1000);
-  let adShown=false;
-  watchId=navigator.geolocation.watchPosition(pos=>{
-    if(!adShown){adShown=true;setTimeout(()=>showInterstitial(),1500);}
-    onPosition(pos);
-  },onError,{enableHighAccuracy:true,timeout:10000,maximumAge:0});
-}
-function stopTracking(){
-  if(watchId!=null){navigator.geolocation.clearWatch(watchId);watchId=null;}
-  clearInterval(timerInterval);
-  clearInterval(tripBTimerInterval);
-  // Butonları sıfırla
-  tripARunning=false;tripBRunning=false;
-  const btnA=document.getElementById('tripA-btn');if(btnA){btnA.textContent=t('tripStart');btnA.style.background='rgba(0,229,255,0.12)';}
-  const btnB=document.getElementById('tripB-btn');if(btnB){btnB.textContent=t('tripStart');btnB.style.background='rgba(255,107,53,0.12)';}
-  const dotA=document.getElementById('tripA-dot');if(dotA){dotA.style.animation='none';dotA.style.opacity='0.4';}
-  const dotB=document.getElementById('tripB-dot');if(dotB){dotB.style.animation='none';dotB.style.opacity='0.4';}
-  if(alertTimer){clearTimeout(alertTimer);alertTimer=null;}
-  if(wakeLock){wakeLock.release();wakeLock=null;}
-  if(settings.save&&totalDistance>0.05)saveTrip();
-  document.getElementById('statusDot').className='status-dot';
-  document.getElementById('controlBtn').className='control-btn start';
-  document.getElementById('t-startbtn').textContent=t('t-startbtn');
-  document.body.classList.remove('speeding-alert');
-  isTracking=false;
-}
-function toggleTracking(){
-  if(!isTracking){
-    isTracking=true;
-    speedReadings=[];totalDistance=0;maxSpeedVal=0;prevCoords=null;
-    speedHistory=[];lastUpdateTime=null;
-    tripBReadings=[];tripBDistance=0;tripBMaxSpeed=0;tripBPrevCoords=null;tripBStartTime=null;
-    tripARunning=false;tripBRunning=false;startTime=null; // GPS başlayınca tekrar set edilecek
-    document.getElementById('tripA-btn').textContent=t('tripStart');document.getElementById('tripA-btn').style.background='rgba(0,229,255,0.12)';
-    document.getElementById('tripB-btn').textContent=t('tripStart');document.getElementById('tripB-btn').style.background='rgba(255,107,53,0.12)';
-    ['tripA-dot','tripB-dot'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.animation='none';el.style.opacity='0.4';}});
-    document.getElementById('tripA-avg').textContent='0';document.getElementById('tripA-max').textContent='0';document.getElementById('tripA-dist').textContent='0.0';
-    document.getElementById('tripTimeB').textContent='00:00:00';
-    currentLimit=null;lastLimitFetch={lat:null,lon:null};
-    nearbyEds=[];lastEdsFetch={lat:null,lon:null};
-    isOverLimit=false;alertFired=false;alertTimer=null;
-    ['currentSpeed','avgSpeed','maxSpeed'].forEach(id=>document.getElementById(id).textContent='0');
-    document.getElementById('distanceVal').textContent='0.0';
-    document.getElementById('tripTime').textContent='00:00:00';
-    document.getElementById('progressFill').style.width='0%';
-    document.getElementById('limitSignNum').textContent='—';
-    document.getElementById('limitValue').textContent='—';
-    document.getElementById('limitSource').textContent=t('limitWaiting');
-    document.getElementById('limitDiff').textContent='—';document.getElementById('limitDiff').className='limit-diff';
-    updateNeedle(0);startTracking();
-    // Reklam GPS aldıktan sonra gösterilecek (startTracking içinde)
-  }else{stopTracking();}
-}
-
-// ══════════════════════════════════════════════════════
-// GEÇMİŞ
-// ══════════════════════════════════════════════════════
-function saveTrip(){
-  try{
-    const trips=JSON.parse(localStorage.getItem('rg_trips')||'[]');
-    const elapsed=Math.floor((Date.now()-startTime)/1000);
-    const avg=speedReadings.length>0?Math.round(speedReadings.reduce((a,b)=>a+b,0)/speedReadings.length):0;
-  const currentScore=scoreData.samples>5?Math.max(0,Math.min(100,Math.round(100-scoreData.speedingPenalty-scoreData.harshPenalty+scoreData.smoothBonus))):null;
-    const now=new Date();
-    const pad=n=>String(n).padStart(2,'0');
-    const dateStr=`${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    trips.unshift({date:dateStr,distance:totalDistance.toFixed(1),maxSpeed:Math.round(maxSpeedVal),avgSpeed:avg,duration:formatTime(elapsed),score:currentScore});
-    const maxTrips=settings.isPremium?50:5;
-    if(trips.length>maxTrips)trips.pop();
-    localStorage.setItem('rg_trips',JSON.stringify(trips));
-    renderHistory();
-  }catch(e){}
-}
-function renderHistory(){
-  try{
-    const trips=JSON.parse(localStorage.getItem('rg_trips')||'[]');
-    const list=document.getElementById('historyList');
-    if(trips.length===0){list.innerHTML=`<div class="empty-state"><span>🗺️</span>${t('emptyHistory').replace('\n','<br>')}</div>`;return;}
-    list.innerHTML=trips.map((tr,i)=>`
-      <div class="history-item">
+        {/* Camera feed */}
         <div>
-          <div style="font-size:11px;color:var(--muted);">${tr.date}</div>
-          <div class="history-item-stats">
-            <div><div class="history-item-stat-val">${tr.distance}</div><div class="history-item-stat-lbl">${t('kmLabel')}</div></div>
-            <div><div class="history-item-stat-val">${tr.avgSpeed}</div><div class="history-item-stat-lbl">${t('avgLabel')}</div></div>
-            <div><div class="history-item-stat-val">${tr.maxSpeed}</div><div class="history-item-stat-lbl">${t('maxLabel')}</div></div>
-            <div><div class="history-item-stat-val">${tr.duration}</div><div class="history-item-stat-lbl">${t('durLabel')}</div></div>
+          <div style={{
+            width: 480, maxWidth: "calc(100vw - 32px)", aspectRatio: "4/3",
+            background: "#0c0c1a", borderRadius: 18,
+            border: `1px solid ${active ? accentHex + "44" : "#1a1a2e"}`,
+            overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
+            position: "relative", transition: "border-color 0.4s",
+            boxShadow: active ? `0 0 40px ${accentHex}22` : "none"
+          }}>
+            <video ref={videoRef} style={{ display: "none" }} playsInline muted />
+            <canvas ref={canvasRef} style={{ display: active ? "block" : "none", width: "100%", height: "100%" }} />
+            <canvas ref={hiddenRef} style={{ display: "none" }} />
+            {!active && (
+              <div style={{ textAlign: "center", padding: 20 }}>
+                <div style={{ fontSize: 36, marginBottom: 10, opacity: 0.15 }}>◎</div>
+                <div style={{ fontSize: 12, color: "#333" }}>{error || "Kamera kapalı"}</div>
+                {error && <div style={{ fontSize: 11, color: "#c44", marginTop: 8, lineHeight: 1.6, maxWidth: 260 }}>{error}</div>}
+              </div>
+            )}
+          </div>
+
+          <button onClick={active ? stopCamera : startCamera} style={{
+            width: "100%", maxWidth: "calc(100vw - 32px)", marginTop: 10,
+            padding: "13px 0", borderRadius: 12, border: "none",
+            background: active ? "#111" : `linear-gradient(135deg, ${hslToHex(color.h, color.s, color.l)}, ${hslToHex((color.h + 25) % 360, color.s, color.l + 12)})`,
+            color: active ? "#555" : "#fff", fontSize: 12, fontWeight: 700,
+            letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer",
+            transition: "all 0.3s",
+            boxShadow: active ? "none" : `0 4px 20px ${accentHex}55`
+          }}>
+            {active ? "■  Durdur" : "▶  Kamerayı Başlat"}
+          </button>
+        </div>
+
+        {/* Controls */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 220 }}>
+
+          {/* Colors */}
+          <div style={{ background: "#0c0c1a", borderRadius: 14, border: "1px solid #161628", padding: "16px 14px" }}>
+            <div style={{ fontSize: 9, letterSpacing: "0.2em", color: "#333", textTransform: "uppercase", marginBottom: 12 }}>Renk Seç</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 7 }}>
+              {COLORS.map((c, i) => (
+                <button key={i} title={c.name} onClick={() => setSelected(i)} style={{
+                  aspectRatio: "1", borderRadius: 7,
+                  background: hslToHex(c.h, c.s, Math.max(c.l, 12)),
+                  border: selected === i ? "2px solid #fff" : "2px solid transparent",
+                  cursor: "pointer",
+                  transform: selected === i ? "scale(1.18)" : "scale(1)",
+                  boxShadow: selected === i ? `0 0 8px ${hslToHex(c.h, c.s, c.l)}99` : "none",
+                  transition: "all 0.15s"
+                }} />
+              ))}
+            </div>
+            <div style={{ marginTop: 10, fontSize: 11, color: "#555", textAlign: "center" }}>{color.name}</div>
+          </div>
+
+          {/* Intensity */}
+          <div style={{ background: "#0c0c1a", borderRadius: 14, border: "1px solid #161628", padding: "16px 14px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+              <span style={{ fontSize: 9, letterSpacing: "0.2em", color: "#333", textTransform: "uppercase" }}>Yoğunluk</span>
+              <span style={{ fontSize: 12, color: accentHex, fontWeight: 700 }}>{Math.round(intensity * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="100" value={Math.round(intensity * 100)}
+              onChange={e => setIntensity(e.target.value / 100)}
+              style={{ width: "100%", accentColor: accentHex, cursor: "pointer" }} />
+          </div>
+
+          {/* Detection */}
+          <div style={{ background: "#0c0c1a", borderRadius: 14, border: "1px solid #161628", padding: "16px 14px" }}>
+            <div style={{ fontSize: 9, letterSpacing: "0.2em", color: "#333", textTransform: "uppercase", marginBottom: 14 }}>Tespit Ayarı</div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ fontSize: 11, color: "#444" }}>Hassasiyet</span>
+              <span style={{ fontSize: 11, color: "#666" }}>{sensitivity}</span>
+            </div>
+            <input type="range" min="10" max="120" value={sensitivity}
+              onChange={e => setSensitivity(+e.target.value)}
+              style={{ width: "100%", accentColor: "#444", cursor: "pointer", marginBottom: 14 }} />
+
+            <div style={{ fontSize: 11, color: "#444", marginBottom: 8 }}>Parlaklık</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[["Min", 0], ["Max", 1]].map(([label, idx]) => (
+                <div key={label} style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: "#333", marginBottom: 4 }}>{label}</div>
+                  <input type="number" min="0" max="255" value={brightnessRange[idx]}
+                    onChange={e => { const n = [...brightnessRange]; n[idx] = +e.target.value; setBrightnessRange(n); }}
+                    style={{
+                      width: "100%", background: "#080812", border: "1px solid #1e1e30",
+                      borderRadius: 7, color: "#aaa", padding: "6px 8px", fontSize: 12
+                    }} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ fontSize: 10, color: "#252535", lineHeight: 1.8, paddingLeft: 2 }}>
+            Siyah saç → Maks ≤ 90<br/>
+            Sarı/açık saç → Hassasiyet ↑<br/>
+            Renk taşarsa → Hassasiyet ↓
           </div>
         </div>
-        <button class="history-item-del" onclick="deleteTrip(${i})">🗑</button>
-      </div>`).join('');
-  }catch(e){}
+      </div>
+    </div>
+  );
 }
-function deleteTrip(i){try{const t2=JSON.parse(localStorage.getItem('rg_trips')||'[]');t2.splice(i,1);localStorage.setItem('rg_trips',JSON.stringify(t2));renderHistory();}catch(e){}}
-function clearHistory(){if(confirm(t('deleteConfirm'))){localStorage.removeItem('rg_trips');renderHistory();}}
-function formatTime(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h>0?`${h}h ${m}m`:`${m}m ${sc}s`;}
-
-// ══════════════════════════════════════════════════════
-// GÖRSEL
-// ══════════════════════════════════════════════════════
-function buildTicks(){
-  const ticks=document.getElementById('ticks'),cx=140,cy=140,r=120;
-  for(let i=0;i<=10;i++){
-    const angle=-180+i*18,rad=angle*Math.PI/180,major=i%2===0;
-    const x1=cx+(r-(major?16:10))*Math.cos(rad),y1=cy+(r-(major?16:10))*Math.sin(rad);
-    const x2=cx+(r-4)*Math.cos(rad),y2=cy+(r-4)*Math.sin(rad);
-    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x2);line.setAttribute('y2',y2);
-    line.setAttribute('stroke',major?'rgba(0,229,255,0.4)':'rgba(0,229,255,0.15)');
-    line.setAttribute('stroke-width',major?'2':'1');
-    ticks.appendChild(line);
-    if(major){
-      const tx=cx+(r-28)*Math.cos(rad),ty=cy+(r-28)*Math.sin(rad);
-      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
-      txt.setAttribute('x',tx);txt.setAttribute('y',ty+4);txt.setAttribute('text-anchor','middle');
-      txt.setAttribute('fill','rgba(74,101,128,0.8)');txt.setAttribute('font-size','9');txt.setAttribute('font-family','Orbitron,monospace');
-      txt.textContent=(i*20).toString();ticks.appendChild(txt);
-    }
-  }
-}
-function updateNeedle(kmh){
-  const pct=Math.min(kmh/MAX_SPEED,1),angle=-180+pct*180,rad=angle*Math.PI/180,len=108,cx=140,cy=140;
-  document.getElementById('needle').setAttribute('x2',cx+len*Math.cos(rad));
-  document.getElementById('needle').setAttribute('y2',cy+len*Math.sin(rad));
-  const arc=document.getElementById('speedArc');
-  arc.setAttribute('stroke-dasharray',`${pct*377} ${377-pct*377}`);
-  arc.style.stroke=(currentLimit&&kmh>currentLimit)?'#ff3b5c':kmh>80?'#ff6b35':'#00e5ff';
-}
-function updateChart(kmh){
-  if(speedHistory.length<2)return;
-  const w=340,h=60,maxV=Math.max(...speedHistory,40);
-  const pts=speedHistory.map((v,i)=>`${(i/(speedHistory.length-1))*w},${h-(v/maxV)*(h-4)}`);
-  document.getElementById('chartLine').setAttribute('d',`M${pts.join(' L')}`);
-  document.getElementById('chartArea').setAttribute('d',`M0,${h} L${pts.join(' L')} L${w},${h} Z`);
-  if(currentLimit!==null){const ly=Math.max(0,h-(currentLimit/maxV)*(h-4));document.getElementById('limitLine').setAttribute('y1',ly);document.getElementById('limitLine').setAttribute('y2',ly);}
-}
-function updateTimer(){
-  if(!tripARunning||!startTime)return;
-  const d=Math.floor((Date.now()-startTime)/1000);
-  document.getElementById('tripTime').textContent=`${String(Math.floor(d/3600)).padStart(2,'0')}:${String(Math.floor((d%3600)/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
-}
-function updateTimerB(){
-  if(!tripBRunning||!tripBStartTime)return;
-  const d=Math.floor((Date.now()-tripBStartTime)/1000);
-  document.getElementById('tripTimeB').textContent=`${String(Math.floor(d/3600)).padStart(2,'0')}:${String(Math.floor((d%3600)/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
-}
-
-// Yolculuk 1 başlat/durdur
-let tripARunning=false;
-function toggleTripA(){
-  if(!isTracking){
-    const btn=document.getElementById('tripA-btn');
-    btn.textContent=t('tripGpsNeeded');
-    setTimeout(()=>{btn.textContent=t('tripStart');},1500);
-    return;
-  }
-  tripARunning=!tripARunning;
-  const btn=document.getElementById('tripA-btn');
-  const dot=document.getElementById('tripA-dot');
-  if(tripARunning){
-    if(!startTime) startTime=Date.now();
-    btn.textContent=t('tripStop');
-    btn.style.background='rgba(0,229,255,0.2)';
-    dot.style.animation='pulse-dot 2s infinite';
-  } else {
-    btn.textContent=t('tripStart');
-    btn.style.background='rgba(0,229,255,0.12)';
-    dot.style.animation='none';
-    dot.style.opacity='0.4';
-  }
-}
-
-// Yolculuk 2 başlat/durdur
-let tripBRunning=false;
-function toggleTripB(){
-  if(!isTracking){
-    const btn=document.getElementById('tripB-btn');
-    btn.textContent=t('tripGpsNeeded');
-    setTimeout(()=>{btn.textContent=t('tripStart');},1500);
-    return;
-  }
-  tripBRunning=!tripBRunning;
-  const btn=document.getElementById('tripB-btn');
-  const dot=document.getElementById('tripB-dot');
-  if(tripBRunning){
-    if(!tripBStartTime) tripBStartTime=Date.now();
-    btn.textContent=t('tripStop');
-    btn.style.background='rgba(255,107,53,0.2)';
-    dot.style.animation='pulse-dot 2s infinite';
-  } else {
-    btn.textContent=t('tripStart');
-    btn.style.background='rgba(255,107,53,0.12)';
-    dot.style.animation='none';
-    dot.style.opacity='0.4';
-  }
-}
-
-function resetTripB(){
-  tripBReadings=[];tripBDistance=0;tripBMaxSpeed=0;tripBPrevCoords=prevCoords?{...prevCoords}:null;
-  clearInterval(tripBTimerInterval);
-  tripBTimerInterval=null;
-  tripBStartTime=tripBRunning?Date.now():null;
-  if(tripBRunning) tripBTimerInterval=setInterval(updateTimerB,1000);
-  document.getElementById('tripB-avg').textContent='0';
-  document.getElementById('tripB-max').textContent='0';
-  document.getElementById('tripB-dist').textContent='0.0';
-  document.getElementById('tripTimeB').textContent='00:00:00';
-  document.getElementById('progressFillB').style.width='0%';
-}
-function haversine(lat1,lon1,lat2,lon2){
-  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-// ══════════════════════════════════════════════════════
-// HUD
-// ══════════════════════════════════════════════════════
-let hudFlipped=false;
-function toggleHUD(){
-  const ov=document.getElementById('hudOverlay');
-  const active=ov.classList.toggle('active');
-  if(active){try{screen.orientation?.lock('landscape').catch(()=>{});}catch(e){}}
-  else{try{screen.orientation?.unlock?.();}catch(e){}hudFlipped=false;ov.style.transform='';}
-}
-function toggleHudFlip(){
-  hudFlipped=!hudFlipped;
-  document.getElementById('hudOverlay').style.transform=hudFlipped?'rotate(180deg)':'';
-}
-
-// ══════════════════════════════════════════════════════
-// TABS & NAV
-// ══════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════
-
-// ── Sürüş Skoru ──
-let scoreData={speedingPenalty:0,harshPenalty:0,smoothBonus:0,samples:0};
-function updateDrivingScore(){
-  if(scoreData.samples<5){document.getElementById('score-val').textContent='—';return;}
-  const base=100;
-  const score=Math.max(0,Math.min(100,Math.round(base-scoreData.speedingPenalty-scoreData.harshPenalty+scoreData.smoothBonus)));
-  document.getElementById('score-val').textContent=score;
-  const arc=document.getElementById('score-arc');
-  const offset=213.6*(1-score/100);
-  arc.style.strokeDashoffset=offset;
-  arc.style.stroke=score>=80?'#39ff14':score>=60?'#ffd166':'#ff3b5c';
-  document.getElementById('score-speeding').textContent='-'+Math.round(scoreData.speedingPenalty);
-  document.getElementById('score-speeding').style.color=scoreData.speedingPenalty>10?'#ff3b5c':'var(--accent3)';
-  document.getElementById('score-harshevents').textContent='-'+Math.round(scoreData.harshPenalty);
-  document.getElementById('score-harshevents').style.color=scoreData.harshPenalty>10?'#ff3b5c':'var(--accent3)';
-  document.getElementById('score-smooth').textContent='+'+Math.round(scoreData.smoothBonus);
-  document.getElementById('score-smooth').style.color='var(--accent3)';
-  const tips=[t('scoreTip0'),t('scoreTip1'),t('scoreTip2'),t('scoreTip3'),t('scoreTip4')];
-  const idx=score>=90?0:score>=75?1:score>=55?2:score>=35?3:4;
-  document.getElementById('score-tip').textContent=tips[idx];
-}
-
-// ── Ani Fren / Hızlanma ──
-let harshBrakeCount=0,harshAccelCount=0,prevSpeedMs=null,harshLastEvent='';
-const HARSH_BRAKE_THRESH=-4.0; // m/s²
-const HARSH_ACCEL_THRESH=3.5;  // m/s²
-
-function detectHarshEvents(rawMs,dt){
-  if(prevSpeedMs===null||dt<0.3){prevSpeedMs=rawMs;return;} // dt çok küçükse atla
-  const accel=(rawMs-prevSpeedMs)/dt;
-  prevSpeedMs=rawMs;
-  if(accel<HARSH_BRAKE_THRESH){
-    harshBrakeCount++;
-    scoreData.harshPenalty=Math.min(40,scoreData.harshPenalty+2);
-    harshLastEvent=t('harshBrakeEvent')+new Date().toLocaleTimeString(lang==='en'?'en-GB':'tr-TR',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('harsh-brake').textContent=harshBrakeCount;
-    document.getElementById('harsh-last').textContent=harshLastEvent;
-    playHarshBeep();
-  } else if(accel>HARSH_ACCEL_THRESH){
-    harshAccelCount++;
-    scoreData.harshPenalty=Math.min(40,scoreData.harshPenalty+1.5);
-    harshLastEvent=t('harshAccelEvent')+new Date().toLocaleTimeString(lang==='en'?'en-GB':'tr-TR',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('harsh-accel').textContent=harshAccelCount;
-    document.getElementById('harsh-last').textContent=harshLastEvent;
-  }
-}
-function playHarshBeep(){
-  if(!settings.sound)return;
-  try{const ctx=getAudio();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(880,ctx.currentTime);g.gain.setValueAtTime(0.2,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);o.start();o.stop(ctx.currentTime+0.3);}catch(e){}
-}
-
-// ── Özel Bölge (Okul/Hastane) ──
-let alertDistMeters=300,lastZoneFetch={lat:null,lon:null},zoneCount=0;
-const ZONE_FETCH_RADIUS=1000;
-
-function setAlertDist(d){
-  alertDistMeters=d;
-  settings.alertDist=d;
-  saveSettings();
-  document.querySelectorAll('.dist-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.dist)===d));
-  document.getElementById('alert-dist-label').textContent=d>=1000?(d/1000).toFixed(1)+' km':d+' m';
-}
-
-async function fetchZones(lat,lon){
-  if(lastZoneFetch.lat&&haversine(lastZoneFetch.lat,lastZoneFetch.lon,lat,lon)*1000<300)return;
-  lastZoneFetch={lat,lon};
-  document.getElementById('zone-status').textContent=t('zoneChecking');
-  try{
-    const q=`[out:json][timeout:8];(node["amenity"~"school|hospital|kindergarten"](around:${ZONE_FETCH_RADIUS},${lat},${lon});way["amenity"~"school|hospital|kindergarten"](around:${ZONE_FETCH_RADIUS},${lat},${lon}););out center;`;
-    const data=await overpassFetch(q,9000);
-    if(data.elements&&data.elements.length>0){
-      document.getElementById('zone-status').textContent=(lang==='en'?`${data.elements.length} special zones nearby`:`Yakında ${data.elements.length} özel bölge var`);
-      checkZoneProximity(lat,lon,data.elements);
-    }else{
-      document.getElementById('zone-status').textContent=t('zoneNone');
-      document.getElementById('zone-active-banner').style.display='none';
-    }
-  }catch(e){document.getElementById('zone-status').textContent=t('zoneFailed');}
-}
-
-function checkZoneProximity(lat,lon,zones){
-  if(!zones)return;
-  let nearest=null,minDist=Infinity;
-  zones.forEach(z=>{
-    const zLat=z.lat||(z.center&&z.center.lat);
-    const zLon=z.lon||(z.center&&z.center.lon);
-    if(!zLat)return;
-    const d=haversine(lat,lon,zLat,zLon)*1000;
-    if(d<minDist){minDist=d;nearest={...z,dist:d};}
-  });
-  if(nearest&&nearest.dist<alertDistMeters){
-    const type=nearest.tags&&nearest.tags.amenity;
-    const icon=type==='hospital'?'🏥':type==='school'||type==='kindergarten'?'🏫':'📍';
-    const name=nearest.tags&&(nearest.tags.name||type)||'Özel Bölge';
-    document.getElementById('zone-icon').textContent=icon;
-    document.getElementById('zone-name').textContent=name;
-    document.getElementById('zone-dist-text').textContent=Math.round(nearest.dist)+' m uzakta';
-    document.getElementById('zone-active-banner').style.display='flex';
-    document.getElementById('zone-active-banner').classList.add('zone-alert-pulse');
-    zoneCount++;
-    document.getElementById('zone-count').textContent=zoneCount;
-  }else{
-    document.getElementById('zone-active-banner').style.display='none';
-  }
-}
-
-// ── Yakıt / Elektrik ──
-let fuelMode='petrol';
-function setFuelMode(m){
-  fuelMode=m;
-  document.getElementById('fuel-tab-petrol').style.borderColor=m==='petrol'?'var(--accent3)':'var(--border)';
-  document.getElementById('fuel-tab-petrol').style.background=m==='petrol'?'rgba(57,255,20,0.1)':'transparent';
-  document.getElementById('fuel-tab-petrol').style.color=m==='petrol'?'var(--accent3)':'var(--muted)';
-  document.getElementById('fuel-tab-electric').style.borderColor=m==='electric'?'var(--accent)':'var(--border)';
-  document.getElementById('fuel-tab-electric').style.background=m==='electric'?'rgba(0,229,255,0.1)':'transparent';
-  document.getElementById('fuel-tab-electric').style.color=m==='electric'?'var(--accent)':'var(--muted)';
-  document.getElementById('fuel-unit-label').textContent=m==='electric'?t('fuelUnitElectric'):t('fuelUnitPetrol');
-  calcFuel();
-}
-function calcFuel(){
-  const avgKmh=speedReadings.length>0?speedReadings.reduce((a,b)=>a+b,0)/speedReadings.length:0;
-  const dist=totalDistance||0;
-  const price=parseFloat(document.getElementById('fuel-price-input').value)||42;
-  let consumption,unit,costPerKm;
-  if(fuelMode==='petrol'){
-    // Basit yakıt modeli: düşük hız şehir içi ~10L, otoban ~7L, arası interpolasyon
-    consumption=avgKmh<30?10.5:avgKmh<60?8.5:avgKmh<90?7.0:avgKmh<120?7.8:9.5;
-    costPerKm=(consumption/100)*price;
-  }else{
-    consumption=avgKmh<30?18:avgKmh<60?16:avgKmh<90?14:avgKmh<120?15:18;
-    costPerKm=(consumption/100)*price;
-  }
-  const totalCost=dist*costPerKm;
-  document.getElementById('fuel-est').textContent=consumption.toFixed(1);
-  document.getElementById('fuel-cost').textContent=dist>0?(totalCost.toFixed(1)+'₺'):'—';
-}
-
-// ── Haftalık/Aylık Rapor ──
-let reportPeriod='week';
-function setReportPeriod(p){
-  reportPeriod=p;
-  document.getElementById('report-week-btn').style.borderColor=p==='week'?'var(--accent)':'var(--border)';
-  document.getElementById('report-week-btn').style.background=p==='week'?'rgba(0,229,255,0.1)':'transparent';
-  document.getElementById('report-week-btn').style.color=p==='week'?'var(--accent)':'var(--muted)';
-  document.getElementById('report-month-btn').style.borderColor=p==='month'?'var(--accent)':'var(--border)';
-  document.getElementById('report-month-btn').style.background=p==='month'?'rgba(0,229,255,0.1)':'transparent';
-  document.getElementById('report-month-btn').style.color=p==='month'?'var(--accent)':'var(--muted)';
-  renderReport();
-}
-function renderReport(){
-  const trips=JSON.parse(localStorage.getItem('rg_trips')||'[]');
-  const now=Date.now();
-  const cutoff=reportPeriod==='week'?7*24*3600*1000:30*24*3600*1000;
-  const filtered=trips.filter(t=>{
-    try{const d=new Date(t.date.split(' ')[0].replace(/\./g,'-').split('-').reverse().join('-'));return(now-d.getTime())<cutoff;}catch(e){return false;}
-  });
-  document.getElementById('report-trips').textContent=filtered.length;
-  const totalKm=filtered.reduce((a,t)=>a+parseFloat(t.distance||0),0);
-  document.getElementById('report-km').textContent=totalKm.toFixed(0);
-  const scores=filtered.filter(t=>t.score).map(t=>t.score);
-  document.getElementById('report-avg-score').textContent=scores.length>0?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):'—';
-  // Bar grafik
-  const days=reportPeriod==='week'?7:30;
-  document.getElementById('report-chart-label').textContent=lang==='en'?`Last ${days} days — daily km`:`Son ${days} gün — günlük km`;
-  const bars=document.getElementById('report-bars');
-  bars.innerHTML='';
-  const buckets=Array(days).fill(0);
-  filtered.forEach(t=>{
-    try{const d=new Date(t.date.split(' ')[0].replace(/\./g,'-').split('-').reverse().join('-'));const daysAgo=Math.floor((now-d.getTime())/(24*3600*1000));if(daysAgo<days)buckets[days-1-daysAgo]+=parseFloat(t.distance||0);}catch(e){}
-  });
-  const maxVal=Math.max(...buckets,1);
-  buckets.forEach((v,i)=>{
-    const bar=document.createElement('div');
-    bar.style.cssText=`flex:1;background:${v>0?'var(--accent)':'rgba(255,255,255,0.06)'};border-radius:3px 3px 0 0;height:${Math.max(2,Math.round((v/maxVal)*48))}px;opacity:${v>0?0.8:0.3};transition:height 0.4s;`;
-    bars.appendChild(bar);
-  });
-}
-
-// ── Canlı Trafik ──
-let lastTrafficFetch=0,trafficZones=null;
-async function fetchTraffic(lat,lon){
-  const now=Date.now();
-  if(now-lastTrafficFetch<120000)return;
-  lastTrafficFetch=now;
-  document.getElementById('traffic-loading').textContent=t('trafficLoading');
-  document.getElementById('traffic-loading').style.display='block';
-  document.getElementById('traffic-data').style.display='none';
-  try{
-    const q=`[out:json][timeout:6];way["highway"~"primary|secondary|trunk"](around:500,${lat},${lon});out tags 3;`;
-    const data=await overpassFetch(q,7000);
-    const roadCount=data.elements?data.elements.length:0;
-    const hour=new Date().getHours();
-    const isPeakHour=(hour>=7&&hour<=9)||(hour>=17&&hour<=19);
-    const isWeekend=new Date().getDay()===0||new Date().getDay()===6;
-    let level,status,desc,delay,icon;
-    if(isWeekend){level=1;status=t('trafficLight');desc=t('trafficWeekend');delay=0;icon='🟢';}
-    else if(isPeakHour&&roadCount>1){level=4;status=t('trafficHeavy');desc=t('trafficPeak');delay=Math.floor(8+roadCount*2);icon='🔴';}
-    else if(isPeakHour){level=3;status=t('trafficMedium');desc=t('trafficSlow');delay=Math.floor(3+roadCount);icon='🟡';}
-    else if(roadCount>2){level=2;status=t('trafficMedium');desc=t('trafficNormal');delay=2;icon='🟡';}
-    else{level=1;status=t('trafficFlowing');desc=t('trafficOpen');delay=0;icon='🟢';}
-    document.getElementById('traffic-loading').style.display='none';
-    document.getElementById('traffic-data').style.display='block';
-    document.getElementById('traffic-icon-box').textContent=icon;
-    document.getElementById('traffic-status').textContent=status;
-    document.getElementById('traffic-desc').textContent=desc;
-    document.getElementById('traffic-delay').textContent=delay;
-    document.getElementById('traffic-level').textContent=level+'/5';
-  }catch(e){
-    document.getElementById('traffic-loading').textContent=t('trafficFailed');
-  }
-}
-
-// ── Analiz sekmesine girilince raporu yenile ──
-function refreshAnalizTab(){
-  renderReport();
-  setAlertDist(settings.alertDist||300);
-  calcFuel();
-  updateDrivingScore();
-}
-
-// ══════════════════════════════════════════════════════
-// SEKME GEÇİŞİ
-// ══════════════════════════════════════════════════════
-function switchTab(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  const page=document.getElementById('page-'+name);
-  page.classList.add('active');
-  page.scrollTop=0;
-  document.getElementById('tab-'+name).classList.add('active');
-  if(name==='history')renderHistory();
-  if(name==='analiz')refreshAnalizTab();
-}
-
-// ══════════════════════════════════════════════════════
-// PWA
-// ══════════════════════════════════════════════════════
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').classList.add('show');});
-document.getElementById('installBtn').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;}document.getElementById('installBanner').classList.remove('show');});
-window.addEventListener('appinstalled',()=>document.getElementById('installBanner').classList.remove('show'));
-
-
-// ══════════════════════════════════════════════════════
-// ADMOB
-// ══════════════════════════════════════════════════════
-const ADMOB_BANNER_ID='ca-app-pub-1676586057560000/8492542221';
-const ADMOB_INTERSTITIAL_ID='ca-app-pub-1676586057560000/1415997985';
-let adMobReady=false,interstitialReady=false,AdMobPlugin=null;
-
-async function initAdMob(){
-  try{
-    // Sadece Capacitor native ortamında çalış
-    if(!window.Capacitor||!window.Capacitor.isNativePlatform())return;
-    AdMobPlugin=window.Capacitor.Plugins.AdMob;
-    if(!AdMobPlugin)return;
-    await AdMobPlugin.initialize({requestTrackingAuthorization:false});
-    adMobReady=true;
-    if(!settings.isPremium){
-      showBanner();
-      prepareInterstitial();
-    }
-  }catch(e){console.warn('AdMob init failed:',e);}
-}
-
-async function showBanner(){
-  if(!adMobReady||!AdMobPlugin||settings.isPremium)return;
-  try{
-    await AdMobPlugin.showBanner({
-      adId:ADMOB_BANNER_ID,
-      adSize:'ADAPTIVE_BANNER',
-      position:'BOTTOM_CENTER',
-      isTesting:false
-    });
-  }catch(e){}
-}
-
-async function hideBanner(){
-  if(!adMobReady||!AdMobPlugin)return;
-  try{await AdMobPlugin.hideBanner();}catch(e){}
-}
-
-async function prepareInterstitial(){
-  if(!adMobReady||!AdMobPlugin||settings.isPremium)return;
-  try{
-    await AdMobPlugin.prepareInterstitial({adId:ADMOB_INTERSTITIAL_ID,isTesting:false});
-    interstitialReady=true;
-  }catch(e){}
-}
-
-async function showInterstitial(){
-  if(!adMobReady||!interstitialReady||!AdMobPlugin||settings.isPremium)return;
-  try{
-    await AdMobPlugin.showInterstitial();
-    interstitialReady=false;
-    setTimeout(prepareInterstitial,3000);
-  }catch(e){}
-}
-
-// ══════════════════════════════════════════════════════
-// BAŞLAT
-// ══════════════════════════════════════════════════════
-registerSW();
-loadSettings();
-checkSubscriptionStatus();
-applyLang();
-buildTicks();
-updateNeedle(0);
-renderHistory();
-checkRatePrompt();
-initAdMob();
-initIAP();
-</script>
-</div><!-- /app-wrap -->
-</body>
-</html>
