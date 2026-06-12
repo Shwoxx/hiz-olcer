@@ -1,265 +1,465 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hair Studio – Live Color</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #09090f;
+    color: #fff;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100svh;
+    padding-bottom: 40px;
+    user-select: none;
+  }
 
+  /* ── Camera ── */
+  #cam-wrap {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 9/16;
+    background: #0d0d18;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 24px #00000066;
+    transition: box-shadow 0.5s;
+  }
+  #cam-wrap.live { box-shadow: 0 8px 48px var(--accent-shadow); }
+
+  video { display: none; }
+  #canvas {
+    width: 100%; height: 100%;
+    display: none;
+    object-fit: cover;
+  }
+  #canvas.live { display: block; }
+
+  #idle {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+  }
+  #idle-icon { font-size: 56px; opacity: 0.07; }
+  #idle-text { font-size: 12px; color: #2a2a40; }
+  #error-text { font-size: 12px; color: #e55; text-align: center; max-width: 240px; line-height: 1.6; padding: 0 20px; display: none; }
+
+  /* top bar */
+  #topbar {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 18px 20px;
+    background: linear-gradient(to bottom, #09090fdd, transparent);
+    display: flex; align-items: center; justify-content: space-between;
+    pointer-events: none;
+  }
+  #topbar-eyebrow { font-size: 9px; letter-spacing: 0.22em; color: #ffffff33; text-transform: uppercase; }
+  #topbar-title { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+  #live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    display: none;
+  }
+  #live-dot.visible { display: block; }
+
+  /* bottom overlay */
+  #color-name-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 40px 20px 18px;
+    background: linear-gradient(to top, #09090fcc, transparent);
+    font-size: 11px; color: #ffffff55;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    display: none; pointer-events: none;
+  }
+  #color-name-overlay.visible { display: block; }
+
+  /* ── Controls ── */
+  #controls {
+    width: 100%; max-width: 480px;
+    padding: 22px 20px 0;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+
+  .section-label {
+    font-size: 9px; color: #ffffff22;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* Swatches */
+  #swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+  }
+  .swatch {
+    aspect-ratio: 1; border-radius: 10px;
+    border: 2px solid transparent;
+    cursor: pointer; padding: 0;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, outline 0.15s;
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+  }
+  .swatch.selected {
+    border-color: #fff;
+    transform: scale(1.18);
+  }
+
+  /* Slider rows */
+  .slider-row { display: flex; flex-direction: column; gap: 0; }
+  .slider-head {
+    display: flex; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .slider-head-label {
+    font-size: 9px; color: #ffffff30;
+    letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .slider-head-val {
+    font-size: 11px; font-weight: 700;
+    color: var(--accent);
+  }
+  .track-wrap {
+    position: relative; height: 4px;
+    border-radius: 2px; background: #1a1a28;
+  }
+  .track-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .track-wrap input[type=range] {
+    position: absolute; inset: 0;
+    width: 100%; height: 28px;
+    top: -12px; margin: 0;
+    opacity: 0; cursor: pointer;
+    -webkit-appearance: none;
+  }
+
+  /* Button */
+  #start-btn {
+    padding: 15px; border-radius: 14px; border: none;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s;
+    color: #fff;
+  }
+
+  #tip {
+    font-size: 10px; color: #ffffff15;
+    line-height: 1.9; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Camera -->
+<div id="cam-wrap">
+  <video id="video" playsinline muted></video>
+  <canvas id="canvas"></canvas>
+  <canvas id="tmp" style="display:none"></canvas>
+
+  <div id="idle">
+    <div id="idle-icon">◎</div>
+    <div id="idle-text">Kamera bekleniyor</div>
+    <div id="error-text"></div>
+  </div>
+
+  <div id="topbar">
+    <div>
+      <div id="topbar-eyebrow">Hair Studio</div>
+      <div id="topbar-title">Live Color</div>
+    </div>
+    <div id="live-dot"></div>
+  </div>
+
+  <div id="color-name-overlay"></div>
+</div>
+
+<!-- Controls -->
+<div id="controls">
+
+  <div>
+    <div class="section-label">Renk Seç</div>
+    <div id="swatch-grid"></div>
+  </div>
+
+  <div class="slider-row">
+    <div class="slider-head">
+      <span class="slider-head-label">Yoğunluk</span>
+      <span class="slider-head-val" id="intensity-val">85%</span>
+    </div>
+    <div class="track-wrap">
+      <div class="track-fill" id="intensity-fill"></div>
+      <input type="range" id="intensity" min="0" max="100" value="85">
+    </div>
+  </div>
+
+  <div class="slider-row">
+    <div class="slider-head">
+      <span class="slider-head-label">Hassasiyet</span>
+      <span class="slider-head-val" id="threshold-val">55</span>
+    </div>
+    <div class="track-wrap">
+      <div class="track-fill" id="threshold-fill"></div>
+      <input type="range" id="threshold" min="10" max="100" value="55">
+    </div>
+  </div>
+
+  <button id="start-btn">▶  Kamerayı Başlat</button>
+
+  <div id="tip">Koyu saç → Hassasiyet ↓ &nbsp;·&nbsp; Açık saç → Hassasiyet ↑</div>
+</div>
+
+<script>
 const PALETTE = [
- { name: "Jet Black",     h: 0,   s: 0,   l: 5   },
- { name: "Dark Brown",    h: 20,  s: 50,  l: 15  },
- { name: "Chestnut",      h: 18,  s: 60,  l: 28  },
- { name: "Auburn",        h: 12,  s: 72,  l: 36  },
- { name: "Copper",        h: 20,  s: 88,  l: 44  },
- { name: "Honey Blonde",  h: 38,  s: 78,  l: 54  },
- { name: "Platinum",      h: 48,  s: 22,  l: 84  },
- { name: "Rose Gold",     h: 8,   s: 58,  l: 70  },
- { name: "Burgundy",      h: 340, s: 68,  l: 26  },
- { name: "Cherry Red",    h: 4,   s: 88,  l: 42  },
- { name: "Candy Pink",    h: 328, s: 82,  l: 56  },
- { name: "Lavender",      h: 272, s: 62,  l: 58  },
- { name: "Electric Blue", h: 208, s: 90,  l: 44  },
- { name: "Mint Green",    h: 152, s: 64,  l: 36  },
- { name: "Silver",        h: 220, s: 10,  l: 75  },
- { name: "Ash Gray",      h: 210, s: 8,   l: 50  },
+  { name: "Jet Black",     h: 0,   s: 0,   l: 5   },
+  { name: "Dark Brown",    h: 20,  s: 50,  l: 15  },
+  { name: "Chestnut",      h: 18,  s: 60,  l: 28  },
+  { name: "Auburn",        h: 12,  s: 72,  l: 36  },
+  { name: "Copper",        h: 20,  s: 88,  l: 44  },
+  { name: "Honey Blonde",  h: 38,  s: 78,  l: 54  },
+  { name: "Platinum",      h: 48,  s: 22,  l: 84  },
+  { name: "Rose Gold",     h: 8,   s: 58,  l: 70  },
+  { name: "Burgundy",      h: 340, s: 68,  l: 26  },
+  { name: "Cherry Red",    h: 4,   s: 88,  l: 42  },
+  { name: "Candy Pink",    h: 328, s: 82,  l: 56  },
+  { name: "Lavender",      h: 272, s: 62,  l: 58  },
+  { name: "Electric Blue", h: 208, s: 90,  l: 44  },
+  { name: "Mint Green",    h: 152, s: 64,  l: 36  },
+  { name: "Silver",        h: 220, s: 10,  l: 75  },
+  { name: "Ash Gray",      h: 210, s: 8,   l: 50  },
 ];
 
 function hsl2hex(h, s, l) {
- s /= 100; l /= 100;
- const a = s * Math.min(l, 1 - l);
- const f = n => {
-   const k = (n + h / 30) % 12;
-   const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-   return Math.round(255 * c).toString(16).padStart(2, "0");
- };
- return `#${f(0)}${f(8)}${f(4)}`;
+  s /= 100; l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * c).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
 }
 
 function rgb2hsl(r, g, b) {
- r /= 255; g /= 255; b /= 255;
- const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
- let h = 0, s = 0, l = (max + min) / 2;
- if (d > 0) {
-   s = d / (l > 0.5 ? 2 - max - min : max + min);
-   if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-   else if (max === g) h = ((b - r) / d + 2) / 6;
-   else h = ((r - g) / d + 4) / 6;
- }
- return [h * 360, s * 100, l * 100];
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (d > 0) {
+    s = d / (l > 0.5 ? 2 - max - min : max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  return [h * 360, s * 100, l * 100];
 }
 
 function hsl2rgb(h, s, l) {
- s /= 100; l /= 100;
- const k = n => (n + h / 30) % 12;
- const a = s * Math.min(l, 1 - l);
- const f = n => Math.round((l - a * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1)) * 255);
- return [f(0), f(8), f(4)];
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => Math.round((l - a * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1)) * 255);
+  return [f(0), f(8), f(4)];
 }
 
-function isHairPixel(r, g, b, threshold) {
- const [, s, l] = rgb2hsl(r, g, b);
- const brightness = r * 0.299 + g * 0.587 + b * 0.114;
- if (brightness > 220 || brightness < 5) return false;
- if (s < 8 && l < 20) return false;
- const skinLike = r > 150 && g > 100 && b > 80 && r > g && g > b && (r - b) > 30;
- if (skinLike) return false;
- return s < threshold;
+function isHair(r, g, b, thr) {
+  const br = r * 0.299 + g * 0.587 + b * 0.114;
+  if (br > 220 || br < 5) return false;
+  const [, s, l] = rgb2hsl(r, g, b);
+  if (s < 8 && l < 20) return false;
+  const skin = r > 150 && g > 100 && b > 80 && r > g && g > b && (r - b) > 30;
+  if (skin) return false;
+  return s < thr;
 }
 
-export default function App() {
- const videoRef  = useRef(null);
- const canvasRef = useRef(null);
- const tmpRef    = useRef(null);
- const animRef   = useRef(null);
- const streamRef = useRef(null);
+// ── State ──
+let selIdx    = 2;
+let intensity = 85;
+let threshold = 55;
+let live      = false;
+let stream    = null;
+let animId    = null;
 
- const [live,      setLive]      = useState(false);
- const [error,     setError]     = useState("");
- const [selIdx,    setSelIdx]    = useState(2);
- const [intensity, setIntensity] = useState(85);
- const [threshold, setThreshold] = useState(55);
+const video   = document.getElementById('video');
+const canvas  = document.getElementById('canvas');
+const tmp     = document.getElementById('tmp');
+const ctx     = canvas.getContext('2d', { willReadFrequently: true });
+const tctx    = tmp.getContext('2d',    { willReadFrequently: true });
 
- const stateRef = useRef({ selIdx: 2, intensity: 85, threshold: 55 });
- useEffect(() => { stateRef.current = { selIdx, intensity, threshold }; }, [selIdx, intensity, threshold]);
+// ── Build swatches ──
+const grid = document.getElementById('swatch-grid');
+PALETTE.forEach((c, i) => {
+  const bg = hsl2hex(c.h, Math.max(c.s, 15), Math.max(c.l, 12));
+  const btn = document.createElement('button');
+  btn.className = 'swatch' + (i === selIdx ? ' selected' : '');
+  btn.style.background = bg;
+  btn.title = c.name;
+  btn.dataset.idx = i;
+  btn.addEventListener('click', () => selectColor(i));
+  grid.appendChild(btn);
+});
 
- const startCam = useCallback(async () => {
-   setError("");
-   try {
-     const s = await navigator.mediaDevices.getUserMedia({
-       video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 1280 } },
-       audio: false
-     });
-     streamRef.current = s;
-     const v = videoRef.current;
-     v.srcObject = s;
-     v.onloadedmetadata = () => { v.play(); setLive(true); };
-   } catch {
-     setError("Kamera izni reddedildi. Tarayıcı adres çubuğundaki kilit ikonuna tıkla.");
-   }
- }, []);
-
- const stopCam = useCallback(() => {
-   cancelAnimationFrame(animRef.current);
-   streamRef.current?.getTracks().forEach(t => t.stop());
-   setLive(false);
- }, []);
-
- useEffect(() => {
-   if (!live) return;
-   const video  = videoRef.current;
-   const canvas = canvasRef.current;
-   const tmp    = tmpRef.current;
-   const ctx    = canvas.getContext("2d", { willReadFrequently: true });
-   const tctx   = tmp.getContext("2d",    { willReadFrequently: true });
-
-   const render = () => {
-     if (!video.videoWidth) { animRef.current = requestAnimationFrame(render); return; }
-     const W = video.videoWidth, H = video.videoHeight;
-     if (canvas.width !== W) { canvas.width = W; canvas.height = H; tmp.width = W; tmp.height = H; }
-
-     tctx.save(); tctx.translate(W, 0); tctx.scale(-1, 1);
-     tctx.drawImage(video, 0, 0, W, H);
-     tctx.restore();
-
-     const frame = tctx.getImageData(0, 0, W, H);
-     const d = frame.data;
-     const { selIdx: si, intensity: int, threshold: thr } = stateRef.current;
-     const { h: tH, s: tS, l: tL } = PALETTE[si];
-     const blend = int / 100;
-
-     for (let i = 0; i < d.length; i += 4) {
-       const r = d[i], g = d[i+1], b = d[i+2];
-       if (!isHairPixel(r, g, b, thr)) continue;
-       const [, , srcL] = rgb2hsl(r, g, b);
-       const targetL = Math.max(5, Math.min(92, srcL * 0.85 + tL * 0.15));
-       const [nr, ng, nb] = hsl2rgb(tH, tS * 0.9, targetL);
-       d[i]   = Math.round(r * (1 - blend) + nr * blend);
-       d[i+1] = Math.round(g * (1 - blend) + ng * blend);
-       d[i+2] = Math.round(b * (1 - blend) + nb * blend);
-     }
-     ctx.putImageData(frame, 0, 0);
-     animRef.current = requestAnimationFrame(render);
-   };
-   animRef.current = requestAnimationFrame(render);
-   return () => cancelAnimationFrame(animRef.current);
- }, [live]);
-
- const col = PALETTE[selIdx];
- const accent = hsl2hex(col.h, Math.max(col.s, 30), Math.max(col.l, 45));
-
- return (
-   <div style={{
-     minHeight: "100svh", background: "#09090f",
-     display: "flex", flexDirection: "column", alignItems: "center",
-     fontFamily: "system-ui, -apple-system, sans-serif",
-     color: "#fff", paddingBottom: 32, userSelect: "none"
-   }}>
-     {/* Camera portrait */}
-     <div style={{
-       width: "100%", maxWidth: 480, aspectRatio: "9/16",
-       background: "#0d0d18", position: "relative", overflow: "hidden",
-       borderRadius: "0 0 24px 24px",
-       boxShadow: live ? `0 8px 48px ${accent}33` : "0 4px 24px #00000066",
-       transition: "box-shadow 0.5s"
-     }}>
-       <video ref={videoRef} playsInline muted style={{ display: "none" }} />
-       <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: live ? "block" : "none", objectFit: "cover" }} />
-       <canvas ref={tmpRef} style={{ display: "none" }} />
-
-       {!live && (
-         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-           <div style={{ fontSize: 56, opacity: 0.07 }}>◎</div>
-           {error
-             ? <div style={{ fontSize: 12, color: "#e55", textAlign: "center", maxWidth: 240, lineHeight: 1.6, padding: "0 20px" }}>{error}</div>
-             : <div style={{ fontSize: 12, color: "#2a2a40" }}>Kamera bekleniyor</div>
-           }
-         </div>
-       )}
-
-       <div style={{
-         position: "absolute", top: 0, left: 0, right: 0, padding: "18px 20px",
-         background: "linear-gradient(to bottom, #09090fdd, transparent)",
-         display: "flex", alignItems: "center", justifyContent: "space-between"
-       }}>
-         <div>
-           <div style={{ fontSize: 9, letterSpacing: "0.22em", color: "#ffffff33", textTransform: "uppercase" }}>Hair Studio</div>
-           <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Live Color</div>
-         </div>
-         {live && <div style={{ width: 7, height: 7, borderRadius: "50%", background: accent, boxShadow: `0 0 10px ${accent}` }} />}
-       </div>
-
-       {live && (
-         <div style={{
-           position: "absolute", bottom: 0, left: 0, right: 0,
-           padding: "40px 20px 18px",
-           background: "linear-gradient(to top, #09090fcc, transparent)",
-           fontSize: 11, color: "#ffffff55", letterSpacing: "0.12em", textTransform: "uppercase"
-         }}>
-           {col.name}
-         </div>
-       )}
-     </div>
-
-     {/* Controls */}
-     <div style={{ width: "100%", maxWidth: 480, padding: "22px 20px 0", display: "flex", flexDirection: "column", gap: 22 }}>
-
-       {/* Color swatches */}
-       <div>
-         <div style={{ fontSize: 9, color: "#ffffff25", letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 12 }}>Renk Seç</div>
-         <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 8 }}>
-           {PALETTE.map((c, i) => {
-             const bg = hsl2hex(c.h, Math.max(c.s, 15), Math.max(c.l, 12));
-             const sel = selIdx === i;
-             return (
-               <button key={i} title={c.name} onClick={() => setSelIdx(i)} style={{
-                 aspectRatio: "1", borderRadius: 10, background: bg, padding: 0,
-                 border: sel ? "2px solid #fff" : "2px solid transparent",
-                 outline: sel ? `3px solid ${bg}55` : "none", outlineOffset: 2,
-                 cursor: "pointer",
-                 transform: sel ? "scale(1.18)" : "scale(1)",
-                 boxShadow: sel ? `0 0 14px ${bg}aa` : "none",
-                 transition: "all 0.15s"
-               }} />
-             );
-           })}
-         </div>
-       </div>
-
-       {/* Sliders */}
-       {[
-         { label: "Yoğunluk", val: intensity, set: setIntensity, min: 0, max: 100, unit: "%" },
-         { label: "Hassasiyet", val: threshold, set: setThreshold, min: 10, max: 100, unit: "" },
-       ].map(({ label, val, set, min, max, unit }) => (
-         <div key={label}>
-           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-             <span style={{ fontSize: 9, color: "#ffffff30", letterSpacing: "0.18em", textTransform: "uppercase" }}>{label}</span>
-             <span style={{ fontSize: 11, color: accent, fontWeight: 700 }}>{val}{unit}</span>
-           </div>
-           <div style={{ position: "relative", height: 4, borderRadius: 2, background: "#1a1a28" }}>
-             <div style={{
-               position: "absolute", left: 0, top: 0, bottom: 0,
-               width: `${(val - min) / (max - min) * 100}%`,
-               background: `linear-gradient(to right, ${hsl2hex(col.h, col.s, 20)}, ${accent})`,
-               borderRadius: 2
-             }} />
-             <input type="range" min={min} max={max} value={val}
-               onChange={e => set(+e.target.value)}
-               style={{ position: "absolute", inset: 0, width: "100%", opacity: 0, cursor: "pointer", height: 24, top: -10, margin: 0 }} />
-           </div>
-         </div>
-       ))}
-
-       {/* Button */}
-       <button onClick={live ? stopCam : startCam} style={{
-         padding: "15px", borderRadius: 14, border: "none",
-         background: live ? "#141420" : `linear-gradient(135deg, ${hsl2hex(col.h, col.s, col.l)}, ${hsl2hex((col.h + 20) % 360, col.s, col.l + 10)})`,
-         color: live ? "#444" : "#fff", fontSize: 12, fontWeight: 700,
-         letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer",
-         transition: "all 0.3s",
-         boxShadow: live ? "none" : `0 4px 24px ${accent}44`
-       }}>
-         {live ? "■  Durdur" : "▶  Kamerayı Başlat"}
-       </button>
-
-       <div style={{ fontSize: 10, color: "#ffffff15", lineHeight: 1.9, textAlign: "center" }}>
-         Koyu saç → Hassasiyet ↓ &nbsp;·&nbsp; Açık saç → Hassasiyet ↑
-       </div>
-     </div>
-   </div>
- );
+function selectColor(i) {
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+  grid.children[i].classList.add('selected');
+  selIdx = i;
+  updateAccent();
 }
+
+function getAccent() {
+  const c = PALETTE[selIdx];
+  return hsl2hex(c.h, Math.max(c.s, 30), Math.max(c.l, 45));
+}
+
+function updateAccent() {
+  const accent = getAccent();
+  const c = PALETTE[selIdx];
+  document.documentElement.style.setProperty('--accent', accent);
+  document.documentElement.style.setProperty('--accent-shadow', accent + '33');
+
+  // swatch glow
+  grid.querySelectorAll('.swatch').forEach((s, i) => {
+    const bg = hsl2hex(PALETTE[i].h, Math.max(PALETTE[i].s, 15), Math.max(PALETTE[i].l, 12));
+    s.style.boxShadow = i === selIdx ? `0 0 14px ${bg}aa` : 'none';
+    s.style.outlineColor = i === selIdx ? bg + '55' : 'transparent';
+  });
+
+  // slider fills
+  updateSliderFills();
+
+  // button gradient
+  if (!live) {
+    const btn = document.getElementById('start-btn');
+    const c2 = hsl2hex((c.h + 20) % 360, c.s, c.l + 10);
+    btn.style.background = `linear-gradient(135deg, ${hsl2hex(c.h, c.s, c.l)}, ${c2})`;
+    btn.style.boxShadow  = `0 4px 24px ${accent}44`;
+    btn.style.color = '#fff';
+  }
+
+  // color name overlay
+  document.getElementById('color-name-overlay').textContent = PALETTE[selIdx].name;
+
+  if (live) document.getElementById('live-dot').style.background = accent;
+}
+
+function updateSliderFills() {
+  const accent = getAccent();
+  const c = PALETTE[selIdx];
+  const intPct = intensity + '%';
+  const thrPct = ((threshold - 10) / 90 * 100) + '%';
+  const from = hsl2hex(c.h, c.s, 20);
+  document.getElementById('intensity-fill').style.cssText  = `width:${intPct}; background:linear-gradient(to right,${from},${accent})`;
+  document.getElementById('threshold-fill').style.cssText  = `width:${thrPct}; background:linear-gradient(to right,${from},${accent})`;
+}
+
+// ── Sliders ──
+document.getElementById('intensity').addEventListener('input', e => {
+  intensity = +e.target.value;
+  document.getElementById('intensity-val').textContent = intensity + '%';
+  updateSliderFills();
+});
+document.getElementById('threshold').addEventListener('input', e => {
+  threshold = +e.target.value;
+  document.getElementById('threshold-val').textContent = threshold;
+  updateSliderFills();
+});
+
+// ── Camera ──
+document.getElementById('start-btn').addEventListener('click', () => {
+  live ? stopCam() : startCam();
+});
+
+async function startCam() {
+  document.getElementById('error-text').style.display = 'none';
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 } },
+      audio: false
+    });
+    video.srcObject = stream;
+    video.onloadedmetadata = () => {
+      video.play();
+      live = true;
+      onLive();
+    };
+  } catch(e) {
+    const el = document.getElementById('error-text');
+    el.textContent = 'Kamera izni reddedildi. Adres çubuğundaki kilit ikonuna tıkla.';
+    el.style.display = 'block';
+    document.getElementById('idle-text').style.display = 'none';
+  }
+}
+
+function stopCam() {
+  cancelAnimationFrame(animId);
+  stream?.getTracks().forEach(t => t.stop());
+  live = false;
+  canvas.classList.remove('live');
+  document.getElementById('cam-wrap').classList.remove('live');
+  document.getElementById('idle').style.display = 'flex';
+  document.getElementById('idle-text').style.display = 'block';
+  document.getElementById('live-dot').classList.remove('visible');
+  document.getElementById('color-name-overlay').classList.remove('visible');
+  const btn = document.getElementById('start-btn');
+  btn.textContent = '▶  Kamerayı Başlat';
+  btn.style.color = '#fff';
+  updateAccent();
+}
+
+function onLive() {
+  document.getElementById('idle').style.display = 'none';
+  canvas.classList.add('live');
+  document.getElementById('cam-wrap').classList.add('live');
+  document.getElementById('live-dot').classList.add('visible');
+  document.getElementById('color-name-overlay').classList.add('visible');
+  const btn = document.getElementById('start-btn');
+  btn.textContent = '■  Durdur';
+  btn.style.background = '#141420';
+  btn.style.boxShadow  = 'none';
+  btn.style.color = '#444';
+  const accent = getAccent();
+  document.getElementById('live-dot').style.background = accent;
+  document.getElementById('live-dot').style.boxShadow  = `0 0 10px ${accent}`;
+  render();
+}
+
+function render() {
+  if (!video.videoWidth) { animId = requestAnimationFrame(render); return; }
+  const W = video.videoWidth, H = video.videoHeight;
+  if (canvas.width !== W) { canvas.width = W; canvas.height = H; tmp.width = W; tmp.height = H; }
+
+  tctx.save(); tctx.translate(W, 0); tctx.scale(-1, 1);
+  tctx.drawImage(video, 0, 0, W, H);
+  tctx.restore();
+
+  const frame = tctx.getImageData(0, 0, W, H);
+  const d = frame.data;
+  const { h: tH, s: tS, l: tL } = PALETTE[selIdx];
+  const blend = intensity / 100;
+  const thr   = threshold;
+
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], g = d[i+1], b = d[i+2];
+    if (!isHair(r, g, b, thr)) continue;
+    const [,, srcL] = rgb2hsl(r, g, b);
+    const targetL   = Math.max(5, Math.min(92, srcL * 0.85 + tL * 0.15));
+    const [nr, ng, nb] = hsl2rgb(tH, tS * 0.9, targetL);
+    d[i]   = Math.round(r * (1 - blend) + nr * blend);
+    d[i+1] = Math.round(g * (1 - blend) + ng * blend);
+    d[i+2] = Math.round(b * (1 - blend) + nb * blend);
+  }
+  ctx.putImageData(frame, 0, 0);
+  animId = requestAnimationFrame(render);
+}
+
+// Init
+updateAccent();
+</script>
+</body>
+</html>
